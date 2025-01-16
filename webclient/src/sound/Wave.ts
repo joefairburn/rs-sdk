@@ -1,7 +1,7 @@
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
-import SoundTone from '#/sound/SoundTone.js';
+import Tone from '#/sound/Tone.js';
 
 import { TypedArray1d } from '#/util/Arrays.js';
 
@@ -11,7 +11,7 @@ export default class Wave {
     static waveBuffer: Packet | null = null;
 
     private static readonly tracks: (Wave | null)[] = new TypedArray1d(1000, null);
-    private readonly tones: (SoundTone | null)[] = new TypedArray1d(10, null);
+    private readonly tones: (Tone | null)[] = new TypedArray1d(10, null);
 
     private loopBegin: number = 0;
     private loopEnd: number = 0;
@@ -20,7 +20,7 @@ export default class Wave {
         const dat: Packet = new Packet(sounds.read('sounds.dat'));
         this.waveBytes = new Uint8Array(441000);
         this.waveBuffer = new Packet(this.waveBytes);
-        SoundTone.init();
+        Tone.init();
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -48,7 +48,7 @@ export default class Wave {
         for (let tone: number = 0; tone < 10; tone++) {
             if (dat.g1 !== 0) {
                 dat.pos--;
-                this.tones[tone] = new SoundTone();
+                this.tones[tone] = new Tone();
                 this.tones[tone]?.read(dat);
             }
         }

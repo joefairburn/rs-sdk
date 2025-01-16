@@ -1,6 +1,6 @@
 import Packet from '#/io/Packet.js';
 
-export default class SoundEnvelope {
+export default class Envelope {
     start: number = 0;
     end: number = 0;
     form: number = 0;

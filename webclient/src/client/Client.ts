@@ -27,7 +27,7 @@ import PlayerEntity from '#/dash3d/entity/PlayerEntity.js';
 
 import LocSpawned from '#/dash3d/type/LocSpawned.js';
 import LocTemporary from '#/dash3d/type/LocTemporary.js';
-import Tile from '#/dash3d/type/Tile.js';
+import Ground from '#/dash3d/type/Ground.js';
 
 import LocEntity from '#/dash3d/entity/LocEntity.js';
 import ObjStackEntity from '#/dash3d/entity/ObjStackEntity.js';
@@ -46,8 +46,8 @@ import AnimBase from '#/graphics/AnimBase.js';
 import AnimFrame from '#/graphics/AnimFrame.js';
 import { canvas2d } from '#/graphics/Canvas.js';
 import Colors from '#/graphics/Colors.js';
-import Draw2D from '#/graphics/Draw2D.js';
-import Draw3D from '#/graphics/Draw3D.js';
+import Pix2D from '#/graphics/Pix2D.js';
+import Pix3D from '#/graphics/Pix3D.js';
 import Model from '#/graphics/Model.js';
 import Pix8 from '#/graphics/Pix8.js';
 import Pix24 from '#/graphics/Pix24.js';
@@ -101,14 +101,14 @@ export class Client extends GameShell {
 
     static setHighMemory = (): void => {
         World3D.lowMemory = false;
-        Draw3D.lowMemory = false;
+        Pix3D.lowMemory = false;
         Client.lowMemory = false;
         World.lowMemory = false;
     };
 
     static setLowMemory = (): void => {
         World3D.lowMemory = true;
-        Draw3D.lowMemory = true;
+        Pix3D.lowMemory = true;
         Client.lowMemory = true;
         World.lowMemory = true;
     };
@@ -505,7 +505,7 @@ export class Client extends GameShell {
 
     // debug
     // alt+shift click to add a tile overlay
-    protected userTileMarkers: (Tile | null)[] = new TypedArray1d(16, null);
+    protected userTileMarkers: (Ground | null)[] = new TypedArray1d(16, null);
     protected userTileMarkerIndex: number = 0;
     protected lastTickFlag: boolean = false;
 
@@ -756,7 +756,7 @@ export class Client extends GameShell {
     protected drawScrollbar = (x: number, y: number, scrollY: number, scrollHeight: number, height: number): void => {
         this.imageScrollbar0?.draw(x, y);
         this.imageScrollbar1?.draw(x, y + height - 16);
-        Draw2D.fillRect(x, y + 16, 16, height - 32, Colors.SCROLLBAR_TRACK);
+        Pix2D.fillRect(x, y + 16, 16, height - 32, Colors.SCROLLBAR_TRACK);
 
         let gripSize: number = (((height - 32) * height) / scrollHeight) | 0;
         if (gripSize < 8) {
@@ -764,19 +764,19 @@ export class Client extends GameShell {
         }
 
         const gripY: number = (((height - gripSize - 32) * scrollY) / (scrollHeight - height)) | 0;
-        Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, Colors.SCROLLBAR_GRIP_FOREGROUND);
+        Pix2D.fillRect(x, y + gripY + 16, 16, gripSize, Colors.SCROLLBAR_GRIP_FOREGROUND);
 
-        Draw2D.drawVerticalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
-        Draw2D.drawVerticalLine(x + 1, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
+        Pix2D.drawVerticalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
+        Pix2D.drawVerticalLine(x + 1, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
 
-        Draw2D.drawHorizontalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
-        Draw2D.drawHorizontalLine(x, y + gripY + 17, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
+        Pix2D.drawHorizontalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
+        Pix2D.drawHorizontalLine(x, y + gripY + 17, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
 
-        Draw2D.drawVerticalLine(x + 15, y + gripY + 16, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize);
-        Draw2D.drawVerticalLine(x + 14, y + gripY + 17, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize - 1);
+        Pix2D.drawVerticalLine(x + 15, y + gripY + 16, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize);
+        Pix2D.drawVerticalLine(x + 14, y + gripY + 17, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize - 1);
 
-        Draw2D.drawHorizontalLine(x, y + gripY + gripSize + 15, Colors.SCROLLBAR_GRIP_LOWLIGHT, 16);
-        Draw2D.drawHorizontalLine(x + 1, y + gripY + gripSize + 14, Colors.SCROLLBAR_GRIP_LOWLIGHT, 15);
+        Pix2D.drawHorizontalLine(x, y + gripY + gripSize + 15, Colors.SCROLLBAR_GRIP_LOWLIGHT, 16);
+        Pix2D.drawHorizontalLine(x + 1, y + gripY + gripSize + 14, Colors.SCROLLBAR_GRIP_LOWLIGHT, 15);
     };
 
     protected updateInterfaceAnimation = (id: number, delta: number): boolean => {
@@ -825,12 +825,12 @@ export class Client extends GameShell {
             return;
         }
 
-        const left: number = Draw2D.left;
-        const top: number = Draw2D.top;
-        const right: number = Draw2D.right;
-        const bottom: number = Draw2D.bottom;
+        const left: number = Pix2D.left;
+        const top: number = Pix2D.top;
+        const right: number = Pix2D.right;
+        const bottom: number = Pix2D.bottom;
 
-        Draw2D.setBounds(x, y, x + com.width, y + com.height);
+        Pix2D.setBounds(x, y, x + com.width, y + com.height);
         const children: number = com.childId.length;
 
         for (let i: number = 0; i < children; i++) {
@@ -846,7 +846,7 @@ export class Client extends GameShell {
             childY += child.y;
 
             if (outline) {
-                Draw2D.drawRect(childX, childY, child.width, child.height, Colors.WHITE);
+                Pix2D.drawRect(childX, childY, child.width, child.height, Colors.WHITE);
             }
 
             if (child.clientCode > 0) {
@@ -931,9 +931,9 @@ export class Client extends GameShell {
                 }
             } else if (child.type === Component.TYPE_RECT) {
                 if (child.fill) {
-                    Draw2D.fillRect(childX, childY, child.width, child.height, child.colour);
+                    Pix2D.fillRect(childX, childY, child.width, child.height, child.colour);
                 } else {
-                    Draw2D.drawRect(childX, childY, child.width, child.height, child.colour);
+                    Pix2D.drawRect(childX, childY, child.width, child.height, child.colour);
                 }
             } else if (child.type === Component.TYPE_TEXT) {
                 const font: PixFont | null = child.font;
@@ -1040,14 +1040,14 @@ export class Client extends GameShell {
 
                 image?.draw(childX, childY);
             } else if (child.type === Component.TYPE_MODEL) {
-                const tmpX: number = Draw3D.centerX;
-                const tmpY: number = Draw3D.centerY;
+                const tmpX: number = Pix3D.centerX;
+                const tmpY: number = Pix3D.centerY;
 
-                Draw3D.centerX = childX + ((child.width / 2) | 0);
-                Draw3D.centerY = childY + ((child.height / 2) | 0);
+                Pix3D.centerX = childX + ((child.width / 2) | 0);
+                Pix3D.centerY = childY + ((child.height / 2) | 0);
 
-                const eyeY: number = (Draw3D.sin[child.xan] * child.zoom) >> 16;
-                const eyeZ: number = (Draw3D.cos[child.xan] * child.zoom) >> 16;
+                const eyeY: number = (Pix3D.sin[child.xan] * child.zoom) >> 16;
+                const eyeZ: number = (Pix3D.cos[child.xan] * child.zoom) >> 16;
 
                 const active: boolean = this.executeInterfaceScript(child);
                 let seqId: number;
@@ -1071,8 +1071,8 @@ export class Client extends GameShell {
                     model.drawSimple(0, child.yan, 0, child.xan, 0, eyeY, eyeZ);
                 }
 
-                Draw3D.centerX = tmpX;
-                Draw3D.centerY = tmpY;
+                Pix3D.centerX = tmpX;
+                Pix3D.centerY = tmpY;
             } else if (child.type === Component.TYPE_INV_TEXT) {
                 const font: PixFont | null = child.font;
                 if (!font || !child.invSlotObjId || !child.invSlotObjCount) {
@@ -1108,7 +1108,7 @@ export class Client extends GameShell {
                 }
             }
         }
-        Draw2D.setBounds(left, top, right, bottom);
+        Pix2D.setBounds(left, top, right, bottom);
     };
 
     private updateInterfaceContent = (component: Component): void => {
@@ -1594,9 +1594,9 @@ export class Client extends GameShell {
             }
 
             await this.showProgress(80, 'Unpacking textures');
-            Draw3D.unpackTextures(textures);
-            Draw3D.setBrightness(0.8);
-            Draw3D.initPool(20);
+            Pix3D.unpackTextures(textures);
+            Pix3D.setBrightness(0.8);
+            Pix3D.initPool(20);
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
@@ -1656,18 +1656,18 @@ export class Client extends GameShell {
                 this.minimapMaskLineLengths[y - 9] = right - left;
             }
 
-            Draw3D.init3D(479, 96);
-            this.areaChatbackOffsets = Draw3D.lineOffset;
-            Draw3D.init3D(190, 261);
-            this.areaSidebarOffsets = Draw3D.lineOffset;
-            Draw3D.init3D(512, 334);
-            this.areaViewportOffsets = Draw3D.lineOffset;
+            Pix3D.init3D(479, 96);
+            this.areaChatbackOffsets = Pix3D.lineOffset;
+            Pix3D.init3D(190, 261);
+            this.areaSidebarOffsets = Pix3D.lineOffset;
+            Pix3D.init3D(512, 334);
+            this.areaViewportOffsets = Pix3D.lineOffset;
 
             const distance: Int32Array = new Int32Array(9);
             for (let x: number = 0; x < 9; x++) {
                 const angle: number = x * 32 + 128 + 15;
                 const offset: number = angle * 3 + 600;
-                const sin: number = Draw3D.sin[angle];
+                const sin: number = Pix3D.sin[angle];
                 distance[x] = (offset * sin) >> 16;
             }
 
@@ -1727,10 +1727,10 @@ export class Client extends GameShell {
         this.fontBold12?.drawStringCenter((x / 2) | 0, ((y / 2) | 0) - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
         const midY: number = ((y / 2) | 0) - 18 - offsetY;
 
-        Draw2D.drawRect(((x / 2) | 0) - 152, midY, 304, 34, Colors.PROGRESS_RED);
-        Draw2D.drawRect(((x / 2) | 0) - 151, midY + 1, 302, 32, Colors.BLACK);
-        Draw2D.fillRect(((x / 2) | 0) - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
-        Draw2D.fillRect(((x / 2) | 0) - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
+        Pix2D.drawRect(((x / 2) | 0) - 152, midY, 304, 34, Colors.PROGRESS_RED);
+        Pix2D.drawRect(((x / 2) | 0) - 151, midY + 1, 302, 32, Colors.BLACK);
+        Pix2D.fillRect(((x / 2) | 0) - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
+        Pix2D.fillRect(((x / 2) | 0) - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
 
         this.fontBold12?.drawStringCenter((x / 2) | 0, ((y / 2) | 0) + 5 - offsetY, str, Colors.WHITE);
         this.imageTitle4?.draw(214, 186);
@@ -1773,31 +1773,31 @@ export class Client extends GameShell {
             this.areaBackhmid1 = null;
 
             this.imageTitle0 = new PixMap(128, 265);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle1 = new PixMap(128, 265);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle2 = new PixMap(533, 186);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle3 = new PixMap(360, 146);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle4 = new PixMap(360, 200);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle5 = new PixMap(214, 267);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle6 = new PixMap(215, 267);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle7 = new PixMap(86, 79);
-            Draw2D.clear();
+            Pix2D.clear();
 
             this.imageTitle8 = new PixMap(87, 79);
-            Draw2D.clear();
+            Pix2D.clear();
 
             if (this.titleArchive) {
                 await this.loadTitleBackground();
@@ -3080,12 +3080,12 @@ export class Client extends GameShell {
                 }
             }
         }
-        jitter = Draw3D.cycle;
+        jitter = Pix3D.cycle;
         Model.checkHover = true;
         Model.pickedCount = 0;
         Model.mouseX = this.mouseX - 8;
         Model.mouseY = this.mouseY - 11;
-        Draw2D.clear();
+        Pix2D.clear();
         this.scene?.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, this.loopCycle);
         this.scene?.clearTemporaryLocs();
         this.draw2DEntityElements();
@@ -3129,10 +3129,10 @@ export class Client extends GameShell {
         let dy: number = y - this.cameraY;
         let dz: number = z - this.cameraZ;
 
-        const sinPitch: number = Draw3D.sin[this.cameraPitch];
-        const cosPitch: number = Draw3D.cos[this.cameraPitch];
-        const sinYaw: number = Draw3D.sin[this.cameraYaw];
-        const cosYaw: number = Draw3D.cos[this.cameraYaw];
+        const sinPitch: number = Pix3D.sin[this.cameraPitch];
+        const cosPitch: number = Pix3D.cos[this.cameraPitch];
+        const sinYaw: number = Pix3D.sin[this.cameraYaw];
+        const cosYaw: number = Pix3D.cos[this.cameraYaw];
 
         let tmp: number = (dz * sinYaw + dx * cosYaw) >> 16;
         dz = (dz * cosYaw - dx * sinYaw) >> 16;
@@ -3143,8 +3143,8 @@ export class Client extends GameShell {
         dy = tmp;
 
         if (dz >= 50) {
-            this.projectX = Draw3D.centerX + (((dx << 9) / dz) | 0);
-            this.projectY = Draw3D.centerY + (((dy << 9) / dz) | 0);
+            this.projectX = Pix3D.centerX + (((dx << 9) / dz) | 0);
+            this.projectY = Pix3D.centerY + (((dy << 9) / dz) | 0);
         } else {
             this.projectX = -1;
             this.projectY = -1;
@@ -3233,8 +3233,8 @@ export class Client extends GameShell {
                     if (w > 30) {
                         w = 30;
                     }
-                    Draw2D.fillRect(this.projectX - 15, this.projectY - 3, w, 5, Colors.GREEN);
-                    Draw2D.fillRect(this.projectX - 15 + w, this.projectY - 3, 30 - w, 5, Colors.RED);
+                    Pix2D.fillRect(this.projectX - 15, this.projectY - 3, w, 5, Colors.GREEN);
+                    Pix2D.fillRect(this.projectX - 15 + w, this.projectY - 3, 30 - w, 5, Colors.RED);
                 }
             }
 
@@ -3322,10 +3322,10 @@ export class Client extends GameShell {
                 if (this.chatStyles[i] === 2) {
                     const w: number = this.fontBold12?.stringWidth(message) ?? 0;
                     const offsetX: number = ((150 - this.chatTimers[i]) * (w + 100)) / 150;
-                    Draw2D.setBounds(this.projectX - 50, 0, this.projectX + 50, 334);
+                    Pix2D.setBounds(this.projectX - 50, 0, this.projectX + 50, 334);
                     this.fontBold12?.drawString(this.projectX + 50 - offsetX, this.projectY + 1, message, Colors.BLACK);
                     this.fontBold12?.drawString(this.projectX + 50 - offsetX, this.projectY, message, color);
-                    Draw2D.resetBounds();
+                    Pix2D.resetBounds();
                 }
             } else {
                 this.fontBold12?.drawStringCenter(this.projectX, this.projectY + 1, message, Colors.BLACK);
@@ -3497,7 +3497,7 @@ export class Client extends GameShell {
     private drawSidebar = (): void => {
         this.areaSidebar?.bind();
         if (this.areaSidebarOffsets) {
-            Draw3D.lineOffset = this.areaSidebarOffsets;
+            Pix3D.lineOffset = this.areaSidebarOffsets;
         }
         this.imageInvback?.draw(0, 0);
         if (this.sidebarInterfaceId !== -1) {
@@ -3511,14 +3511,14 @@ export class Client extends GameShell {
         this.areaSidebar?.draw(562, 231);
         this.areaViewport?.bind();
         if (this.areaViewportOffsets) {
-            Draw3D.lineOffset = this.areaViewportOffsets;
+            Pix3D.lineOffset = this.areaViewportOffsets;
         }
     };
 
     private drawChatback = (): void => {
         this.areaChatback?.bind();
         if (this.areaChatbackOffsets) {
-            Draw3D.lineOffset = this.areaChatbackOffsets;
+            Pix3D.lineOffset = this.areaChatbackOffsets;
         }
         this.imageChatback?.draw(0, 0);
         if (this.showSocialInput) {
@@ -3535,7 +3535,7 @@ export class Client extends GameShell {
         } else if (this.stickyChatInterfaceId === -1) {
             let font: PixFont | null = this.fontPlain12;
             let line: number = 0;
-            Draw2D.setBounds(0, 0, 463, 77);
+            Pix2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
                 const message: string | null = this.messageText[i];
                 if (!message) {
@@ -3596,7 +3596,7 @@ export class Client extends GameShell {
                     line++;
                 }
             }
-            Draw2D.resetBounds();
+            Pix2D.resetBounds();
             this.chatScrollHeight = line * 14 + 7;
             if (this.chatScrollHeight < 78) {
                 this.chatScrollHeight = 78;
@@ -3604,7 +3604,7 @@ export class Client extends GameShell {
             this.drawScrollbar(463, 0, this.chatScrollHeight - this.chatScrollOffset - 77, this.chatScrollHeight, 77);
             font?.drawString(4, 90, JString.formatName(this.username) + ':', Colors.BLACK);
             font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', Colors.BLUE);
-            Draw2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
+            Pix2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
         } else {
             this.drawInterface(Component.instances[this.stickyChatInterfaceId], 0, 0, 0);
         }
@@ -3614,7 +3614,7 @@ export class Client extends GameShell {
         this.areaChatback?.draw(22, 375);
         this.areaViewport?.bind();
         if (this.areaViewportOffsets) {
-            Draw3D.lineOffset = this.areaViewportOffsets;
+            Pix3D.lineOffset = this.areaViewportOffsets;
         }
     };
 
@@ -3685,7 +3685,7 @@ export class Client extends GameShell {
             this.drawOnMinimap(anchorY, this.imageMapflag, anchorX);
         }
         // the white square local player position in the center of the minimap.
-        Draw2D.fillRect(93, 82, 3, 3, Colors.WHITE);
+        Pix2D.fillRect(93, 82, 3, 3, Colors.WHITE);
         this.areaViewport?.bind();
     };
 
@@ -3700,8 +3700,8 @@ export class Client extends GameShell {
             return;
         }
 
-        let sinAngle: number = Draw3D.sin[angle];
-        let cosAngle: number = Draw3D.cos[angle];
+        let sinAngle: number = Pix3D.sin[angle];
+        let cosAngle: number = Pix3D.cos[angle];
 
         sinAngle = ((sinAngle * 256) / (this.minimapZoom + 256)) | 0;
         cosAngle = ((cosAngle * 256) / (this.minimapZoom + 256)) | 0;
@@ -3986,9 +3986,9 @@ export class Client extends GameShell {
         const background: number = Colors.OPTIONS_MENU;
 
         // the menu area square.
-        Draw2D.fillRect(x, y, w, h, background);
-        Draw2D.fillRect(x + 1, y + 1, w - 2, 16, Colors.BLACK);
-        Draw2D.drawRect(x + 1, y + 18, w - 2, h - 19, Colors.BLACK);
+        Pix2D.fillRect(x, y, w, h, background);
+        Pix2D.fillRect(x + 1, y + 1, w - 2, 16, Colors.BLACK);
+        Pix2D.drawRect(x + 1, y + 18, w - 2, h - 19, Colors.BLACK);
 
         // the menu title header at the top.
         this.fontBold12?.drawString(x + 3, y + 14, 'Choose Option', background);
@@ -4149,8 +4149,8 @@ export class Client extends GameShell {
                 y -= 75;
 
                 const yaw: number = (this.orbitCameraYaw + this.minimapAnticheatAngle) & 0x7ff;
-                let sinYaw: number = Draw3D.sin[yaw];
-                let cosYaw: number = Draw3D.cos[yaw];
+                let sinYaw: number = Pix3D.sin[yaw];
+                let cosYaw: number = Pix3D.cos[yaw];
 
                 sinYaw = (sinYaw * (this.minimapZoom + 256)) >> 8;
                 cosYaw = (cosYaw * (this.minimapZoom + 256)) >> 8;
@@ -5433,11 +5433,11 @@ export class Client extends GameShell {
             this.imageTitle8 = null;
             this.areaChatback = new PixMap(479, 96);
             this.areaMapback = new PixMap(168, 160);
-            Draw2D.clear();
+            Pix2D.clear();
             this.imageMapback?.draw(0, 0);
             this.areaSidebar = new PixMap(190, 261);
             this.areaViewport = new PixMap(512, 334);
-            Draw2D.clear();
+            Pix2D.clear();
             this.areaBackbase1 = new PixMap(501, 61);
             this.areaBackbase2 = new PixMap(288, 40);
             this.areaBackhmid1 = new PixMap(269, 66);
@@ -6964,7 +6964,7 @@ export class Client extends GameShell {
             this.locList.clear();
             this.spotanims.clear();
             this.projectiles.clear();
-            Draw3D.clearTexels();
+            Pix3D.clearTexels();
             this.clearCaches();
             this.scene?.reset();
             for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
@@ -7057,7 +7057,7 @@ export class Client extends GameShell {
             /* empty */
         }
         LocType.modelCacheStatic?.clear();
-        Draw3D.initPool(20);
+        Pix3D.initPool(20);
     };
 
     private resetInterfaceAnimation = (id: number): void => {
@@ -7109,16 +7109,16 @@ export class Client extends GameShell {
             const value: number = this.varps[id];
             if (clientcode === 1) {
                 if (value === 1) {
-                    Draw3D.setBrightness(0.9);
+                    Pix3D.setBrightness(0.9);
                 }
                 if (value === 2) {
-                    Draw3D.setBrightness(0.8);
+                    Pix3D.setBrightness(0.8);
                 }
                 if (value === 3) {
-                    Draw3D.setBrightness(0.7);
+                    Pix3D.setBrightness(0.7);
                 }
                 if (value === 4) {
-                    Draw3D.setBrightness(0.6);
+                    Pix3D.setBrightness(0.6);
                 }
                 ObjType.iconCache?.clear();
                 this.redrawTitleBackground = true;
@@ -9707,16 +9707,16 @@ export class Client extends GameShell {
         let tmp: number;
 
         if (invPitch !== 0) {
-            sin = Draw3D.sin[invPitch];
-            cos = Draw3D.cos[invPitch];
+            sin = Pix3D.sin[invPitch];
+            cos = Pix3D.cos[invPitch];
             tmp = (z * cos - distance * sin) >> 16;
             y = (z * sin + distance * cos) >> 16;
             z = tmp;
         }
 
         if (invYaw !== 0) {
-            sin = Draw3D.sin[invYaw];
-            cos = Draw3D.cos[invYaw];
+            sin = Pix3D.sin[invYaw];
+            cos = Pix3D.cos[invYaw];
             tmp = (y * sin + x * cos) >> 16;
             y = (y * cos - x * sin) >> 16;
             x = tmp;
@@ -10163,8 +10163,8 @@ export class Client extends GameShell {
 
     private updateTextures = (cycle: number): void => {
         if (!Client.lowMemory) {
-            if (Draw3D.textureCycle[17] >= cycle) {
-                const texture: Pix8 | null = Draw3D.textures[17];
+            if (Pix3D.textureCycle[17] >= cycle) {
+                const texture: Pix8 | null = Pix3D.textures[17];
                 if (!texture) {
                     return;
                 }
@@ -10179,11 +10179,11 @@ export class Client extends GameShell {
 
                 texture.pixels = dst;
                 this.textureBuffer = src;
-                Draw3D.pushTexture(17);
+                Pix3D.pushTexture(17);
             }
 
-            if (Draw3D.textureCycle[24] >= cycle) {
-                const texture: Pix8 | null = Draw3D.textures[24];
+            if (Pix3D.textureCycle[24] >= cycle) {
+                const texture: Pix8 | null = Pix3D.textures[24];
                 if (!texture) {
                     return;
                 }
@@ -10198,7 +10198,7 @@ export class Client extends GameShell {
 
                 texture.pixels = dst;
                 this.textureBuffer = src;
-                Draw3D.pushTexture(24);
+                Pix3D.pushTexture(24);
             }
         }
     };

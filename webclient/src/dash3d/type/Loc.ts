@@ -2,7 +2,7 @@ import Entity from '#/dash3d/entity/Entity.js';
 
 import Model from '#/graphics/Model.js';
 
-export default class Loc {
+export default class Location {
     // constructor
     readonly level: number;
     readonly y: number;

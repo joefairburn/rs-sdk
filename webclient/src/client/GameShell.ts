@@ -2,7 +2,7 @@ import { CanvasEnabledKeys, KeyCodes } from '#/client/KeyCodes.js';
 import InputTracking from '#/client/InputTracking.js';
 
 import { canvas, canvas2d } from '#/graphics/Canvas.js';
-import Draw3D from '#/graphics/Draw3D.js';
+import Pix3D from '#/graphics/Pix3D.js';
 import PixMap from '#/graphics/PixMap.js';
 
 import { sleep } from '#/util/JsUtil.js';
@@ -82,7 +82,7 @@ export default abstract class GameShell {
         canvas.width = width;
         canvas.height = height;
         this.drawArea = new PixMap(width, height);
-        Draw3D.init2D();
+        Pix3D.init2D();
     };
 
     async run() {

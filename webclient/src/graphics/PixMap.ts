@@ -1,5 +1,5 @@
 import { canvas2d } from '#/graphics/Canvas.js';
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 
 export default class PixMap {
     // constructor
@@ -25,7 +25,7 @@ export default class PixMap {
     }
 
     bind(): void {
-        Draw2D.bind(this.pixels, this.width, this.height);
+        Pix2D.bind(this.pixels, this.width, this.height);
     }
 
     draw(x: number, y: number): void {

@@ -15,7 +15,7 @@ import LocEntity from '#/dash3d/entity/LocEntity.js';
 import TileOverlayShape from '#/dash3d/type/TileOverlayShape.js';
 
 import Colors from '#/graphics/Colors.js';
-import Draw3D from '#/graphics/Draw3D.js';
+import Pix3D from '#/graphics/Pix3D.js';
 import Model from '#/graphics/Model.js';
 
 import Packet from '#/io/Packet.js';
@@ -62,7 +62,7 @@ export default class World {
     };
 
     static interpolate = (a: number, b: number, x: number, scale: number): number => {
-        const f: number = (65536 - Draw3D.cos[((x * 1024) / scale) | 0]) >> 1;
+        const f: number = (65536 - Pix3D.cos[((x * 1024) / scale) | 0]) >> 1;
         return ((a * (65536 - f)) >> 16) + ((b * f) >> 16);
     };
 
@@ -473,7 +473,7 @@ export default class World {
 
                                 let shadeColor: number = 0;
                                 if (baseColor !== -1) {
-                                    shadeColor = Draw3D.palette[FloType.mulHSL(tintColor, 96)];
+                                    shadeColor = Pix3D.palette[FloType.mulHSL(tintColor, 96)];
                                 }
 
                                 if (overlayId === 0) {
@@ -508,7 +508,7 @@ export default class World {
                                     let rgb: number;
 
                                     if (textureId >= 0) {
-                                        rgb = Draw3D.getAverageTextureRGB(textureId);
+                                        rgb = Pix3D.getAverageTextureRGB(textureId);
                                         hsl = -1;
                                     } else if (flo.rgb === Colors.MAGENTA) {
                                         rgb = 0;
@@ -516,7 +516,7 @@ export default class World {
                                         textureId = -1;
                                     } else {
                                         hsl = FloType.hsl24to16(flo.hue, flo.saturation, flo.lightness);
-                                        rgb = Draw3D.palette[FloType.adjustLightness(flo.hsl, 96)];
+                                        rgb = Pix3D.palette[FloType.adjustLightness(flo.hsl, 96)];
                                     }
 
                                     scene?.setTile(

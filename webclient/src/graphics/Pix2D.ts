@@ -1,6 +1,6 @@
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
-export default class Draw2D extends Hashable {
+export default class Pix2D extends DoublyLinkable {
     static pixels: Int32Array = new Int32Array();
 
     static width2d: number = 0;

@@ -1,4 +1,4 @@
-export default class Occluder {
+export default class Occlude {
     // constructor
     readonly minTileX: number;
     readonly maxTileX: number;

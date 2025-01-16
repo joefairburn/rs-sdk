@@ -1,11 +1,11 @@
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 import Pix8 from '#/graphics/Pix8.js';
 
 import Jagfile from '#/io/Jagfile.js';
 import { Int32Array2d, TypedArray1d } from '#/util/Arrays.js';
 
 // noinspection JSSuspiciousNameCombination,DuplicatedCode
-export default class Draw3D extends Draw2D {
+export default class Pix3D extends Pix2D {
     static lowMemory: boolean = false;
 
     static reciprocal15: Int32Array = new Int32Array(512);
@@ -54,12 +54,12 @@ export default class Draw3D extends Draw2D {
     }
 
     static init2D = (): void => {
-        this.lineOffset = new Int32Array(Draw2D.height2d);
-        for (let y: number = 0; y < Draw2D.height2d; y++) {
-            this.lineOffset[y] = Draw2D.width2d * y;
+        this.lineOffset = new Int32Array(Pix2D.height2d);
+        for (let y: number = 0; y < Pix2D.height2d; y++) {
+            this.lineOffset[y] = Pix2D.width2d * y;
         }
-        this.centerX = (Draw2D.width2d / 2) | 0;
-        this.centerY = (Draw2D.height2d / 2) | 0;
+        this.centerX = (Pix2D.width2d / 2) | 0;
+        this.centerY = (Pix2D.height2d / 2) | 0;
     };
 
     static init3D = (width: number, height: number): void => {
@@ -255,12 +255,12 @@ export default class Draw3D extends Draw2D {
         }
 
         if (yA <= yB && yA <= yC) {
-            if (yA < Draw2D.bottom) {
-                if (yB > Draw2D.bottom) {
-                    yB = Draw2D.bottom;
+            if (yA < Pix2D.bottom) {
+                if (yB > Pix2D.bottom) {
+                    yB = Pix2D.bottom;
                 }
-                if (yC > Draw2D.bottom) {
-                    yC = Draw2D.bottom;
+                if (yC > Pix2D.bottom) {
+                    yC = Pix2D.bottom;
                 }
                 if (yB < yC) {
                     xC = xA <<= 0x10;
@@ -282,7 +282,7 @@ export default class Draw3D extends Draw2D {
                     if ((yA !== yB && xStepAC < xStepAB) || (yA === yB && xStepAC > xStepBC)) {
                         yC -= yB;
                         yB -= yA;
-                        yA = Draw3D.lineOffset[yA];
+                        yA = Pix3D.lineOffset[yA];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yB--;
@@ -293,25 +293,25 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Draw2D.pixels, yA, 0);
+                                    this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Pix2D.pixels, yA, 0);
                                     xC += xStepAC;
                                     xB += xStepBC;
                                     colorC += colorStepAC;
                                     colorB += colorStepBC;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Draw2D.pixels, yA, 0);
+                            this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Pix2D.pixels, yA, 0);
                             xC += xStepAC;
                             xA += xStepAB;
                             colorC += colorStepAC;
                             colorA += colorStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                         }
                     } else {
                         yC -= yB;
                         yB -= yA;
-                        yA = Draw3D.lineOffset[yA];
+                        yA = Pix3D.lineOffset[yA];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yB--;
@@ -322,20 +322,20 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Draw2D.pixels, yA, 0);
+                                    this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Pix2D.pixels, yA, 0);
                                     xC += xStepAC;
                                     xB += xStepBC;
                                     colorC += colorStepAC;
                                     colorB += colorStepBC;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Draw2D.pixels, yA, 0);
+                            this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Pix2D.pixels, yA, 0);
                             xC += xStepAC;
                             xA += xStepAB;
                             colorC += colorStepAC;
                             colorA += colorStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                         }
                     }
                 } else {
@@ -358,7 +358,7 @@ export default class Draw3D extends Draw2D {
                     if ((yA !== yC && xStepAC < xStepAB) || (yA === yC && xStepBC > xStepAB)) {
                         yB -= yC;
                         yC -= yA;
-                        yA = Draw3D.lineOffset[yA];
+                        yA = Pix3D.lineOffset[yA];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yC--;
@@ -369,25 +369,25 @@ export default class Draw3D extends Draw2D {
                                     if (yB < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Draw2D.pixels, yA, 0);
+                                    this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Pix2D.pixels, yA, 0);
                                     xC += xStepBC;
                                     xA += xStepAB;
                                     colorC += colorStepBC;
                                     colorA += colorStepAB;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Draw2D.pixels, yA, 0);
+                            this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Pix2D.pixels, yA, 0);
                             xB += xStepAC;
                             xA += xStepAB;
                             colorB += colorStepAC;
                             colorA += colorStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                         }
                     } else {
                         yB -= yC;
                         yC -= yA;
-                        yA = Draw3D.lineOffset[yA];
+                        yA = Pix3D.lineOffset[yA];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yC--;
@@ -398,31 +398,31 @@ export default class Draw3D extends Draw2D {
                                     if (yB < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Draw2D.pixels, yA, 0);
+                                    this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Pix2D.pixels, yA, 0);
                                     xC += xStepBC;
                                     xA += xStepAB;
                                     colorC += colorStepBC;
                                     colorA += colorStepAB;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Draw2D.pixels, yA, 0);
+                            this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Pix2D.pixels, yA, 0);
                             xB += xStepAC;
                             xA += xStepAB;
                             colorB += colorStepAC;
                             colorA += colorStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                         }
                     }
                 }
             }
         } else if (yB <= yC) {
-            if (yB < Draw2D.bottom) {
-                if (yC > Draw2D.bottom) {
-                    yC = Draw2D.bottom;
+            if (yB < Pix2D.bottom) {
+                if (yC > Pix2D.bottom) {
+                    yC = Pix2D.bottom;
                 }
-                if (yA > Draw2D.bottom) {
-                    yA = Draw2D.bottom;
+                if (yA > Pix2D.bottom) {
+                    yA = Pix2D.bottom;
                 }
                 if (yC < yA) {
                     xA = xB <<= 0x10;
@@ -444,7 +444,7 @@ export default class Draw3D extends Draw2D {
                     if ((yB !== yC && xStepAB < xStepBC) || (yB === yC && xStepAB > xStepAC)) {
                         yA -= yC;
                         yC -= yB;
-                        yB = Draw3D.lineOffset[yB];
+                        yB = Pix3D.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yC--;
@@ -455,25 +455,25 @@ export default class Draw3D extends Draw2D {
                                     if (yA < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Draw2D.pixels, yB, 0);
+                                    this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Pix2D.pixels, yB, 0);
                                     xA += xStepAB;
                                     xC += xStepAC;
                                     colorA += colorStepAB;
                                     colorC += colorStepAC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Draw2D.pixels, yB, 0);
+                            this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Pix2D.pixels, yB, 0);
                             xA += xStepAB;
                             xB += xStepBC;
                             colorA += colorStepAB;
                             colorB += colorStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                         }
                     } else {
                         yA -= yC;
                         yC -= yB;
-                        yB = Draw3D.lineOffset[yB];
+                        yB = Pix3D.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yC--;
@@ -484,20 +484,20 @@ export default class Draw3D extends Draw2D {
                                     if (yA < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Draw2D.pixels, yB, 0);
+                                    this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Pix2D.pixels, yB, 0);
                                     xA += xStepAB;
                                     xC += xStepAC;
                                     colorA += colorStepAB;
                                     colorC += colorStepAC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Draw2D.pixels, yB, 0);
+                            this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Pix2D.pixels, yB, 0);
                             xA += xStepAB;
                             xB += xStepBC;
                             colorA += colorStepAB;
                             colorB += colorStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                         }
                     }
                 } else {
@@ -519,7 +519,7 @@ export default class Draw3D extends Draw2D {
                     }
                     yC -= yA;
                     yA -= yB;
-                    yB = Draw3D.lineOffset[yB];
+                    yB = Pix3D.lineOffset[yB];
                     if (xStepAB < xStepBC) {
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
@@ -531,20 +531,20 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Draw2D.pixels, yB, 0);
+                                    this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Pix2D.pixels, yB, 0);
                                     xA += xStepAC;
                                     xB += xStepBC;
                                     colorA += colorStepAC;
                                     colorB += colorStepBC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Draw2D.pixels, yB, 0);
+                            this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Pix2D.pixels, yB, 0);
                             xC += xStepAB;
                             xB += xStepBC;
                             colorC += colorStepAB;
                             colorB += colorStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                         }
                     } else {
                         // eslint-disable-next-line no-constant-condition
@@ -557,30 +557,30 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Draw2D.pixels, yB, 0);
+                                    this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Pix2D.pixels, yB, 0);
                                     xA += xStepAC;
                                     xB += xStepBC;
                                     colorA += colorStepAC;
                                     colorB += colorStepBC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                 }
                             }
-                            this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Draw2D.pixels, yB, 0);
+                            this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Pix2D.pixels, yB, 0);
                             xC += xStepAB;
                             xB += xStepBC;
                             colorC += colorStepAB;
                             colorB += colorStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                         }
                     }
                 }
             }
-        } else if (yC < Draw2D.bottom) {
-            if (yA > Draw2D.bottom) {
-                yA = Draw2D.bottom;
+        } else if (yC < Pix2D.bottom) {
+            if (yA > Pix2D.bottom) {
+                yA = Pix2D.bottom;
             }
-            if (yB > Draw2D.bottom) {
-                yB = Draw2D.bottom;
+            if (yB > Pix2D.bottom) {
+                yB = Pix2D.bottom;
             }
             if (yA < yB) {
                 xB = xC <<= 0x10;
@@ -601,7 +601,7 @@ export default class Draw3D extends Draw2D {
                 }
                 yB -= yA;
                 yA -= yC;
-                yC = Draw3D.lineOffset[yC];
+                yC = Pix3D.lineOffset[yC];
                 if (xStepBC < xStepAC) {
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
@@ -613,20 +613,20 @@ export default class Draw3D extends Draw2D {
                                 if (yB < 0) {
                                     return;
                                 }
-                                this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Draw2D.pixels, yC, 0);
+                                this.drawGouraudScanline(xB >> 16, xA >> 16, colorB >> 7, colorA >> 7, Pix2D.pixels, yC, 0);
                                 xB += xStepBC;
                                 xA += xStepAB;
                                 colorB += colorStepBC;
                                 colorA += colorStepAB;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                             }
                         }
-                        this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Draw2D.pixels, yC, 0);
+                        this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Pix2D.pixels, yC, 0);
                         xB += xStepBC;
                         xC += xStepAC;
                         colorB += colorStepBC;
                         colorC += colorStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                     }
                 } else {
                     // eslint-disable-next-line no-constant-condition
@@ -639,20 +639,20 @@ export default class Draw3D extends Draw2D {
                                 if (yB < 0) {
                                     return;
                                 }
-                                this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Draw2D.pixels, yC, 0);
+                                this.drawGouraudScanline(xA >> 16, xB >> 16, colorA >> 7, colorB >> 7, Pix2D.pixels, yC, 0);
                                 xB += xStepBC;
                                 xA += xStepAB;
                                 colorB += colorStepBC;
                                 colorA += colorStepAB;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                             }
                         }
-                        this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Draw2D.pixels, yC, 0);
+                        this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Pix2D.pixels, yC, 0);
                         xB += xStepBC;
                         xC += xStepAC;
                         colorB += colorStepBC;
                         colorC += colorStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                     }
                 }
             } else {
@@ -674,7 +674,7 @@ export default class Draw3D extends Draw2D {
                 }
                 yA -= yB;
                 yB -= yC;
-                yC = Draw3D.lineOffset[yC];
+                yC = Pix3D.lineOffset[yC];
                 if (xStepBC < xStepAC) {
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
@@ -686,20 +686,20 @@ export default class Draw3D extends Draw2D {
                                 if (yA < 0) {
                                     return;
                                 }
-                                this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Draw2D.pixels, yC, 0);
+                                this.drawGouraudScanline(xB >> 16, xC >> 16, colorB >> 7, colorC >> 7, Pix2D.pixels, yC, 0);
                                 xB += xStepAB;
                                 xC += xStepAC;
                                 colorB += colorStepAB;
                                 colorC += colorStepAC;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                             }
                         }
-                        this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Draw2D.pixels, yC, 0);
+                        this.drawGouraudScanline(xA >> 16, xC >> 16, colorA >> 7, colorC >> 7, Pix2D.pixels, yC, 0);
                         xA += xStepBC;
                         xC += xStepAC;
                         colorA += colorStepBC;
                         colorC += colorStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                     }
                 } else {
                     // eslint-disable-next-line no-constant-condition
@@ -712,20 +712,20 @@ export default class Draw3D extends Draw2D {
                                 if (yA < 0) {
                                     return;
                                 }
-                                this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Draw2D.pixels, yC, 0);
+                                this.drawGouraudScanline(xC >> 16, xB >> 16, colorC >> 7, colorB >> 7, Pix2D.pixels, yC, 0);
                                 xB += xStepAB;
                                 xC += xStepAC;
                                 colorB += colorStepAB;
                                 colorC += colorStepAC;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                             }
                         }
-                        this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Draw2D.pixels, yC, 0);
+                        this.drawGouraudScanline(xC >> 16, xA >> 16, colorC >> 7, colorA >> 7, Pix2D.pixels, yC, 0);
                         xA += xStepBC;
                         xC += xStepAC;
                         colorA += colorStepBC;
                         colorC += colorStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                     }
                 }
             }
@@ -735,17 +735,17 @@ export default class Draw3D extends Draw2D {
     private static drawGouraudScanline = (x0: number, x1: number, color0: number, color1: number, dst: Int32Array, offset: number, length: number): void => {
         let rgb: number;
 
-        if (Draw3D.jagged) {
+        if (Pix3D.jagged) {
             let colorStep: number;
 
-            if (Draw3D.clipX) {
+            if (Pix3D.clipX) {
                 if (x1 - x0 > 3) {
                     colorStep = ((color1 - color0) / (x1 - x0)) | 0;
                 } else {
                     colorStep = 0;
                 }
-                if (x1 > Draw2D.boundX) {
-                    x1 = Draw2D.boundX;
+                if (x1 > Pix2D.boundX) {
+                    x1 = Pix2D.boundX;
                 }
                 if (x0 < 0) {
                     color0 -= x0 * colorStep;
@@ -761,7 +761,7 @@ export default class Draw3D extends Draw2D {
                 offset += x0;
                 length = (x1 - x0) >> 2;
                 if (length > 0) {
-                    colorStep = ((color1 - color0) * Draw3D.reciprocal15[length]) >> 15;
+                    colorStep = ((color1 - color0) * Pix3D.reciprocal15[length]) >> 15;
                 } else {
                     colorStep = 0;
                 }
@@ -769,14 +769,14 @@ export default class Draw3D extends Draw2D {
                 return;
             }
 
-            if (Draw3D.alpha === 0) {
+            if (Pix3D.alpha === 0) {
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
                     length--;
                     if (length < 0) {
                         length = (x1 - x0) & 0x3;
                         if (length > 0) {
-                            rgb = Draw3D.palette[color0 >> 8];
+                            rgb = Pix3D.palette[color0 >> 8];
                             do {
                                 dst[offset++] = rgb;
                                 length--;
@@ -785,7 +785,7 @@ export default class Draw3D extends Draw2D {
                         }
                         break;
                     }
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = Pix3D.palette[color0 >> 8];
                     color0 += colorStep;
                     dst[offset++] = rgb;
                     dst[offset++] = rgb;
@@ -793,15 +793,15 @@ export default class Draw3D extends Draw2D {
                     dst[offset++] = rgb;
                 }
             } else {
-                const alpha: number = Draw3D.alpha;
-                const invAlpha: number = 256 - Draw3D.alpha;
+                const alpha: number = Pix3D.alpha;
+                const invAlpha: number = 256 - Pix3D.alpha;
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
                     length--;
                     if (length < 0) {
                         length = (x1 - x0) & 0x3;
                         if (length > 0) {
-                            rgb = Draw3D.palette[color0 >> 8];
+                            rgb = Pix3D.palette[color0 >> 8];
                             rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
                             do {
                                 dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
@@ -810,7 +810,7 @@ export default class Draw3D extends Draw2D {
                         }
                         break;
                     }
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = Pix3D.palette[color0 >> 8];
                     color0 += colorStep;
                     rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
                     dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
@@ -821,9 +821,9 @@ export default class Draw3D extends Draw2D {
             }
         } else if (x0 < x1) {
             const colorStep: number = ((color1 - color0) / (x1 - x0)) | 0;
-            if (Draw3D.clipX) {
-                if (x1 > Draw2D.boundX) {
-                    x1 = Draw2D.boundX;
+            if (Pix3D.clipX) {
+                if (x1 > Pix2D.boundX) {
+                    x1 = Pix2D.boundX;
                 }
                 if (x0 < 0) {
                     color0 -= x0 * colorStep;
@@ -835,17 +835,17 @@ export default class Draw3D extends Draw2D {
             }
             offset += x0;
             length = x1 - x0;
-            if (Draw3D.alpha === 0) {
+            if (Pix3D.alpha === 0) {
                 do {
-                    dst[offset++] = Draw3D.palette[color0 >> 8];
+                    dst[offset++] = Pix3D.palette[color0 >> 8];
                     color0 += colorStep;
                     length--;
                 } while (length > 0);
             } else {
-                const alpha: number = Draw3D.alpha;
-                const invAlpha: number = 256 - Draw3D.alpha;
+                const alpha: number = Pix3D.alpha;
+                const invAlpha: number = 256 - Pix3D.alpha;
                 do {
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = Pix3D.palette[color0 >> 8];
                     color0 += colorStep;
                     rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
                     dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
@@ -869,12 +869,12 @@ export default class Draw3D extends Draw2D {
             xStepAC = (((x0 - x2) << 16) / (y0 - y2)) | 0;
         }
         if (y0 <= y1 && y0 <= y2) {
-            if (y0 < Draw2D.bottom) {
-                if (y1 > Draw2D.bottom) {
-                    y1 = Draw2D.bottom;
+            if (y0 < Pix2D.bottom) {
+                if (y1 > Pix2D.bottom) {
+                    y1 = Pix2D.bottom;
                 }
-                if (y2 > Draw2D.bottom) {
-                    y2 = Draw2D.bottom;
+                if (y2 > Pix2D.bottom) {
+                    y2 = Pix2D.bottom;
                 }
                 if (y1 < y2) {
                     x2 = x0 <<= 0x10;
@@ -902,16 +902,16 @@ export default class Draw3D extends Draw2D {
                                     if (y2 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y0, color);
+                                    this.drawScanline(x2 >> 16, x1 >> 16, Pix2D.pixels, y0, color);
                                     x2 += xStepAC;
                                     x1 += xStepBC;
-                                    y0 += Draw2D.width2d;
+                                    y0 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                            this.drawScanline(x2 >> 16, x0 >> 16, Pix2D.pixels, y0, color);
                             x2 += xStepAC;
                             x0 += xStepAB;
-                            y0 += Draw2D.width2d;
+                            y0 += Pix2D.width2d;
                         }
                     } else {
                         y2 -= y1;
@@ -927,16 +927,16 @@ export default class Draw3D extends Draw2D {
                                     if (y2 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                                    this.drawScanline(x1 >> 16, x2 >> 16, Pix2D.pixels, y0, color);
                                     x2 += xStepAC;
                                     x1 += xStepBC;
-                                    y0 += Draw2D.width2d;
+                                    y0 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                            this.drawScanline(x0 >> 16, x2 >> 16, Pix2D.pixels, y0, color);
                             x2 += xStepAC;
                             x0 += xStepAB;
-                            y0 += Draw2D.width2d;
+                            y0 += Pix2D.width2d;
                         }
                     }
                 } else {
@@ -965,16 +965,16 @@ export default class Draw3D extends Draw2D {
                                     if (y1 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                                    this.drawScanline(x2 >> 16, x0 >> 16, Pix2D.pixels, y0, color);
                                     x2 += xStepBC;
                                     x0 += xStepAB;
-                                    y0 += Draw2D.width2d;
+                                    y0 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                            this.drawScanline(x1 >> 16, x0 >> 16, Pix2D.pixels, y0, color);
                             x1 += xStepAC;
                             x0 += xStepAB;
-                            y0 += Draw2D.width2d;
+                            y0 += Pix2D.width2d;
                         }
                     } else {
                         y1 -= y2;
@@ -990,27 +990,27 @@ export default class Draw3D extends Draw2D {
                                     if (y1 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                                    this.drawScanline(x0 >> 16, x2 >> 16, Pix2D.pixels, y0, color);
                                     x2 += xStepBC;
                                     x0 += xStepAB;
-                                    y0 += Draw2D.width2d;
+                                    y0 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y0, color);
+                            this.drawScanline(x0 >> 16, x1 >> 16, Pix2D.pixels, y0, color);
                             x1 += xStepAC;
                             x0 += xStepAB;
-                            y0 += Draw2D.width2d;
+                            y0 += Pix2D.width2d;
                         }
                     }
                 }
             }
         } else if (y1 <= y2) {
-            if (y1 < Draw2D.bottom) {
-                if (y2 > Draw2D.bottom) {
-                    y2 = Draw2D.bottom;
+            if (y1 < Pix2D.bottom) {
+                if (y2 > Pix2D.bottom) {
+                    y2 = Pix2D.bottom;
                 }
-                if (y0 > Draw2D.bottom) {
-                    y0 = Draw2D.bottom;
+                if (y0 > Pix2D.bottom) {
+                    y0 = Pix2D.bottom;
                 }
                 if (y2 < y0) {
                     x0 = x1 <<= 0x10;
@@ -1038,16 +1038,16 @@ export default class Draw3D extends Draw2D {
                                     if (y0 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y1, color);
+                                    this.drawScanline(x0 >> 16, x2 >> 16, Pix2D.pixels, y1, color);
                                     x0 += xStepAB;
                                     x2 += xStepAC;
-                                    y1 += Draw2D.width2d;
+                                    y1 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                            this.drawScanline(x0 >> 16, x1 >> 16, Pix2D.pixels, y1, color);
                             x0 += xStepAB;
                             x1 += xStepBC;
-                            y1 += Draw2D.width2d;
+                            y1 += Pix2D.width2d;
                         }
                     } else {
                         y0 -= y2;
@@ -1063,16 +1063,16 @@ export default class Draw3D extends Draw2D {
                                     if (y0 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                                    this.drawScanline(x2 >> 16, x0 >> 16, Pix2D.pixels, y1, color);
                                     x0 += xStepAB;
                                     x2 += xStepAC;
-                                    y1 += Draw2D.width2d;
+                                    y1 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                            this.drawScanline(x1 >> 16, x0 >> 16, Pix2D.pixels, y1, color);
                             x0 += xStepAB;
                             x1 += xStepBC;
-                            y1 += Draw2D.width2d;
+                            y1 += Pix2D.width2d;
                         }
                     }
                 } else {
@@ -1101,16 +1101,16 @@ export default class Draw3D extends Draw2D {
                                     if (y2 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                                    this.drawScanline(x0 >> 16, x1 >> 16, Pix2D.pixels, y1, color);
                                     x0 += xStepAC;
                                     x1 += xStepBC;
-                                    y1 += Draw2D.width2d;
+                                    y1 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                            this.drawScanline(x2 >> 16, x1 >> 16, Pix2D.pixels, y1, color);
                             x2 += xStepAB;
                             x1 += xStepBC;
-                            y1 += Draw2D.width2d;
+                            y1 += Pix2D.width2d;
                         }
                     } else {
                         y2 -= y0;
@@ -1126,26 +1126,26 @@ export default class Draw3D extends Draw2D {
                                     if (y2 < 0) {
                                         return;
                                     }
-                                    this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                                    this.drawScanline(x1 >> 16, x0 >> 16, Pix2D.pixels, y1, color);
                                     x0 += xStepAC;
                                     x1 += xStepBC;
-                                    y1 += Draw2D.width2d;
+                                    y1 += Pix2D.width2d;
                                 }
                             }
-                            this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y1, color);
+                            this.drawScanline(x1 >> 16, x2 >> 16, Pix2D.pixels, y1, color);
                             x2 += xStepAB;
                             x1 += xStepBC;
-                            y1 += Draw2D.width2d;
+                            y1 += Pix2D.width2d;
                         }
                     }
                 }
             }
-        } else if (y2 < Draw2D.bottom) {
-            if (y0 > Draw2D.bottom) {
-                y0 = Draw2D.bottom;
+        } else if (y2 < Pix2D.bottom) {
+            if (y0 > Pix2D.bottom) {
+                y0 = Pix2D.bottom;
             }
-            if (y1 > Draw2D.bottom) {
-                y1 = Draw2D.bottom;
+            if (y1 > Pix2D.bottom) {
+                y1 = Pix2D.bottom;
             }
             if (y0 < y1) {
                 x1 = x2 <<= 0x10;
@@ -1173,16 +1173,16 @@ export default class Draw3D extends Draw2D {
                                 if (y1 < 0) {
                                     return;
                                 }
-                                this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y2, color);
+                                this.drawScanline(x1 >> 16, x0 >> 16, Pix2D.pixels, y2, color);
                                 x1 += xStepBC;
                                 x0 += xStepAB;
-                                y2 += Draw2D.width2d;
+                                y2 += Pix2D.width2d;
                             }
                         }
-                        this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                        this.drawScanline(x1 >> 16, x2 >> 16, Pix2D.pixels, y2, color);
                         x1 += xStepBC;
                         x2 += xStepAC;
-                        y2 += Draw2D.width2d;
+                        y2 += Pix2D.width2d;
                     }
                 } else {
                     y1 -= y0;
@@ -1198,16 +1198,16 @@ export default class Draw3D extends Draw2D {
                                 if (y1 < 0) {
                                     return;
                                 }
-                                this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                                this.drawScanline(x0 >> 16, x1 >> 16, Pix2D.pixels, y2, color);
                                 x1 += xStepBC;
                                 x0 += xStepAB;
-                                y2 += Draw2D.width2d;
+                                y2 += Pix2D.width2d;
                             }
                         }
-                        this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                        this.drawScanline(x2 >> 16, x1 >> 16, Pix2D.pixels, y2, color);
                         x1 += xStepBC;
                         x2 += xStepAC;
-                        y2 += Draw2D.width2d;
+                        y2 += Pix2D.width2d;
                     }
                 }
             } else {
@@ -1236,16 +1236,16 @@ export default class Draw3D extends Draw2D {
                                 if (y0 < 0) {
                                     return;
                                 }
-                                this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                                this.drawScanline(x1 >> 16, x2 >> 16, Pix2D.pixels, y2, color);
                                 x1 += xStepAB;
                                 x2 += xStepAC;
-                                y2 += Draw2D.width2d;
+                                y2 += Pix2D.width2d;
                             }
                         }
-                        this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                        this.drawScanline(x0 >> 16, x2 >> 16, Pix2D.pixels, y2, color);
                         x0 += xStepBC;
                         x2 += xStepAC;
-                        y2 += Draw2D.width2d;
+                        y2 += Pix2D.width2d;
                     }
                 } else {
                     y0 -= y1;
@@ -1261,16 +1261,16 @@ export default class Draw3D extends Draw2D {
                                 if (y0 < 0) {
                                     return;
                                 }
-                                this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                                this.drawScanline(x2 >> 16, x1 >> 16, Pix2D.pixels, y2, color);
                                 x1 += xStepAB;
                                 x2 += xStepAC;
-                                y2 += Draw2D.width2d;
+                                y2 += Pix2D.width2d;
                             }
                         }
-                        this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y2, color);
+                        this.drawScanline(x2 >> 16, x0 >> 16, Pix2D.pixels, y2, color);
                         x0 += xStepBC;
                         x2 += xStepAC;
-                        y2 += Draw2D.width2d;
+                        y2 += Pix2D.width2d;
                     }
                 }
             }
@@ -1343,13 +1343,13 @@ export default class Draw3D extends Draw2D {
         }
 
         if (yA <= yB && yA <= yC) {
-            if (yA < Draw2D.bottom) {
-                if (yB > Draw2D.bottom) {
-                    yB = Draw2D.bottom;
+            if (yA < Pix2D.bottom) {
+                if (yB > Pix2D.bottom) {
+                    yB = Pix2D.bottom;
                 }
 
-                if (yC > Draw2D.bottom) {
-                    yC = Draw2D.bottom;
+                if (yC > Pix2D.bottom) {
+                    yC = Pix2D.bottom;
                 }
 
                 if (yB < yC) {
@@ -1390,12 +1390,12 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                                    this.drawTexturedScanline(xC >> 16, xB >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
                                     xC += xStepAC;
                                     xB += xStepBC;
                                     shadeC += shadeStepAC;
                                     shadeB += shadeStepBC;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1404,12 +1404,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                            this.drawTexturedScanline(xC >> 16, xA >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
                             xC += xStepAC;
                             xA += xStepAB;
                             shadeC += shadeStepAC;
                             shadeA += shadeStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1431,12 +1431,12 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                                    this.drawTexturedScanline(xB >> 16, xC >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
                                     xC += xStepAC;
                                     xB += xStepBC;
                                     shadeC += shadeStepAC;
                                     shadeB += shadeStepBC;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1445,12 +1445,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                            this.drawTexturedScanline(xA >> 16, xC >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
                             xC += xStepAC;
                             xA += xStepAB;
                             shadeC += shadeStepAC;
                             shadeA += shadeStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1497,12 +1497,12 @@ export default class Draw3D extends Draw2D {
                                     if (yB < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
                                     xC += xStepBC;
                                     xA += xStepAB;
                                     shadeC += shadeStepBC;
                                     shadeA += shadeStepAB;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1511,12 +1511,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                            this.drawTexturedScanline(xA >> 16, xB >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
                             xB += xStepAC;
                             xA += xStepAB;
                             shadeB += shadeStepAC;
                             shadeA += shadeStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1538,12 +1538,12 @@ export default class Draw3D extends Draw2D {
                                     if (yB < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
                                     xC += xStepBC;
                                     xA += xStepAB;
                                     shadeC += shadeStepBC;
                                     shadeA += shadeStepAB;
-                                    yA += Draw2D.width2d;
+                                    yA += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1552,12 +1552,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                            this.drawTexturedScanline(xB >> 16, xA >> 16, Pix2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
                             xB += xStepAC;
                             xA += xStepAB;
                             shadeB += shadeStepAC;
                             shadeA += shadeStepAB;
-                            yA += Draw2D.width2d;
+                            yA += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1569,12 +1569,12 @@ export default class Draw3D extends Draw2D {
                 }
             }
         } else if (yB <= yC) {
-            if (yB < Draw2D.bottom) {
-                if (yC > Draw2D.bottom) {
-                    yC = Draw2D.bottom;
+            if (yB < Pix2D.bottom) {
+                if (yC > Pix2D.bottom) {
+                    yC = Pix2D.bottom;
                 }
-                if (yA > Draw2D.bottom) {
-                    yA = Draw2D.bottom;
+                if (yA > Pix2D.bottom) {
+                    yA = Pix2D.bottom;
                 }
                 if (yC < yA) {
                     xA = xB <<= 0x10;
@@ -1614,12 +1614,12 @@ export default class Draw3D extends Draw2D {
                                     if (yA < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
                                     xA += xStepAB;
                                     xC += xStepAC;
                                     shadeA += shadeStepAB;
                                     shadeC += shadeStepAC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1628,12 +1628,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                            this.drawTexturedScanline(xA >> 16, xB >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
                             xA += xStepAB;
                             xB += xStepBC;
                             shadeA += shadeStepAB;
                             shadeB += shadeStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1655,12 +1655,12 @@ export default class Draw3D extends Draw2D {
                                     if (yA < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
                                     xA += xStepAB;
                                     xC += xStepAC;
                                     shadeA += shadeStepAB;
                                     shadeC += shadeStepAC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1669,12 +1669,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                            this.drawTexturedScanline(xB >> 16, xA >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
                             xA += xStepAB;
                             xB += xStepBC;
                             shadeA += shadeStepAB;
                             shadeB += shadeStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1721,12 +1721,12 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                                    this.drawTexturedScanline(xA >> 16, xB >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
                                     xA += xStepAC;
                                     xB += xStepBC;
                                     shadeA += shadeStepAC;
                                     shadeB += shadeStepBC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1735,12 +1735,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                            this.drawTexturedScanline(xC >> 16, xB >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
                             xC += xStepAB;
                             xB += xStepBC;
                             shadeC += shadeStepAB;
                             shadeB += shadeStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1759,12 +1759,12 @@ export default class Draw3D extends Draw2D {
                                     if (yC < 0) {
                                         return;
                                     }
-                                    this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                                    this.drawTexturedScanline(xB >> 16, xA >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
                                     xA += xStepAC;
                                     xB += xStepBC;
                                     shadeA += shadeStepAC;
                                     shadeB += shadeStepBC;
-                                    yB += Draw2D.width2d;
+                                    yB += Pix2D.width2d;
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
@@ -1773,12 +1773,12 @@ export default class Draw3D extends Draw2D {
                                     w |= 0;
                                 }
                             }
-                            this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                            this.drawTexturedScanline(xB >> 16, xC >> 16, Pix2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
                             xC += xStepAB;
                             xB += xStepBC;
                             shadeC += shadeStepAB;
                             shadeB += shadeStepBC;
-                            yB += Draw2D.width2d;
+                            yB += Pix2D.width2d;
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
@@ -1789,12 +1789,12 @@ export default class Draw3D extends Draw2D {
                     }
                 }
             }
-        } else if (yC < Draw2D.bottom) {
-            if (yA > Draw2D.bottom) {
-                yA = Draw2D.bottom;
+        } else if (yC < Pix2D.bottom) {
+            if (yA > Pix2D.bottom) {
+                yA = Pix2D.bottom;
             }
-            if (yB > Draw2D.bottom) {
-                yB = Draw2D.bottom;
+            if (yB > Pix2D.bottom) {
+                yB = Pix2D.bottom;
             }
             if (yA < yB) {
                 xB = xC <<= 0x10;
@@ -1834,12 +1834,12 @@ export default class Draw3D extends Draw2D {
                                 if (yB < 0) {
                                     return;
                                 }
-                                this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                                this.drawTexturedScanline(xB >> 16, xA >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
                                 xB += xStepBC;
                                 xA += xStepAB;
                                 shadeB += shadeStepBC;
                                 shadeA += shadeStepAB;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
@@ -1848,12 +1848,12 @@ export default class Draw3D extends Draw2D {
                                 w |= 0;
                             }
                         }
-                        this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                        this.drawTexturedScanline(xB >> 16, xC >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
                         xB += xStepBC;
                         xC += xStepAC;
                         shadeB += shadeStepBC;
                         shadeC += shadeStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
@@ -1872,12 +1872,12 @@ export default class Draw3D extends Draw2D {
                                 if (yB < 0) {
                                     return;
                                 }
-                                this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                                this.drawTexturedScanline(xA >> 16, xB >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
                                 xB += xStepBC;
                                 xA += xStepAB;
                                 shadeB += shadeStepBC;
                                 shadeA += shadeStepAB;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
@@ -1886,12 +1886,12 @@ export default class Draw3D extends Draw2D {
                                 w |= 0;
                             }
                         }
-                        this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                        this.drawTexturedScanline(xC >> 16, xB >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
                         xB += xStepBC;
                         xC += xStepAC;
                         shadeB += shadeStepBC;
                         shadeC += shadeStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
@@ -1938,12 +1938,12 @@ export default class Draw3D extends Draw2D {
                                 if (yA < 0) {
                                     return;
                                 }
-                                this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                                this.drawTexturedScanline(xB >> 16, xC >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
                                 xB += xStepAB;
                                 xC += xStepAC;
                                 shadeB += shadeStepAB;
                                 shadeC += shadeStepAC;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
@@ -1952,12 +1952,12 @@ export default class Draw3D extends Draw2D {
                                 w |= 0;
                             }
                         }
-                        this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                        this.drawTexturedScanline(xA >> 16, xC >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
                         xA += xStepBC;
                         xC += xStepAC;
                         shadeA += shadeStepBC;
                         shadeC += shadeStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
@@ -1976,12 +1976,12 @@ export default class Draw3D extends Draw2D {
                                 if (yA < 0) {
                                     return;
                                 }
-                                this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                                this.drawTexturedScanline(xC >> 16, xB >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
                                 xB += xStepAB;
                                 xC += xStepAC;
                                 shadeB += shadeStepAB;
                                 shadeC += shadeStepAC;
-                                yC += Draw2D.width2d;
+                                yC += Pix2D.width2d;
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
@@ -1990,12 +1990,12 @@ export default class Draw3D extends Draw2D {
                                 w |= 0;
                             }
                         }
-                        this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                        this.drawTexturedScanline(xC >> 16, xA >> 16, Pix2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
                         xA += xStepBC;
                         xC += xStepAC;
                         shadeA += shadeStepBC;
                         shadeC += shadeStepAC;
-                        yC += Draw2D.width2d;
+                        yC += Pix2D.width2d;
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
@@ -2034,8 +2034,8 @@ export default class Draw3D extends Draw2D {
         if (this.clipX) {
             shadeStrides = ((shadeB - shadeA) / (xB - xA)) | 0;
 
-            if (xB > Draw2D.boundX) {
-                xB = Draw2D.boundX;
+            if (xB > Pix2D.boundX) {
+                xB = Pix2D.boundX;
             }
 
             if (xA < 0) {
@@ -2428,8 +2428,8 @@ export default class Draw3D extends Draw2D {
 
     private static drawScanline = (x0: number, x1: number, dst: Int32Array, offset: number, rgb: number): void => {
         if (this.clipX) {
-            if (x1 > Draw2D.boundX) {
-                x1 = Draw2D.boundX;
+            if (x1 > Pix2D.boundX) {
+                x1 = Pix2D.boundX;
             }
             if (x0 < 0) {
                 x0 = 0;

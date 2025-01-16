@@ -6,8 +6,8 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
 import Colors from '#/graphics/Colors.js';
-import Draw2D from '#/graphics/Draw2D.js';
-import Draw3D from '#/graphics/Draw3D.js';
+import Pix2D from '#/graphics/Pix2D.js';
+import Pix3D from '#/graphics/Pix3D.js';
 import Model from '#/graphics/Model.js';
 import Pix24 from '#/graphics/Pix24.js';
 
@@ -112,25 +112,25 @@ export default class ObjType extends ConfigType {
 
         const icon: Pix24 = new Pix24(32, 32);
 
-        const _cx: number = Draw3D.centerX;
-        const _cy: number = Draw3D.centerY;
-        const _loff: Int32Array = Draw3D.lineOffset;
-        const _data: Int32Array = Draw2D.pixels;
-        const _w: number = Draw2D.width2d;
-        const _h: number = Draw2D.height2d;
-        const _l: number = Draw2D.left;
-        const _r: number = Draw2D.right;
-        const _t: number = Draw2D.top;
-        const _b: number = Draw2D.bottom;
+        const _cx: number = Pix3D.centerX;
+        const _cy: number = Pix3D.centerY;
+        const _loff: Int32Array = Pix3D.lineOffset;
+        const _data: Int32Array = Pix2D.pixels;
+        const _w: number = Pix2D.width2d;
+        const _h: number = Pix2D.height2d;
+        const _l: number = Pix2D.left;
+        const _r: number = Pix2D.right;
+        const _t: number = Pix2D.top;
+        const _b: number = Pix2D.bottom;
 
-        Draw3D.jagged = false;
-        Draw2D.bind(icon.pixels, 32, 32);
-        Draw2D.fillRect(0, 0, 32, 32, Colors.BLACK);
-        Draw3D.init2D();
+        Pix3D.jagged = false;
+        Pix2D.bind(icon.pixels, 32, 32);
+        Pix2D.fillRect(0, 0, 32, 32, Colors.BLACK);
+        Pix3D.init2D();
 
         const iModel: Model = obj.getInterfaceModel(1);
-        const sinPitch: number = (Draw3D.sin[obj.xan2d] * obj.zoom2d) >> 16;
-        const cosPitch: number = (Draw3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
+        const sinPitch: number = (Pix3D.sin[obj.xan2d] * obj.zoom2d) >> 16;
+        const cosPitch: number = (Pix3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
         iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + ((iModel.maxY / 2) | 0) + obj.yof2d, cosPitch + obj.yof2d);
 
         // draw outline
@@ -173,12 +173,12 @@ export default class ObjType extends ConfigType {
         }
 
         ObjType.iconCache?.put(BigInt(id), icon);
-        Draw2D.bind(_data, _w, _h);
-        Draw2D.setBounds(_l, _t, _r, _b);
-        Draw3D.centerX = _cx;
-        Draw3D.centerY = _cy;
-        Draw3D.lineOffset = _loff;
-        Draw3D.jagged = true;
+        Pix2D.bind(_data, _w, _h);
+        Pix2D.setBounds(_l, _t, _r, _b);
+        Pix3D.centerX = _cx;
+        Pix3D.centerY = _cy;
+        Pix3D.lineOffset = _loff;
+        Pix3D.jagged = true;
         if (obj.stackable) {
             icon.cropW = 33;
         } else {

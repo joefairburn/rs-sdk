@@ -1,6 +1,6 @@
 import Model from '#/graphics/Model.js';
 
-export default class WallDecoration {
+export default class Decor {
     // constructor
     readonly y: number;
     x: number;

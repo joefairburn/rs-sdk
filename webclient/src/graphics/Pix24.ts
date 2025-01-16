@@ -1,13 +1,13 @@
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 import { decodeJpeg } from '#/graphics/Jpeg.js';
 import Pix8 from '#/graphics/Pix8.js';
 
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
-export default class Pix24 extends Hashable {
+export default class Pix24 extends DoublyLinkable {
     // constructor
     readonly pixels: Int32Array;
     readonly width: number;
@@ -108,7 +108,7 @@ export default class Pix24 extends Hashable {
     };
 
     bind(): void {
-        Draw2D.bind(this.pixels, this.width, this.height);
+        Pix2D.bind(this.pixels, this.width, this.height);
     }
 
     draw(x: number, y: number): void {
@@ -118,46 +118,46 @@ export default class Pix24 extends Hashable {
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width2d;
+        let dstOff: number = x + y * Pix2D.width2d;
         let srcOff: number = 0;
 
         let h: number = this.height;
         let w: number = this.width;
 
-        let dstStep: number = Draw2D.width2d - w;
+        let dstStep: number = Pix2D.width2d - w;
         let srcStep: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width2d;
+            dstOff += cutoff * Pix2D.width2d;
         }
 
-        if (y + h > Draw2D.bottom) {
-            h -= y + h - Draw2D.bottom;
+        if (y + h > Pix2D.bottom) {
+            h -= y + h - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcOff += cutoff;
             dstOff += cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
-        if (x + w > Draw2D.right) {
-            const cutoff: number = x + w - Draw2D.right;
+        if (x + w > Pix2D.right) {
+            const cutoff: number = x + w - Pix2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.copyImageDraw(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
+            this.copyImageDraw(w, h, this.pixels, srcOff, srcStep, Pix2D.pixels, dstOff, dstStep);
         }
     }
 
@@ -168,44 +168,44 @@ export default class Pix24 extends Hashable {
         x += this.cropX;
         y += this.cropY;
 
-        let dstStep: number = x + y * Draw2D.width2d;
+        let dstStep: number = x + y * Pix2D.width2d;
         let srcStep: number = 0;
         let h: number = this.height;
         let w: number = this.width;
-        let dstOff: number = Draw2D.width2d - w;
+        let dstOff: number = Pix2D.width2d - w;
         let srcOff: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcStep += cutoff * w;
-            dstStep += cutoff * Draw2D.width2d;
+            dstStep += cutoff * Pix2D.width2d;
         }
 
-        if (y + h > Draw2D.bottom) {
-            h -= y + h - Draw2D.bottom;
+        if (y + h > Pix2D.bottom) {
+            h -= y + h - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcStep += cutoff;
             dstStep += cutoff;
             srcOff += cutoff;
             dstOff += cutoff;
         }
 
-        if (x + w > Draw2D.right) {
-            const cutoff: number = x + w - Draw2D.right;
+        if (x + w > Pix2D.right) {
+            const cutoff: number = x + w - Pix2D.right;
             w -= cutoff;
             srcOff += cutoff;
             dstOff += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.copyPixelsAlpha(w, h, this.pixels, srcStep, srcOff, Draw2D.pixels, dstStep, dstOff, alpha);
+            this.copyPixelsAlpha(w, h, this.pixels, srcStep, srcOff, Pix2D.pixels, dstStep, dstOff, alpha);
         }
     }
 
@@ -216,46 +216,46 @@ export default class Pix24 extends Hashable {
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width2d;
+        let dstOff: number = x + y * Pix2D.width2d;
         let srcOff: number = 0;
 
         let h: number = this.height;
         let w: number = this.width;
 
-        let dstStep: number = Draw2D.width2d - w;
+        let dstStep: number = Pix2D.width2d - w;
         let srcStep: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width2d;
+            dstOff += cutoff * Pix2D.width2d;
         }
 
-        if (y + h > Draw2D.bottom) {
-            h -= y + h - Draw2D.bottom;
+        if (y + h > Pix2D.bottom) {
+            h -= y + h - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcOff += cutoff;
             dstOff += cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
-        if (x + w > Draw2D.right) {
-            const cutoff: number = x + w - Draw2D.right;
+        if (x + w > Pix2D.right) {
+            const cutoff: number = x + w - Pix2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.copyImageBlitOpaque(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
+            this.copyImageBlitOpaque(w, h, this.pixels, srcOff, srcStep, Pix2D.pixels, dstOff, dstStep);
         }
     }
 
@@ -362,23 +362,23 @@ export default class Pix24 extends Hashable {
             w = ((w * (this.width - (offW >> 16))) / cw) | 0;
             h = ((h * (this.height - (offH >> 16))) / ch) | 0;
 
-            let dstStep: number = x + y * Draw2D.width2d;
-            let dstOff: number = Draw2D.width2d - w;
+            let dstStep: number = x + y * Pix2D.width2d;
+            let dstOff: number = Pix2D.width2d - w;
 
-            if (y < Draw2D.top) {
-                const cutoff: number = Draw2D.top - y;
+            if (y < Pix2D.top) {
+                const cutoff: number = Pix2D.top - y;
                 h -= cutoff;
                 y = 0;
-                dstStep += cutoff * Draw2D.width2d;
+                dstStep += cutoff * Pix2D.width2d;
                 offH += scaleCropHeight * cutoff;
             }
 
-            if (y + h > Draw2D.bottom) {
-                h -= y + h - Draw2D.bottom;
+            if (y + h > Pix2D.bottom) {
+                h -= y + h - Pix2D.bottom;
             }
 
-            if (x < Draw2D.left) {
-                const cutoff: number = Draw2D.left - x;
+            if (x < Pix2D.left) {
+                const cutoff: number = Pix2D.left - x;
                 w -= cutoff;
                 x = 0;
                 dstStep += cutoff;
@@ -386,13 +386,13 @@ export default class Pix24 extends Hashable {
                 dstOff += cutoff;
             }
 
-            if (x + w > Draw2D.right) {
-                const cutoff: number = x + w - Draw2D.right;
+            if (x + w > Pix2D.right) {
+                const cutoff: number = x + w - Pix2D.right;
                 w -= cutoff;
                 dstOff += cutoff;
             }
 
-            this.scale(w, h, this.pixels, offW, offH, Draw2D.pixels, dstOff, dstStep, currentW, scaleCropWidth, scaleCropHeight);
+            this.scale(w, h, this.pixels, offW, offH, Pix2D.pixels, dstOff, dstStep, currentW, scaleCropWidth, scaleCropHeight);
         } catch (e) {
             console.error('error in sprite clipping routine');
         }
@@ -415,7 +415,7 @@ export default class Pix24 extends Hashable {
 
             let leftX: number = (anchorX << 16) + centerY * sinZoom + centerX * cosZoom;
             let leftY: number = (anchorY << 16) + (centerY * cosZoom - centerX * sinZoom);
-            let leftOff: number = x + y * Draw2D.width2d;
+            let leftOff: number = x + y * Pix2D.width2d;
 
             for (let i: number = 0; i < h; i++) {
                 const dstOff: number = lineStart[i];
@@ -424,14 +424,14 @@ export default class Pix24 extends Hashable {
                 let srcX: number = leftX + cosZoom * dstOff;
                 let srcY: number = leftY - sinZoom * dstOff;
                 for (let j: number = -lineWidth[i]; j < 0; j++) {
-                    Draw2D.pixels[dstX++] = this.pixels[(srcX >> 16) + (srcY >> 16) * this.width];
+                    Pix2D.pixels[dstX++] = this.pixels[(srcX >> 16) + (srcY >> 16) * this.width];
                     srcX += cosZoom;
                     srcY -= sinZoom;
                 }
 
                 leftX += sinZoom;
                 leftY += cosZoom;
-                leftOff += Draw2D.width2d;
+                leftOff += Pix2D.width2d;
             }
         } catch (e) {
             /* empty */
@@ -445,44 +445,44 @@ export default class Pix24 extends Hashable {
         x += this.cropX;
         y += this.cropY;
 
-        let dstStep: number = x + y * Draw2D.width2d;
+        let dstStep: number = x + y * Pix2D.width2d;
         let srcStep: number = 0;
         let h: number = this.height;
         let w: number = this.width;
-        let dstOff: number = Draw2D.width2d - w;
+        let dstOff: number = Pix2D.width2d - w;
         let srcOff: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcStep += cutoff * w;
-            dstStep += cutoff * Draw2D.width2d;
+            dstStep += cutoff * Pix2D.width2d;
         }
 
-        if (y + h > Draw2D.bottom) {
-            h -= y + h - Draw2D.bottom;
+        if (y + h > Pix2D.bottom) {
+            h -= y + h - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcStep += cutoff;
             dstStep += cutoff;
             srcOff += cutoff;
             dstOff += cutoff;
         }
 
-        if (x + w > Draw2D.right) {
-            const cutoff: number = x + w - Draw2D.right;
+        if (x + w > Pix2D.right) {
+            const cutoff: number = x + w - Pix2D.right;
             w -= cutoff;
             srcOff += cutoff;
             dstOff += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.copyPixelsMasked(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstStep, dstOff, mask.pixels);
+            this.copyPixelsMasked(w, h, this.pixels, srcOff, srcStep, Pix2D.pixels, dstStep, dstOff, mask.pixels);
         }
     }
 

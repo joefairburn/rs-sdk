@@ -1,12 +1,12 @@
 import AnimBase from '#/graphics/AnimBase.js';
 import AnimFrame from '#/graphics/AnimFrame.js';
-import Draw2D from '#/graphics/Draw2D.js';
-import Draw3D from '#/graphics/Draw3D.js';
+import Pix2D from '#/graphics/Pix2D.js';
+import Pix3D from '#/graphics/Pix3D.js';
 
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
 import { Int32Array2d, TypedArray1d } from '#/util/Arrays.js';
 
@@ -77,7 +77,7 @@ type ModelType = {
     vertexNormalOriginal?: (VertexNormal | null)[] | null;
 };
 
-export default class Model extends Hashable {
+export default class Model extends DoublyLinkable {
     static metadata: (Metadata | null)[] | null = null;
 
     static head: Packet | null = null;
@@ -1716,8 +1716,8 @@ export default class Model extends Hashable {
     }
 
     rotateX(angle: number): void {
-        const sin: number = Draw3D.sin[angle];
-        const cos: number = Draw3D.cos[angle];
+        const sin: number = Pix3D.sin[angle];
+        const cos: number = Pix3D.cos[angle];
 
         for (let v: number = 0; v < this.vertexCount; v++) {
             const tmp: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
@@ -1938,17 +1938,17 @@ export default class Model extends Hashable {
     // todo: better name, Java relies on overloads
     // this function is NOT near-clipped (helps with performance) so be careful how you use it!
     drawSimple(pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void {
-        const sinPitch: number = Draw3D.sin[pitch];
-        const cosPitch: number = Draw3D.cos[pitch];
+        const sinPitch: number = Pix3D.sin[pitch];
+        const cosPitch: number = Pix3D.cos[pitch];
 
-        const sinYaw: number = Draw3D.sin[yaw];
-        const cosYaw: number = Draw3D.cos[yaw];
+        const sinYaw: number = Pix3D.sin[yaw];
+        const cosYaw: number = Pix3D.cos[yaw];
 
-        const sinRoll: number = Draw3D.sin[roll];
-        const cosRoll: number = Draw3D.cos[roll];
+        const sinRoll: number = Pix3D.sin[roll];
+        const cosRoll: number = Pix3D.cos[roll];
 
-        const sinEyePitch: number = Draw3D.sin[eyePitch];
-        const cosEyePitch: number = Draw3D.cos[eyePitch];
+        const sinEyePitch: number = Pix3D.sin[eyePitch];
+        const cosEyePitch: number = Pix3D.cos[eyePitch];
 
         const midZ: number = (eyeY * sinEyePitch + eyeZ * cosEyePitch) >> 16;
 
@@ -1986,8 +1986,8 @@ export default class Model extends Hashable {
 
             if (Model.vertexScreenX && Model.vertexScreenY && Model.vertexScreenZ) {
                 Model.vertexScreenZ[v] = z - midZ;
-                Model.vertexScreenX[v] = Draw3D.centerX + (((x << 9) / z) | 0);
-                Model.vertexScreenY[v] = Draw3D.centerY + (((y << 9) / z) | 0);
+                Model.vertexScreenX[v] = Pix3D.centerX + (((x << 9) / z) | 0);
+                Model.vertexScreenY[v] = Pix3D.centerY + (((y << 9) / z) | 0);
             }
 
             if (this.texturedFaceCount > 0 && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
@@ -2018,12 +2018,12 @@ export default class Model extends Hashable {
 
         const midX: number = (relativeZ * sinEyeYaw + relativeX * cosEyeYaw) >> 16;
         let leftX: number = (midX - this.radius) << 9;
-        if (((leftX / maxZ) | 0) >= Draw2D.centerX2d) {
+        if (((leftX / maxZ) | 0) >= Pix2D.centerX2d) {
             return;
         }
 
         let rightX: number = (midX + this.radius) << 9;
-        if (((rightX / maxZ) | 0) <= -Draw2D.centerX2d) {
+        if (((rightX / maxZ) | 0) <= -Pix2D.centerX2d) {
             return;
         }
 
@@ -2031,13 +2031,13 @@ export default class Model extends Hashable {
         const radiusSinEyePitch: number = (this.radius * sinEyePitch) >> 16;
 
         let bottomY: number = (midY + radiusSinEyePitch) << 9;
-        if (((bottomY / maxZ) | 0) <= -Draw2D.centerY2d) {
+        if (((bottomY / maxZ) | 0) <= -Pix2D.centerY2d) {
             return;
         }
 
         const yPrime: number = radiusSinEyePitch + ((this.maxY * cosEyePitch) >> 16);
         let topY: number = (midY - yPrime) << 9;
-        if (((topY / maxZ) | 0) >= Draw2D.centerY2d) {
+        if (((topY / maxZ) | 0) >= Pix2D.centerY2d) {
             return;
         }
 
@@ -2068,8 +2068,8 @@ export default class Model extends Hashable {
                 topY = (topY / z) | 0;
             }
 
-            const mouseX: number = Model.mouseX - Draw3D.centerX;
-            const mouseY: number = Model.mouseY - Draw3D.centerY;
+            const mouseX: number = Model.mouseX - Pix3D.centerX;
+            const mouseY: number = Model.mouseY - Pix3D.centerY;
             if (mouseX > leftX && mouseX < rightX && mouseY > topY && mouseY < bottomY) {
                 if (this.pickable) {
                     Model.pickedBitsets[Model.pickedCount++] = bitset;
@@ -2079,14 +2079,14 @@ export default class Model extends Hashable {
             }
         }
 
-        const centerX: number = Draw3D.centerX;
-        const centerY: number = Draw3D.centerY;
+        const centerX: number = Pix3D.centerX;
+        const centerY: number = Pix3D.centerY;
 
         let sinYaw: number = 0;
         let cosYaw: number = 0;
         if (yaw !== 0) {
-            sinYaw = Draw3D.sin[yaw];
-            cosYaw = Draw3D.cos[yaw];
+            sinYaw = Pix3D.sin[yaw];
+            cosYaw = Pix3D.cos[yaw];
         }
 
         for (let v: number = 0; v < this.vertexCount; v++) {
@@ -2203,7 +2203,7 @@ export default class Model extends Hashable {
                         Model.faceNearClipped[f] = false;
                     }
                     if (Model.faceClippedX) {
-                        Model.faceClippedX[f] = xA < 0 || xB < 0 || xC < 0 || xA > Draw2D.boundX || xB > Draw2D.boundX || xC > Draw2D.boundX;
+                        Model.faceClippedX[f] = xA < 0 || xB < 0 || xC < 0 || xA > Pix2D.boundX || xB > Pix2D.boundX || xC > Pix2D.boundX;
                     }
 
                     if (Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
@@ -2414,13 +2414,13 @@ export default class Model extends Hashable {
         const c: number = this.faceVertexC[face];
 
         if (Model.faceClippedX) {
-            Draw3D.clipX = Model.faceClippedX[face];
+            Pix3D.clipX = Model.faceClippedX[face];
         }
 
         if (!this.faceAlpha) {
-            Draw3D.alpha = 0;
+            Pix3D.alpha = 0;
         } else {
-            Draw3D.alpha = this.faceAlpha[face];
+            Pix3D.alpha = this.faceAlpha[face];
         }
 
         let type: number;
@@ -2431,11 +2431,11 @@ export default class Model extends Hashable {
         }
 
         if (wireframe && Model.vertexScreenX && Model.vertexScreenY && this.faceColorA && this.faceColorB && this.faceColorC) {
-            Draw3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Draw3D.palette[this.faceColorA[face]]);
-            Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[this.faceColorB[face]]);
-            Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[this.faceColorC[face]]);
+            Pix3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Pix3D.palette[this.faceColorA[face]]);
+            Pix3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Pix3D.palette[this.faceColorB[face]]);
+            Pix3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Pix3D.palette[this.faceColorC[face]]);
         } else if (type === 0 && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY) {
-            Draw3D.fillGouraudTriangle(
+            Pix3D.fillGouraudTriangle(
                 Model.vertexScreenX[a],
                 Model.vertexScreenX[b],
                 Model.vertexScreenX[c],
@@ -2447,13 +2447,13 @@ export default class Model extends Hashable {
                 this.faceColorC[face]
             );
         } else if (type === 1 && this.faceColorA && Model.vertexScreenX && Model.vertexScreenY) {
-            Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Draw3D.palette[this.faceColorA[face]]);
+            Pix3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Pix3D.palette[this.faceColorA[face]]);
         } else if (type === 2 && this.faceInfo && this.faceColor && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
             const texturedFace: number = this.faceInfo[face] >> 2;
             const tA: number = this.texturedVertexA[texturedFace];
             const tB: number = this.texturedVertexB[texturedFace];
             const tC: number = this.texturedVertexC[texturedFace];
-            Draw3D.fillTexturedTriangle(
+            Pix3D.fillTexturedTriangle(
                 Model.vertexScreenX[a],
                 Model.vertexScreenX[b],
                 Model.vertexScreenX[c],
@@ -2479,7 +2479,7 @@ export default class Model extends Hashable {
             const tA: number = this.texturedVertexA[texturedFace];
             const tB: number = this.texturedVertexB[texturedFace];
             const tC: number = this.texturedVertexC[texturedFace];
-            Draw3D.fillTexturedTriangle(
+            Pix3D.fillTexturedTriangle(
                 Model.vertexScreenX[a],
                 Model.vertexScreenX[b],
                 Model.vertexScreenX[c],
@@ -2507,8 +2507,8 @@ export default class Model extends Hashable {
         let elements: number = 0;
 
         if (Model.vertexViewSpaceZ) {
-            const centerX: number = Draw3D.centerX;
-            const centerY: number = Draw3D.centerY;
+            const centerX: number = Pix3D.centerX;
+            const centerY: number = Pix3D.centerY;
 
             const a: number = this.faceVertexA[face];
             const b: number = this.faceVertexB[face];
@@ -2528,14 +2528,14 @@ export default class Model extends Hashable {
                 const colorA: number = this.faceColorA[face];
 
                 if (zC >= 50 && this.faceColorC) {
-                    const scalar: number = (50 - zA) * Draw3D.reciprocal16[zC - zA];
+                    const scalar: number = (50 - zA) * Pix3D.reciprocal16[zC - zA];
                     Model.clippedX[elements] = centerX + ((((xA + (((Model.vertexViewSpaceX[c] - xA) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yA + (((Model.vertexViewSpaceY[c] - yA) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorA + (((this.faceColorC[face] - colorA) * scalar) >> 16);
                 }
 
                 if (zB >= 50 && this.faceColorB) {
-                    const scalar: number = (50 - zA) * Draw3D.reciprocal16[zB - zA];
+                    const scalar: number = (50 - zA) * Pix3D.reciprocal16[zB - zA];
                     Model.clippedX[elements] = centerX + ((((xA + (((Model.vertexViewSpaceX[b] - xA) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yA + (((Model.vertexViewSpaceY[b] - yA) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorA + (((this.faceColorB[face] - colorA) * scalar) >> 16);
@@ -2552,14 +2552,14 @@ export default class Model extends Hashable {
                 const colorB: number = this.faceColorB[face];
 
                 if (zA >= 50 && this.faceColorA) {
-                    const scalar: number = (50 - zB) * Draw3D.reciprocal16[zA - zB];
+                    const scalar: number = (50 - zB) * Pix3D.reciprocal16[zA - zB];
                     Model.clippedX[elements] = centerX + ((((xB + (((Model.vertexViewSpaceX[a] - xB) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yB + (((Model.vertexViewSpaceY[a] - yB) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorB + (((this.faceColorA[face] - colorB) * scalar) >> 16);
                 }
 
                 if (zC >= 50 && this.faceColorC) {
-                    const scalar: number = (50 - zB) * Draw3D.reciprocal16[zC - zB];
+                    const scalar: number = (50 - zB) * Pix3D.reciprocal16[zC - zB];
                     Model.clippedX[elements] = centerX + ((((xB + (((Model.vertexViewSpaceX[c] - xB) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yB + (((Model.vertexViewSpaceY[c] - yB) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorB + (((this.faceColorC[face] - colorB) * scalar) >> 16);
@@ -2576,14 +2576,14 @@ export default class Model extends Hashable {
                 const colorC: number = this.faceColorC[face];
 
                 if (zB >= 50 && this.faceColorB) {
-                    const scalar: number = (50 - zC) * Draw3D.reciprocal16[zB - zC];
+                    const scalar: number = (50 - zC) * Pix3D.reciprocal16[zB - zC];
                     Model.clippedX[elements] = centerX + ((((xC + (((Model.vertexViewSpaceX[b] - xC) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yC + (((Model.vertexViewSpaceY[b] - yC) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorC + (((this.faceColorB[face] - colorC) * scalar) >> 16);
                 }
 
                 if (zA >= 50 && this.faceColorA) {
-                    const scalar: number = (50 - zC) * Draw3D.reciprocal16[zA - zC];
+                    const scalar: number = (50 - zC) * Pix3D.reciprocal16[zA - zC];
                     Model.clippedX[elements] = centerX + ((((xC + (((Model.vertexViewSpaceX[a] - xC) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedY[elements] = centerY + ((((yC + (((Model.vertexViewSpaceY[a] - yC) * scalar) >> 16)) << 9) / 50) | 0);
                     Model.clippedColor[elements++] = colorC + (((this.faceColorA[face] - colorC) * scalar) >> 16);
@@ -2602,11 +2602,11 @@ export default class Model extends Hashable {
             return;
         }
 
-        Draw3D.clipX = false;
+        Pix3D.clipX = false;
 
         if (elements === 3) {
-            if (x0 < 0 || x1 < 0 || x2 < 0 || x0 > Draw2D.boundX || x1 > Draw2D.boundX || x2 > Draw2D.boundX) {
-                Draw3D.clipX = true;
+            if (x0 < 0 || x1 < 0 || x2 < 0 || x0 > Pix2D.boundX || x1 > Pix2D.boundX || x2 > Pix2D.boundX) {
+                Pix3D.clipX = true;
             }
 
             let type: number;
@@ -2617,19 +2617,19 @@ export default class Model extends Hashable {
             }
 
             if (wireframe) {
-                Draw3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
-                Draw3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
-                Draw3D.drawLine(x2, x0, y2, y0, Model.clippedColor[2]);
+                Pix3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
+                Pix3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
+                Pix3D.drawLine(x2, x0, y2, y0, Model.clippedColor[2]);
             } else if (type === 0) {
-                Draw3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
+                Pix3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
             } else if (type === 1 && this.faceColorA) {
-                Draw3D.fillTriangle(x0, x1, x2, y0, y1, y2, Draw3D.palette[this.faceColorA[face]]);
+                Pix3D.fillTriangle(x0, x1, x2, y0, y1, y2, Pix3D.palette[this.faceColorA[face]]);
             } else if (type === 2 && this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
                 const texturedFace: number = this.faceInfo[face] >> 2;
                 const tA: number = this.texturedVertexA[texturedFace];
                 const tB: number = this.texturedVertexB[texturedFace];
                 const tC: number = this.texturedVertexC[texturedFace];
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x1,
                     x2,
@@ -2655,7 +2655,7 @@ export default class Model extends Hashable {
                 const tA: number = this.texturedVertexA[texturedFace];
                 const tB: number = this.texturedVertexB[texturedFace];
                 const tC: number = this.texturedVertexC[texturedFace];
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x1,
                     x2,
@@ -2678,8 +2678,8 @@ export default class Model extends Hashable {
                 );
             }
         } else if (elements === 4) {
-            if (x0 < 0 || x1 < 0 || x2 < 0 || x0 > Draw2D.boundX || x1 > Draw2D.boundX || x2 > Draw2D.boundX || Model.clippedX[3] < 0 || Model.clippedX[3] > Draw2D.boundX) {
-                Draw3D.clipX = true;
+            if (x0 < 0 || x1 < 0 || x2 < 0 || x0 > Pix2D.boundX || x1 > Pix2D.boundX || x2 > Pix2D.boundX || Model.clippedX[3] < 0 || Model.clippedX[3] > Pix2D.boundX) {
+                Pix3D.clipX = true;
             }
 
             let type: number;
@@ -2690,25 +2690,25 @@ export default class Model extends Hashable {
             }
 
             if (wireframe) {
-                Draw3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
-                Draw3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
-                Draw3D.drawLine(x2, Model.clippedX[3], y2, Model.clippedY[3], Model.clippedColor[2]);
-                Draw3D.drawLine(Model.clippedX[3], x0, Model.clippedY[3], y0, Model.clippedColor[3]);
+                Pix3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
+                Pix3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
+                Pix3D.drawLine(x2, Model.clippedX[3], y2, Model.clippedY[3], Model.clippedColor[2]);
+                Pix3D.drawLine(Model.clippedX[3], x0, Model.clippedY[3], y0, Model.clippedColor[3]);
             } else if (type === 0) {
-                Draw3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
-                Draw3D.fillGouraudTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], Model.clippedColor[0], Model.clippedColor[2], Model.clippedColor[3]);
+                Pix3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
+                Pix3D.fillGouraudTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], Model.clippedColor[0], Model.clippedColor[2], Model.clippedColor[3]);
             } else if (type === 1) {
                 if (this.faceColorA) {
-                    const colorA: number = Draw3D.palette[this.faceColorA[face]];
-                    Draw3D.fillTriangle(x0, x1, x2, y0, y1, y2, colorA);
-                    Draw3D.fillTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], colorA);
+                    const colorA: number = Pix3D.palette[this.faceColorA[face]];
+                    Pix3D.fillTriangle(x0, x1, x2, y0, y1, y2, colorA);
+                    Pix3D.fillTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], colorA);
                 }
             } else if (type === 2 && this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
                 const texturedFace: number = this.faceInfo[face] >> 2;
                 const tA: number = this.texturedVertexA[texturedFace];
                 const tB: number = this.texturedVertexB[texturedFace];
                 const tC: number = this.texturedVertexC[texturedFace];
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x1,
                     x2,
@@ -2729,7 +2729,7 @@ export default class Model extends Hashable {
                     Model.vertexViewSpaceZ[tC],
                     this.faceColor[face]
                 );
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x2,
                     Model.clippedX[3],
@@ -2755,7 +2755,7 @@ export default class Model extends Hashable {
                 const tA: number = this.texturedVertexA[texturedFace];
                 const tB: number = this.texturedVertexB[texturedFace];
                 const tC: number = this.texturedVertexC[texturedFace];
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x1,
                     x2,
@@ -2776,7 +2776,7 @@ export default class Model extends Hashable {
                     Model.vertexViewSpaceZ[tC],
                     this.faceColor[face]
                 );
-                Draw3D.fillTexturedTriangle(
+                Pix3D.fillTexturedTriangle(
                     x0,
                     x2,
                     Model.clippedX[3],
@@ -2882,24 +2882,24 @@ export default class Model extends Hashable {
                         let cos: number;
 
                         if (roll !== 0) {
-                            sin = Draw3D.sin[roll];
-                            cos = Draw3D.cos[roll];
+                            sin = Pix3D.sin[roll];
+                            cos = Pix3D.cos[roll];
                             const x_: number = (this.vertexY[v] * sin + this.vertexX[v] * cos) >> 16;
                             this.vertexY[v] = (this.vertexY[v] * cos - this.vertexX[v] * sin) >> 16;
                             this.vertexX[v] = x_;
                         }
 
                         if (pitch !== 0) {
-                            sin = Draw3D.sin[pitch];
-                            cos = Draw3D.cos[pitch];
+                            sin = Pix3D.sin[pitch];
+                            cos = Pix3D.cos[pitch];
                             const y_: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
                             this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
                             this.vertexY[v] = y_;
                         }
 
                         if (yaw !== 0) {
-                            sin = Draw3D.sin[yaw];
-                            cos = Draw3D.cos[yaw];
+                            sin = Pix3D.sin[yaw];
+                            cos = Pix3D.cos[yaw];
                             const x_: number = (this.vertexZ[v] * sin + this.vertexX[v] * cos) >> 16;
                             this.vertexZ[v] = (this.vertexZ[v] * cos - this.vertexX[v] * sin) >> 16;
                             this.vertexX[v] = x_;
@@ -3030,8 +3030,8 @@ export default class Model extends Hashable {
         const b: number = this.faceVertexB[face];
         const c: number = this.faceVertexC[face];
 
-        Draw3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Draw3D.palette[1000]);
-        Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[1000]);
-        Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[1000]);
+        Pix3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Pix3D.palette[1000]);
+        Pix3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Pix3D.palette[1000]);
+        Pix3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Pix3D.palette[1000]);
     }
 }

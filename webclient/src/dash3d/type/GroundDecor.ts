@@ -1,6 +1,6 @@
 import Model from '#/graphics/Model.js';
 
-export default class GroundDecoration {
+export default class GroundDecor {
     // constructor
     readonly y: number;
     readonly x: number;

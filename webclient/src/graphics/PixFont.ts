@@ -1,14 +1,14 @@
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
 import Colors from '#/graphics/Colors.js';
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
 import JavaRandom from '#/util/JavaRandom.js';
 
-export default class PixFont extends Hashable {
+export default class PixFont extends DoublyLinkable {
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
     static readonly CHARCODESET: number[] = [];
 
@@ -271,43 +271,43 @@ export default class PixFont extends Hashable {
         w |= 0;
         h |= 0;
 
-        let dstOff: number = x + y * Draw2D.width2d;
-        let dstStep: number = Draw2D.width2d - w;
+        let dstOff: number = x + y * Pix2D.width2d;
+        let dstStep: number = Pix2D.width2d - w;
 
         let srcStep: number = 0;
         let srcOff: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width2d;
+            dstOff += cutoff * Pix2D.width2d;
         }
 
-        if (y + h >= Draw2D.bottom) {
-            h -= y + h + 1 - Draw2D.bottom;
+        if (y + h >= Pix2D.bottom) {
+            h -= y + h + 1 - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcOff += cutoff;
             dstOff += cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
-        if (x + w >= Draw2D.right) {
-            const cutoff: number = x + w + 1 - Draw2D.right;
+        if (x + w >= Pix2D.right) {
+            const cutoff: number = x + w + 1 - Pix2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.drawMask(w, h, data, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep, color);
+            this.drawMask(w, h, data, srcOff, srcStep, Pix2D.pixels, dstOff, dstStep, color);
         }
     }
 
@@ -317,43 +317,43 @@ export default class PixFont extends Hashable {
         w |= 0;
         h |= 0;
 
-        let dstOff: number = x + y * Draw2D.width2d;
-        let dstStep: number = Draw2D.width2d - w;
+        let dstOff: number = x + y * Pix2D.width2d;
+        let dstStep: number = Pix2D.width2d - w;
 
         let srcStep: number = 0;
         let srcOff: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width2d;
+            dstOff += cutoff * Pix2D.width2d;
         }
 
-        if (y + h >= Draw2D.bottom) {
-            h -= y + h + 1 - Draw2D.bottom;
+        if (y + h >= Pix2D.bottom) {
+            h -= y + h + 1 - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcOff += cutoff;
             dstOff += cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
-        if (x + w >= Draw2D.right) {
-            const cutoff: number = x + w + 1 - Draw2D.right;
+        if (x + w >= Pix2D.right) {
+            const cutoff: number = x + w + 1 - Pix2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.drawMaskAlpha(w, h, Draw2D.pixels, dstOff, dstStep, mask, srcOff, srcStep, color, alpha);
+            this.drawMaskAlpha(w, h, Pix2D.pixels, dstOff, dstStep, mask, srcOff, srcStep, color, alpha);
         }
     }
 

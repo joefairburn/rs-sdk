@@ -1,12 +1,12 @@
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
 // identical to Pix24 except the image is indexed by a palette
-export default class Pix8 extends Hashable {
+export default class Pix8 extends DoublyLinkable {
     // constructor
     pixels: Int8Array;
     width: number;
@@ -97,44 +97,44 @@ export default class Pix8 extends Hashable {
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width2d;
+        let dstOff: number = x + y * Pix2D.width2d;
         let srcOff: number = 0;
         let h: number = this.height;
         let w: number = this.width;
-        let dstStep: number = Draw2D.width2d - w;
+        let dstStep: number = Pix2D.width2d - w;
         let srcStep: number = 0;
 
-        if (y < Draw2D.top) {
-            const cutoff: number = Draw2D.top - y;
+        if (y < Pix2D.top) {
+            const cutoff: number = Pix2D.top - y;
             h -= cutoff;
-            y = Draw2D.top;
+            y = Pix2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width2d;
+            dstOff += cutoff * Pix2D.width2d;
         }
 
-        if (y + h > Draw2D.bottom) {
-            h -= y + h - Draw2D.bottom;
+        if (y + h > Pix2D.bottom) {
+            h -= y + h - Pix2D.bottom;
         }
 
-        if (x < Draw2D.left) {
-            const cutoff: number = Draw2D.left - x;
+        if (x < Pix2D.left) {
+            const cutoff: number = Pix2D.left - x;
             w -= cutoff;
-            x = Draw2D.left;
+            x = Pix2D.left;
             srcOff += cutoff;
             dstOff += cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
-        if (x + w > Draw2D.right) {
-            const cutoff: number = x + w - Draw2D.right;
+        if (x + w > Pix2D.right) {
+            const cutoff: number = x + w - Pix2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
         }
 
         if (w > 0 && h > 0) {
-            this.copyImage(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
+            this.copyImage(w, h, this.pixels, srcOff, srcStep, Pix2D.pixels, dstOff, dstStep);
         }
     }
 
@@ -315,33 +315,33 @@ export default class Pix8 extends Hashable {
             }
             arg2 = ((arg2 * (this.width - (local7 >> 16))) / local24) | 0;
             arg3 = ((arg3 * (this.height - (local9 >> 16))) / local27) | 0;
-            let local133: number = arg0 + arg1 * Draw2D.width2d;
-            let local137: number = Draw2D.width2d - arg2;
+            let local133: number = arg0 + arg1 * Pix2D.width2d;
+            let local137: number = Pix2D.width2d - arg2;
             let local144: number;
-            if (arg1 < Draw2D.top) {
-                local144 = Draw2D.top - arg1;
+            if (arg1 < Pix2D.top) {
+                local144 = Pix2D.top - arg1;
                 arg3 -= local144;
                 arg1 = 0;
-                local133 += local144 * Draw2D.width2d;
+                local133 += local144 * Pix2D.width2d;
                 local9 += local39 * local144;
             }
-            if (arg1 + arg3 > Draw2D.bottom) {
-                arg3 -= arg1 + arg3 - Draw2D.bottom;
+            if (arg1 + arg3 > Pix2D.bottom) {
+                arg3 -= arg1 + arg3 - Pix2D.bottom;
             }
-            if (arg0 < Draw2D.left) {
-                local144 = Draw2D.left - arg0;
+            if (arg0 < Pix2D.left) {
+                local144 = Pix2D.left - arg0;
                 arg2 -= local144;
                 arg0 = 0;
                 local133 += local144;
                 local7 += local33 * local144;
                 local137 += local144;
             }
-            if (arg0 + arg2 > Draw2D.right) {
-                local144 = arg0 + arg2 - Draw2D.right;
+            if (arg0 + arg2 > Pix2D.right) {
+                local144 = arg0 + arg2 - Pix2D.right;
                 arg2 -= local144;
                 local137 += local144;
             }
-            this.plot_scale(Draw2D.pixels, this.pixels, this.palette, local7, local9, local133, local137, arg2, arg3, local33, local39, local2);
+            this.plot_scale(Pix2D.pixels, this.pixels, this.palette, local7, local9, local133, local137, arg2, arg3, local33, local39, local2);
         } catch (ignore) {
             console.log('error in sprite clipping routine');
         }

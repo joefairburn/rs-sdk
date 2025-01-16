@@ -1,8 +1,8 @@
 import Packet from '#/io/Packet.js';
 
-import SoundEnvelope from '#/sound/SoundEnvelope.js';
+import Envelope from '#/sound/Envelope.js';
 
-export default class SoundTone {
+export default class Tone {
     static buffer: Int32Array | null = null;
     static noise: Int32Array | null = null;
     static sin: Int32Array | null = null;
@@ -13,14 +13,14 @@ export default class SoundTone {
     static tmpSemitones: Int32Array = new Int32Array(5);
     static tmpStarts: Int32Array = new Int32Array(5);
 
-    frequencyBase: SoundEnvelope | null = null;
-    amplitudeBase: SoundEnvelope | null = null;
-    frequencyModRate: SoundEnvelope | null = null;
-    frequencyModRange: SoundEnvelope | null = null;
-    amplitudeModRate: SoundEnvelope | null = null;
-    amplitudeModRange: SoundEnvelope | null = null;
-    release: SoundEnvelope | null = null;
-    attack: SoundEnvelope | null = null;
+    frequencyBase: Envelope | null = null;
+    amplitudeBase: Envelope | null = null;
+    frequencyModRate: Envelope | null = null;
+    frequencyModRange: Envelope | null = null;
+    amplitudeModRate: Envelope | null = null;
+    amplitudeModRange: Envelope | null = null;
+    release: Envelope | null = null;
+    attack: Envelope | null = null;
 
     harmonicVolume: Int32Array = new Int32Array(5);
     harmonicSemitone: Int32Array = new Int32Array(5);
@@ -51,11 +51,11 @@ export default class SoundTone {
 
     generate(sampleCount: number, length: number): Int32Array {
         for (let sample: number = 0; sample < sampleCount; sample++) {
-            SoundTone.buffer![sample] = 0;
+            Tone.buffer![sample] = 0;
         }
 
         if (length < 10) {
-            return SoundTone.buffer!;
+            return Tone.buffer!;
         }
 
         const samplesPerStep: number = (sampleCount / length) | 0;
@@ -86,11 +86,11 @@ export default class SoundTone {
 
         for (let harmonic: number = 0; harmonic < 5; harmonic++) {
             if (this.frequencyBase && this.harmonicVolume[harmonic] !== 0) {
-                SoundTone.tmpPhases[harmonic] = 0;
-                SoundTone.tmpDelays[harmonic] = this.harmonicDelay[harmonic] * samplesPerStep;
-                SoundTone.tmpVolumes[harmonic] = ((this.harmonicVolume[harmonic] << 14) / 100) | 0;
-                SoundTone.tmpSemitones[harmonic] = (((this.frequencyBase.end - this.frequencyBase.start) * 32.768 * Math.pow(1.0057929410678534, this.harmonicSemitone[harmonic])) / samplesPerStep) | 0;
-                SoundTone.tmpStarts[harmonic] = ((this.frequencyBase.start * 32.768) / samplesPerStep) | 0;
+                Tone.tmpPhases[harmonic] = 0;
+                Tone.tmpDelays[harmonic] = this.harmonicDelay[harmonic] * samplesPerStep;
+                Tone.tmpVolumes[harmonic] = ((this.harmonicVolume[harmonic] << 14) / 100) | 0;
+                Tone.tmpSemitones[harmonic] = (((this.frequencyBase.end - this.frequencyBase.start) * 32.768 * Math.pow(1.0057929410678534, this.harmonicSemitone[harmonic])) / samplesPerStep) | 0;
+                Tone.tmpStarts[harmonic] = ((this.frequencyBase.start * 32.768) / samplesPerStep) | 0;
             }
         }
 
@@ -115,11 +115,11 @@ export default class SoundTone {
 
                 for (let harmonic: number = 0; harmonic < 5; harmonic++) {
                     if (this.harmonicVolume[harmonic] !== 0) {
-                        const position: number = sample + SoundTone.tmpDelays[harmonic];
+                        const position: number = sample + Tone.tmpDelays[harmonic];
 
                         if (position < sampleCount) {
-                            SoundTone.buffer![position] += this.generate2((amplitude * SoundTone.tmpVolumes[harmonic]) >> 15, SoundTone.tmpPhases[harmonic], this.frequencyBase.form);
-                            SoundTone.tmpPhases[harmonic] += ((frequency * SoundTone.tmpSemitones[harmonic]) >> 16) + SoundTone.tmpStarts[harmonic];
+                            Tone.buffer![position] += this.generate2((amplitude * Tone.tmpVolumes[harmonic]) >> 15, Tone.tmpPhases[harmonic], this.frequencyBase.form);
+                            Tone.tmpPhases[harmonic] += ((frequency * Tone.tmpSemitones[harmonic]) >> 16) + Tone.tmpStarts[harmonic];
                         }
                     }
                 }
@@ -151,7 +151,7 @@ export default class SoundTone {
                 }
 
                 if (muted) {
-                    SoundTone.buffer![sample] = 0;
+                    Tone.buffer![sample] = 0;
                 }
             }
         }
@@ -160,72 +160,72 @@ export default class SoundTone {
             const start: number = this.reverbDelay * samplesPerStep;
 
             for (let sample: number = start; sample < sampleCount; sample++) {
-                SoundTone.buffer![sample] += ((SoundTone.buffer![sample - start] * this.reverbVolume) / 100) | 0;
-                SoundTone.buffer![sample] |= 0;
+                Tone.buffer![sample] += ((Tone.buffer![sample - start] * this.reverbVolume) / 100) | 0;
+                Tone.buffer![sample] |= 0;
             }
         }
 
         for (let sample: number = 0; sample < sampleCount; sample++) {
-            if (SoundTone.buffer![sample] < -32768) {
-                SoundTone.buffer![sample] = -32768;
+            if (Tone.buffer![sample] < -32768) {
+                Tone.buffer![sample] = -32768;
             }
 
-            if (SoundTone.buffer![sample] > 32767) {
-                SoundTone.buffer![sample] = 32767;
+            if (Tone.buffer![sample] > 32767) {
+                Tone.buffer![sample] = 32767;
             }
         }
 
-        return SoundTone.buffer!;
+        return Tone.buffer!;
     }
 
     generate2(amplitude: number, phase: number, form: number): number {
         if (form === 1) {
             return (phase & 0x7fff) < 16384 ? amplitude : -amplitude;
         } else if (form === 2) {
-            return (SoundTone.sin![phase & 0x7fff] * amplitude) >> 14;
+            return (Tone.sin![phase & 0x7fff] * amplitude) >> 14;
         } else if (form === 3) {
             return (((phase & 0x7fff) * amplitude) >> 14) - amplitude;
         } else if (form === 4) {
-            return SoundTone.noise![((phase / 2607) | 0) & 0x7fff] * amplitude;
+            return Tone.noise![((phase / 2607) | 0) & 0x7fff] * amplitude;
         } else {
             return 0;
         }
     }
 
     read(dat: Packet): void {
-        this.frequencyBase = new SoundEnvelope();
+        this.frequencyBase = new Envelope();
         this.frequencyBase.read(dat);
 
-        this.amplitudeBase = new SoundEnvelope();
+        this.amplitudeBase = new Envelope();
         this.amplitudeBase.read(dat);
 
         if (dat.g1 !== 0) {
             dat.pos--;
 
-            this.frequencyModRate = new SoundEnvelope();
+            this.frequencyModRate = new Envelope();
             this.frequencyModRate.read(dat);
 
-            this.frequencyModRange = new SoundEnvelope();
+            this.frequencyModRange = new Envelope();
             this.frequencyModRange.read(dat);
         }
 
         if (dat.g1 !== 0) {
             dat.pos--;
 
-            this.amplitudeModRate = new SoundEnvelope();
+            this.amplitudeModRate = new Envelope();
             this.amplitudeModRate.read(dat);
 
-            this.amplitudeModRange = new SoundEnvelope();
+            this.amplitudeModRange = new Envelope();
             this.amplitudeModRange.read(dat);
         }
 
         if (dat.g1 !== 0) {
             dat.pos--;
 
-            this.release = new SoundEnvelope();
+            this.release = new Envelope();
             this.release.read(dat);
 
-            this.attack = new SoundEnvelope();
+            this.attack = new Envelope();
             this.attack.read(dat);
         }
 

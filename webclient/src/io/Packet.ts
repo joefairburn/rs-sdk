@@ -1,11 +1,11 @@
-import Hashable from '#/datastruct/Hashable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 import LinkList from '#/datastruct/LinkList.js';
 
 import Isaac from '#/io/Isaac.js';
 
 import { bigIntModPow, bigIntToBytes, bytesToBigInt } from '#/util/JsUtil.js';
 
-export default class Packet extends Hashable {
+export default class Packet extends DoublyLinkable {
     private static readonly CRC32_POLYNOMIAL: number = 0xedb88320;
 
     private static readonly crctable: Int32Array = new Int32Array(256);

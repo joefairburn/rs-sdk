@@ -7,7 +7,7 @@ import PixFont from '#/graphics/PixFont.js';
 import LruCache from '#/datastruct/LruCache.js';
 import JString from '#/datastruct/JString.js';
 
-import Draw2D from '#/graphics/Draw2D.js';
+import Pix2D from '#/graphics/Pix2D.js';
 import Pix24 from '#/graphics/Pix24.js';
 
 import { TypedArray1d } from '#/util/Arrays.js';
@@ -592,7 +592,7 @@ export default class Component {
     outline(color: number): void {
         const x: number = this.getAbsoluteX();
         const y: number = this.getAbsoluteY();
-        Draw2D.drawRect(x, y, this.width, this.height, color);
+        Pix2D.drawRect(x, y, this.width, this.height, color);
     }
 
     move(x: number, y: number): void {
