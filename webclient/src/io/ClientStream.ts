@@ -26,12 +26,10 @@ export default class ClientStream {
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${port}`, 'binary');
 
             ws.addEventListener('open', (): void => {
-                console.log('connection open!');
                 resolve(ws);
             });
 
             ws.addEventListener('error', (): void => {
-                console.log('connection error!');
                 reject(ws);
             });
         });
@@ -84,10 +82,6 @@ export default class ClientStream {
         this.socket.close();
         this.wsin.close();
         this.wsout.close();
-        console.log('connection close!');
-        if (this.ioerror) {
-            console.log('connection error!');
-        }
     }
 
     private onclose = (event: CloseEvent): void => {

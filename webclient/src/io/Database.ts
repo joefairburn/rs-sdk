@@ -13,7 +13,6 @@ export default class Database {
 
             request.onsuccess = (event: Event): void => {
                 const target: IDBOpenDBRequest = event.target as IDBOpenDBRequest;
-                console.log('database success!');
                 resolve(target.result);
             };
 
@@ -24,7 +23,6 @@ export default class Database {
 
             request.onerror = (event: Event): void => {
                 const target: IDBOpenDBRequest = event.target as IDBOpenDBRequest;
-                console.error('database error!: ', target.error);
                 reject(target.result);
             };
         });
@@ -63,11 +61,9 @@ export default class Database {
     };
 
     private onclose = (event: Event): void => {
-        console.log('database close!');
     };
 
     private onerror = (event: Event): void => {
-        console.log('database error!');
     };
 
     private genHash = (str: string): number => {

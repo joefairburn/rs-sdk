@@ -54,13 +54,6 @@ export default class NpcType extends ConfigType {
         return loc;
     };
 
-    static unload = (): void => {
-        this.modelCache = null;
-        this.offsets = null;
-        this.cache = null;
-        this.dat = null;
-    };
-
     // ----
 
     name: string | null = null;

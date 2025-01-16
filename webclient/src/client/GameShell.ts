@@ -84,7 +84,7 @@ export default abstract class GameShell {
         Draw3D.init2D();
     };
 
-    run = async (): Promise<void> => {
+    async run() {
         canvas.addEventListener(
             'resize',
             (): void => {
@@ -101,7 +101,6 @@ export default abstract class GameShell {
         canvas.onmouseenter = this.onmouseenter;
         canvas.onmouseleave = this.onmouseleave;
         canvas.onmousemove = this.onmousemove;
-        window.onbeforeunload = this.unload;
         canvas.onfocus = this.onfocus;
         canvas.onblur = this.onblur;
 
@@ -224,7 +223,6 @@ export default abstract class GameShell {
 
     protected shutdown = (): void => {
         this.state = -2;
-        this.unload();
     };
 
     protected setFramerate = (rate: number): void => {
@@ -251,15 +249,17 @@ export default abstract class GameShell {
         this.state = -1;
     };
 
-    protected load = async (): Promise<void> => {};
+    protected async load() {
+    }
 
-    protected update = async (): Promise<void> => {};
+    protected async update() {
+    }
 
-    protected unload = (): void => {};
+    protected async draw() {
+    }
 
-    protected draw = async (): Promise<void> => {};
-
-    protected refresh = (): void => {};
+    protected async refresh() {
+    }
 
     protected async showProgress(progress: number, message: string): Promise<void> {
         const width: number = this.width;

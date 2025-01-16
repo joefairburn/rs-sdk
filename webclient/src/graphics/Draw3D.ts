@@ -52,35 +52,6 @@ export default class Draw3D extends Draw2D {
         }
     }
 
-    static unload = (): void => {
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.reciprocal15 = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.reciprocal15 = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.sin = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.cos = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.lineOffset = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.textures = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.textureTranslucent = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.averageTextureRGB = null;
-        this.texelPool = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.activeTexels = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.textureCycle = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.palette = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.texturePalette = null;
-        console.log('Draw3D unloaded!');
-    };
-
     static init2D = (): void => {
         this.lineOffset = new Int32Array(Draw2D.height2d);
         for (let y: number = 0; y < Draw2D.height2d; y++) {

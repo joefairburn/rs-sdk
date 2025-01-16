@@ -71,14 +71,6 @@ export default class LocType extends ConfigType {
         return loc;
     };
 
-    static unload = (): void => {
-        this.modelCacheStatic = null;
-        this.modelCacheDynamic = null;
-        this.offsets = null;
-        this.cache = null;
-        this.dat = null;
-    };
-
     // ----
 
     models: Int32Array | null = null;

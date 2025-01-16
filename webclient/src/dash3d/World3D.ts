@@ -182,23 +182,6 @@ export default class World3D {
         }
     };
 
-    static unload = (): void => {
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.locBuffer = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.levelOccluderCount = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.levelOccluders = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.drawTileQueue = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.visibilityMatrix = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.activeOccluders = null;
-        this.visibilityMap = null;
-        console.log('World3D unloaded!');
-    };
-
     static addOccluder = (level: number, type: number, minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void => {
         World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = new Occluder((minX / 128) | 0, (maxX / 128) | 0, (minZ / 128) | 0, (maxZ / 128) | 0, type, minX, maxX, minZ, maxZ, minY, maxY);
     };

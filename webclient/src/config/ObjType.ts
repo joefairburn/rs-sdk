@@ -75,14 +75,6 @@ export default class ObjType extends ConfigType {
         return obj;
     };
 
-    static unload = (): void => {
-        this.modelCache = null;
-        this.iconCache = null;
-        this.offsets = null;
-        this.cache = null;
-        this.dat = null;
-    };
-
     static getIcon = (id: number, count: number): Pix24 => {
         if (ObjType.iconCache) {
             let icon: Pix24 | null = ObjType.iconCache.get(BigInt(id)) as Pix24 | null;

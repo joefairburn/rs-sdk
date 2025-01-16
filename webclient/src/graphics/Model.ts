@@ -348,39 +348,6 @@ export default class Model extends Hashable {
         offset += dataLengthZ;
     }
 
-    static unload(): void {
-        Model.metadata = null;
-        Model.head = null;
-        Model.face1 = null;
-        Model.face2 = null;
-        Model.face3 = null;
-        Model.face4 = null;
-        Model.face5 = null;
-        Model.point1 = null;
-        Model.point2 = null;
-        Model.point3 = null;
-        Model.point4 = null;
-        Model.point5 = null;
-        Model.vertex1 = null;
-        Model.vertex2 = null;
-        Model.axis = null;
-        Model.faceClippedX = null;
-        Model.faceNearClipped = null;
-        Model.vertexScreenX = null;
-        Model.vertexScreenY = null;
-        Model.vertexScreenZ = null;
-        Model.vertexViewSpaceX = null;
-        Model.vertexViewSpaceY = null;
-        Model.vertexViewSpaceZ = null;
-        Model.tmpDepthFaceCount = null;
-        Model.tmpDepthFaces = null;
-        Model.tmpPriorityFaceCount = null;
-        Model.tmpPriorityFaces = null;
-        Model.tmpPriority10FaceDepth = null;
-        Model.tmpPriority11FaceDepth = null;
-        Model.tmpPriorityDepthSum = null;
-    }
-
     static mulColorLightness(hsl: number, scalar: number, faceInfo: number): number {
         if ((faceInfo & 0x2) === 2) {
             if (scalar < 0) {

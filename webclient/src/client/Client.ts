@@ -544,179 +544,6 @@ export class Client extends GameShell {
 
     // ---- override functions
 
-    unload = (): void => {
-        try {
-            if (this.stream) {
-                this.stream.close();
-            }
-        } catch (e) {
-            /* empty */
-        }
-        this.stream = null;
-        stopMidi(false);
-        // this.midiThreadActive = false;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.out = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.loginout = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.in = null;
-        this.sceneMapIndex = null;
-        this.sceneMapLandData = null;
-        this.sceneMapLocData = null;
-        this.levelHeightmap = null;
-        this.levelTileFlags = null;
-        this.scene = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.levelCollisionMap = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.bfsDirection = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.bfsCost = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.bfsStepX = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.bfsStepZ = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.textureBuffer = null;
-        this.areaSidebar = null;
-        this.areaMapback = null;
-        this.areaViewport = null;
-        this.areaChatback = null;
-        this.areaBackbase1 = null;
-        this.areaBackbase2 = null;
-        this.areaBackhmid1 = null;
-        this.areaBackleft1 = null;
-        this.areaBackleft2 = null;
-        this.areaBackright1 = null;
-        this.areaBackright2 = null;
-        this.areaBacktop1 = null;
-        this.areaBacktop2 = null;
-        this.areaBackvmid1 = null;
-        this.areaBackvmid2 = null;
-        this.areaBackvmid3 = null;
-        this.areaBackhmid2 = null;
-        this.imageInvback = null;
-        this.imageMapback = null;
-        this.imageChatback = null;
-        this.imageBackbase1 = null;
-        this.imageBackbase2 = null;
-        this.imageBackhmid1 = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageSideicons = null;
-        this.imageRedstone1 = null;
-        this.imageRedstone2 = null;
-        this.imageRedstone3 = null;
-        this.imageRedstone1h = null;
-        this.imageRedstone2h = null;
-        this.imageRedstone1v = null;
-        this.imageRedstone2v = null;
-        this.imageRedstone3v = null;
-        this.imageRedstone1hv = null;
-        this.imageRedstone2hv = null;
-        this.imageCompass = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageHitmarks = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageHeadicons = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageCrosses = null;
-        this.imageMapdot0 = null;
-        this.imageMapdot1 = null;
-        this.imageMapdot2 = null;
-        this.imageMapdot3 = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageMapscene = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.imageMapfunction = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.tileLastOccupiedCycle = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.players = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.playerIds = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.entityUpdateIds = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.playerAppearanceBuffer = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.entityRemovalIds = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.npcs = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.npcIds = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.levelObjStacks = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.spawnedLocations = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.temporaryLocs = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.projectiles = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.spotanims = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.locList = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.menuParamB = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.menuParamC = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.menuAction = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.menuParamA = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.menuOption = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.varps = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.activeMapFunctionX = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.activeMapFunctionZ = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.activeMapFunctions = null;
-        this.imageMinimap = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.friendName = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.friendName37 = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        this.friendWorld = null;
-        this.imageTitle0 = null;
-        this.imageTitle1 = null;
-        this.imageTitle2 = null;
-        this.imageTitle3 = null;
-        this.imageTitle4 = null;
-        this.imageTitle5 = null;
-        this.imageTitle6 = null;
-        this.imageTitle7 = null;
-        this.imageTitle8 = null;
-        this.unloadTitle();
-        LocType.unload();
-        NpcType.unload();
-        ObjType.unload();
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        FloType.instances = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        IdkType.instances = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        Component.instances = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        SeqType.instances = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        SpotAnimType.instances = null;
-        SpotAnimType.modelCache = null;
-        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        VarpType.instances = null;
-        this.drawArea = null;
-        PlayerEntity.modelCache = null;
-        Draw3D.unload();
-        World3D.unload();
-        Model.unload();
-        AnimBase.instances = [];
-        AnimFrame.instances = [];
-    };
-
     getTitleScreenState(): number {
         return this.titleScreenState;
     }
@@ -1588,7 +1415,7 @@ export class Client extends GameShell {
         }
     };
 
-    load = async (): Promise<void> => {
+    async load() {
         if (this.isMobile && Client.lowMemory) {
             // force mobile on low detail mode to 30 fps
             this.tfps = 30;
@@ -1853,7 +1680,7 @@ export class Client extends GameShell {
         }
     };
 
-    update = async (): Promise<void> => {
+    async update() {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }
@@ -1865,7 +1692,7 @@ export class Client extends GameShell {
         }
     };
 
-    draw = async (): Promise<void> => {
+    async draw() {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             this.drawError();
             return;
@@ -1878,7 +1705,7 @@ export class Client extends GameShell {
         this.dragCycles = 0;
     };
 
-    refresh = (): void => {
+    async refresh() {
         this.redrawTitleBackground = true;
     };
 
@@ -5917,7 +5744,7 @@ export class Client extends GameShell {
         this.viewportInterfaceId = -1;
     };
 
-    private tryReconnect = async (): Promise<void> => {
+    private async tryReconnect() {
         if (this.idleTimeout > 0) {
             await this.logout();
         } else {
