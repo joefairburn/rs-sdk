@@ -216,13 +216,5 @@ const client = await build('./src/client/Client.ts');
 fs.writeFileSync('out/client.js', replaceDepsUrl(client.source));
 // fs.writeFileSync('out/client.js.map', client.sourcemap);
 
-if (fs.existsSync('../Server/public')) {
-    fs.copyFileSync('out/client.js', '../Server/public/client/client.js');
-    // fs.copyFileSync('out/client.js.map', '../Server/public/client/client.js.map');
-
-    fs.copyFileSync('out/deps.js', '../Server/public/client/deps.js');
-    // fs.copyFileSync('out/deps.js.map', '../Server/public/client/deps.js.map');
-
-    fs.copyFileSync('src/3rdparty/bzip2-wasm/bzip2.wasm', '../Server/public/client/bzip2.wasm');
-    fs.copyFileSync('src/3rdparty/tinymidipcm/tinymidipcm.wasm', '../Server/public/client/tinymidipcm.wasm');
-}
+fs.copyFileSync('src/3rdparty/bzip2-wasm/bzip2.wasm', 'out/bzip2.wasm');
+fs.copyFileSync('src/3rdparty/tinymidipcm/tinymidipcm.wasm', 'out/tinymidipcm.wasm');
