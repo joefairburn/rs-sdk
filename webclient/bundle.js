@@ -195,9 +195,9 @@ function replaceDepsUrl(source) {
     return source.replaceAll('#3rdparty', '.');
 }
 
-const deps = await depsBuild('./src/3rdparty/export.js');
-fs.writeFileSync('out/export.js', deps.source);
-// fs.writeFileSync('out/export.js.map', deps.sourcemap);
+const deps = await depsBuild('./src/3rdparty/deps.js');
+fs.writeFileSync('out/deps.js', deps.source);
+// fs.writeFileSync('out/deps.js.map', deps.sourcemap);
 
 const args = process.argv.slice(2);
 
@@ -213,15 +213,15 @@ if (args[0] === 'prod') {
 }
 
 const client = await build('./src/client/Client.ts');
-fs.writeFileSync('out/Client.js', replaceDepsUrl(client.source));
-// fs.writeFileSync('out/Client.js.map', client.sourcemap);
+fs.writeFileSync('out/client.js', replaceDepsUrl(client.source));
+// fs.writeFileSync('out/client.js.map', client.sourcemap);
 
 if (fs.existsSync('../Server/public')) {
-    fs.copyFileSync('out/Client.js', '../Server/public/client/Client.js');
-    // fs.copyFileSync('out/Client.js.map', '../Server/public/client/Client.js.map');
+    fs.copyFileSync('out/client.js', '../Server/public/client/client.js');
+    // fs.copyFileSync('out/client.js.map', '../Server/public/client/client.js.map');
 
-    fs.copyFileSync('out/export.js', '../Server/public/client/export.js');
-    // fs.copyFileSync('out/export.js.map', '../Server/public/client/export.js.map');
+    fs.copyFileSync('out/deps.js', '../Server/public/client/deps.js');
+    // fs.copyFileSync('out/deps.js.map', '../Server/public/client/deps.js.map');
 
     fs.copyFileSync('src/3rdparty/bzip2-wasm/bzip2.wasm', '../Server/public/client/bzip2.wasm');
     fs.copyFileSync('src/3rdparty/tinymidipcm/tinymidipcm.wasm', '../Server/public/client/tinymidipcm.wasm');
