@@ -537,7 +537,7 @@ export class Client extends GameShell {
     protected waveIds: Int32Array = new Int32Array(50);
     protected waveLoops: Int32Array = new Int32Array(50);
     protected waveDelay: Int32Array = new Int32Array(50);
-    protected waveVolume: number = 192;
+    protected waveVolume: number = 64;
     protected lastWaveId: number = -1;
     protected lastWaveLoops: number = -1;
     protected lastWaveLength: number = 0;
@@ -547,7 +547,7 @@ export class Client extends GameShell {
     protected currentMidi: string | null = null;
     protected midiCrc: number = 0;
     protected midiSize: number = 0;
-    protected midiVolume: number = 32;
+    protected midiVolume: number = 64;
 
     protected displayFps: boolean = false;
 
