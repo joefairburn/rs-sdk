@@ -2537,7 +2537,8 @@ export class Client extends GameShell {
             }
 
             this.idleNetCycles++;
-            if (this.idleNetCycles > 750) {
+            if (this.idleNetCycles > 250) {
+                // originally 15s (750) but due to a socket issue, lowered to 5s as a temp patch
                 await this.tryReconnect();
             }
 
