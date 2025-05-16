@@ -1,0 +1,40 @@
+name: Verify Content
+
+on:
+  pull_request:
+  push:
+    paths:
+    - '.github/workflows/content.yml'
+    - '**'
+  workflow_dispatch:
+
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: content
+
+    - uses: actions/checkout@v4
+      with:
+        repository: LostCityRS/Engine-TS
+        path: engine
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - working-directory: engine
+      run: npm i
+
+    - name: Pack
+      working-directory: engine
+      run: npm run build
