@@ -882,7 +882,7 @@ y=209
 width=80
 height=46
 
-[com_102]
+[com_101]
 layer=other_layer
 type=text
 x=0
@@ -896,7 +896,7 @@ font=p12
 text=other
 activecolour=0xFFFFFF
 
-[com_103]
+[com_137]
 layer=other_layer
 type=text
 x=55
@@ -912,7 +912,7 @@ text=1bar
 colour=0xC00000
 activecolour=0x00C000
 
-[com_104]
+[com_103]
 type=text
 x=214
 y=91
@@ -925,7 +925,7 @@ font=p12
 text=Chain body
 activecolour=0xFFFFFF
 
-[com_105]
+[com_104]
 type=text
 x=214
 y=141
@@ -938,7 +938,7 @@ font=p12
 text=Plate legs
 activecolour=0xFFFFFF
 
-[com_106]
+[com_105]
 type=text
 x=214
 y=191
@@ -951,7 +951,7 @@ font=p12
 text=Plate skirt
 activecolour=0xFFFFFF
 
-[com_107]
+[com_106]
 type=text
 x=214
 y=241
@@ -964,7 +964,7 @@ font=p12
 text=Plate body
 activecolour=0xFFFFFF
 
-[com_108]
+[com_107]
 type=text
 x=312
 y=91
@@ -977,7 +977,7 @@ font=p12
 text=Medium helm
 activecolour=0xFFFFFF
 
-[com_109]
+[com_108]
 type=text
 x=312
 y=141
@@ -990,7 +990,7 @@ font=p12
 text=Full helm
 activecolour=0xFFFFFF
 
-[com_110]
+[com_109]
 type=text
 x=312
 y=191
@@ -1003,7 +1003,7 @@ font=p12
 text=Square shield
 activecolour=0xFFFFFF
 
-[com_111]
+[com_110]
 type=text
 x=312
 y=241
@@ -1016,7 +1016,7 @@ font=p12
 text=Kite shield
 activecolour=0xFFFFFF
 
-[com_112]
+[com_111]
 type=text
 x=406
 y=191
@@ -1029,7 +1029,7 @@ font=p12
 text=Throwing knives
 activecolour=0xFFFFFF
 
-[com_113]
+[com_112]
 type=text
 x=410
 y=91
@@ -1044,7 +1044,7 @@ font=p12
 text=Dart tips
 activecolour=0xFFFFFF
 
-[com_114]
+[com_113]
 type=text
 x=410
 y=141
@@ -1057,7 +1057,7 @@ font=p12
 text=Arrow heads
 activecolour=0xFFFFFF
 
-[com_115]
+[com_114]
 type=text
 x=269
 y=69
@@ -1071,7 +1071,7 @@ text=3bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_116]
+[com_115]
 type=text
 x=269
 y=119
@@ -1085,7 +1085,7 @@ text=3bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_117]
+[com_116]
 type=text
 x=269
 y=169
@@ -1099,7 +1099,7 @@ text=3bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_118]
+[com_117]
 type=text
 x=269
 y=219
@@ -1113,10 +1113,25 @@ text=5bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_119]
+[com_118]
 type=text
 x=367
 y=119
+width=34
+height=14
+script1op1=pushvar,smithing_bars
+script1=gt,1
+center=yes
+font=p12
+shadowed=yes
+text=2bars
+colour=0xC00000
+activecolour=0x00C000
+
+[com_119]
+type=text
+x=367
+y=169
 width=34
 height=14
 script1op1=pushvar,smithing_bars
@@ -1131,21 +1146,6 @@ activecolour=0x00C000
 [com_120]
 type=text
 x=367
-y=169
-width=34
-height=14
-script1op1=pushvar,smithing_bars
-script1=gt,1
-center=yes
-font=p12
-shadowed=yes
-text=2bars
-colour=0xC00000
-activecolour=0x00C000
-
-[com_121]
-type=text
-x=367
 y=219
 width=33
 height=14
@@ -1157,7 +1157,7 @@ text=3bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_122]
+[com_121]
 type=text
 x=73
 y=169
@@ -1172,7 +1172,7 @@ text=2bars
 colour=0xC00000
 activecolour=0x00C000
 
-[com_123]
+[com_122]
 type=text
 x=12
 y=30
@@ -1184,7 +1184,7 @@ shadowed=yes
 text=What would you like to make?
 colour=0xFFFF00
 
-[com_124]
+[com_123]
 type=text
 x=171
 y=169
@@ -1253,7 +1253,7 @@ option1=Make set
 option2=Make 5 sets
 option3=Make 10 sets
 
-[com_130]
+[com_129]
 type=text
 x=73
 y=119
@@ -1268,9 +1268,24 @@ text=1bar
 colour=0xC00000
 activecolour=0x00C000
 
-[com_131]
+[com_130]
 type=text
 x=73
+y=69
+width=25
+height=14
+script1op1=pushvar,smithing_bars
+script1=gt,0
+center=yes
+font=p12
+shadowed=yes
+text=1bar
+colour=0xC00000
+activecolour=0x00C000
+
+[com_131]
+type=text
+x=171
 y=69
 width=25
 height=14
@@ -1285,7 +1300,7 @@ activecolour=0x00C000
 
 [com_132]
 type=text
-x=171
+x=367
 y=69
 width=25
 height=14
@@ -1300,7 +1315,7 @@ activecolour=0x00C000
 
 [com_133]
 type=text
-x=367
+x=465
 y=69
 width=25
 height=14
@@ -1315,21 +1330,6 @@ activecolour=0x00C000
 
 [com_134]
 type=text
-x=465
-y=69
-width=25
-height=14
-script1op1=pushvar,smithing_bars
-script1=gt,0
-center=yes
-font=p12
-shadowed=yes
-text=1bar
-colour=0xC00000
-activecolour=0x00C000
-
-[com_135]
-type=text
 x=171
 y=119
 width=25
@@ -1343,7 +1343,7 @@ text=1bar
 colour=0xC00000
 activecolour=0x00C000
 
-[com_136]
+[com_135]
 type=text
 x=465
 y=119
@@ -1358,7 +1358,7 @@ text=1bar
 colour=0xC00000
 activecolour=0x00C000
 
-[com_137]
+[com_136]
 type=text
 x=465
 y=169

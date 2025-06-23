@@ -20,15 +20,15 @@ zoom=400
 xan=136
 yan=2008
 
-[com_2]
+[com_3]
 type=layer
 x=34
 y=259
 width=45
 height=36
 
-[com_3]
-layer=com_2
+[com_2]
+layer=com_3
 type=graphic
 x=0
 y=0

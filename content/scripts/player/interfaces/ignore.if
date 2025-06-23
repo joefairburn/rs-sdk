@@ -9,7 +9,7 @@ width=168
 height=204
 scroll=400
 
-[com_1]
+[com_26]
 layer=com_0
 type=text
 x=7
@@ -21,7 +21,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_2]
+[com_27]
 layer=com_0
 type=text
 x=7
@@ -33,7 +33,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_3]
+[com_28]
 layer=com_0
 type=text
 x=7
@@ -45,7 +45,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_4]
+[com_29]
 layer=com_0
 type=text
 x=7
@@ -57,7 +57,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_5]
+[com_30]
 layer=com_0
 type=text
 x=7
@@ -69,7 +69,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_6]
+[com_31]
 layer=com_0
 type=text
 x=7
@@ -81,7 +81,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_7]
+[com_32]
 layer=com_0
 type=text
 x=7
@@ -93,7 +93,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_8]
+[com_33]
 layer=com_0
 type=text
 x=7
@@ -105,7 +105,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_9]
+[com_34]
 layer=com_0
 type=text
 x=7
@@ -117,7 +117,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_10]
+[com_35]
 layer=com_0
 type=text
 x=7
@@ -129,7 +129,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_11]
+[com_36]
 layer=com_0
 type=text
 x=7
@@ -141,7 +141,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_12]
+[com_37]
 layer=com_0
 type=text
 x=7
@@ -153,7 +153,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_13]
+[com_38]
 layer=com_0
 type=text
 x=7
@@ -165,7 +165,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_14]
+[com_39]
 layer=com_0
 type=text
 x=7
@@ -177,7 +177,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_15]
+[com_40]
 layer=com_0
 type=text
 x=7
@@ -189,7 +189,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_16]
+[com_41]
 layer=com_0
 type=text
 x=7
@@ -201,7 +201,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_17]
+[com_42]
 layer=com_0
 type=text
 x=7
@@ -213,7 +213,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_18]
+[com_43]
 layer=com_0
 type=text
 x=7
@@ -225,7 +225,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_19]
+[com_44]
 layer=com_0
 type=text
 x=7
@@ -237,7 +237,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_20]
+[com_45]
 layer=com_0
 type=text
 x=7
@@ -249,7 +249,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_21]
+[com_46]
 layer=com_0
 type=text
 x=7
@@ -261,7 +261,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_22]
+[com_47]
 layer=com_0
 type=text
 x=7
@@ -273,7 +273,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_23]
+[com_48]
 layer=com_0
 type=text
 x=7
@@ -285,7 +285,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_24]
+[com_49]
 layer=com_0
 type=text
 x=7
@@ -297,7 +297,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_25]
+[com_50]
 layer=com_0
 type=text
 x=7
@@ -309,7 +309,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_26]
+[com_51]
 layer=com_0
 type=text
 x=7
@@ -321,7 +321,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_27]
+[com_52]
 layer=com_0
 type=text
 x=7
@@ -333,7 +333,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_28]
+[com_53]
 layer=com_0
 type=text
 x=7
@@ -345,7 +345,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_29]
+[com_54]
 layer=com_0
 type=text
 x=7
@@ -357,7 +357,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_30]
+[com_55]
 layer=com_0
 type=text
 x=7
@@ -369,7 +369,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_31]
+[com_56]
 layer=com_0
 type=text
 x=7
@@ -381,7 +381,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_32]
+[com_57]
 layer=com_0
 type=text
 x=7
@@ -393,7 +393,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_33]
+[com_58]
 layer=com_0
 type=text
 x=7
@@ -405,7 +405,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_34]
+[com_59]
 layer=com_0
 type=text
 x=7
@@ -417,7 +417,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_35]
+[com_60]
 layer=com_0
 type=text
 x=7
@@ -429,7 +429,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_36]
+[com_61]
 layer=com_0
 type=text
 x=7
@@ -441,7 +441,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_37]
+[com_62]
 layer=com_0
 type=text
 x=7
@@ -453,7 +453,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_38]
+[com_63]
 layer=com_0
 type=text
 x=7
@@ -465,7 +465,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_39]
+[com_64]
 layer=com_0
 type=text
 x=7
@@ -477,7 +477,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_40]
+[com_65]
 layer=com_0
 type=text
 x=7
@@ -489,7 +489,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_41]
+[com_66]
 layer=com_0
 type=text
 x=7
@@ -501,7 +501,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_42]
+[com_67]
 layer=com_0
 type=text
 x=7
@@ -513,7 +513,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_43]
+[com_68]
 layer=com_0
 type=text
 x=7
@@ -525,7 +525,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_44]
+[com_69]
 layer=com_0
 type=text
 x=7
@@ -537,7 +537,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_45]
+[com_70]
 layer=com_0
 type=text
 x=7
@@ -549,7 +549,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_46]
+[com_71]
 layer=com_0
 type=text
 x=7
@@ -561,7 +561,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_47]
+[com_72]
 layer=com_0
 type=text
 x=7
@@ -573,7 +573,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_48]
+[com_73]
 layer=com_0
 type=text
 x=7
@@ -585,7 +585,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_49]
+[com_74]
 layer=com_0
 type=text
 x=7
@@ -597,7 +597,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_50]
+[com_75]
 layer=com_0
 type=text
 x=7
@@ -609,7 +609,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_51]
+[com_76]
 layer=com_0
 type=text
 x=7
@@ -621,7 +621,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_52]
+[com_77]
 layer=com_0
 type=text
 x=7
@@ -633,7 +633,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_53]
+[com_78]
 layer=com_0
 type=text
 x=7
@@ -645,7 +645,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_54]
+[com_79]
 layer=com_0
 type=text
 x=7
@@ -657,7 +657,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_55]
+[com_80]
 layer=com_0
 type=text
 x=7
@@ -669,7 +669,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_56]
+[com_81]
 layer=com_0
 type=text
 x=7
@@ -681,7 +681,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_57]
+[com_82]
 layer=com_0
 type=text
 x=7
@@ -693,7 +693,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_58]
+[com_83]
 layer=com_0
 type=text
 x=7
@@ -705,7 +705,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_59]
+[com_84]
 layer=com_0
 type=text
 x=7
@@ -717,7 +717,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_60]
+[com_85]
 layer=com_0
 type=text
 x=7
@@ -729,7 +729,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_61]
+[com_86]
 layer=com_0
 type=text
 x=7
@@ -741,7 +741,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_62]
+[com_87]
 layer=com_0
 type=text
 x=7
@@ -753,7 +753,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_63]
+[com_88]
 layer=com_0
 type=text
 x=7
@@ -765,7 +765,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_64]
+[com_89]
 layer=com_0
 type=text
 x=7
@@ -777,7 +777,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_65]
+[com_90]
 layer=com_0
 type=text
 x=7
@@ -789,7 +789,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_66]
+[com_91]
 layer=com_0
 type=text
 x=7
@@ -801,7 +801,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_67]
+[com_92]
 layer=com_0
 type=text
 x=7
@@ -813,7 +813,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_68]
+[com_93]
 layer=com_0
 type=text
 x=7
@@ -825,7 +825,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_69]
+[com_94]
 layer=com_0
 type=text
 x=7
@@ -837,7 +837,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_70]
+[com_95]
 layer=com_0
 type=text
 x=7
@@ -849,7 +849,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_71]
+[com_96]
 layer=com_0
 type=text
 x=7
@@ -861,7 +861,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_72]
+[com_97]
 layer=com_0
 type=text
 x=7
@@ -873,7 +873,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_73]
+[com_98]
 layer=com_0
 type=text
 x=7
@@ -885,7 +885,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_74]
+[com_99]
 layer=com_0
 type=text
 x=7
@@ -897,7 +897,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_75]
+[com_100]
 layer=com_0
 type=text
 x=7
@@ -909,7 +909,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_76]
+[com_101]
 layer=com_0
 type=text
 x=7
@@ -921,7 +921,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_77]
+[com_102]
 layer=com_0
 type=text
 x=7
@@ -933,7 +933,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_78]
+[com_103]
 layer=com_0
 type=text
 x=7
@@ -945,7 +945,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_79]
+[com_104]
 layer=com_0
 type=text
 x=7
@@ -957,7 +957,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_80]
+[com_105]
 layer=com_0
 type=text
 x=7
@@ -969,7 +969,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_81]
+[com_106]
 layer=com_0
 type=text
 x=7
@@ -981,7 +981,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_82]
+[com_107]
 layer=com_0
 type=text
 x=7
@@ -993,7 +993,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_83]
+[com_108]
 layer=com_0
 type=text
 x=7
@@ -1005,7 +1005,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_84]
+[com_109]
 layer=com_0
 type=text
 x=7
@@ -1017,7 +1017,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_85]
+[com_110]
 layer=com_0
 type=text
 x=7
@@ -1029,7 +1029,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_86]
+[com_111]
 layer=com_0
 type=text
 x=7
@@ -1041,7 +1041,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_87]
+[com_112]
 layer=com_0
 type=text
 x=7
@@ -1053,7 +1053,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_88]
+[com_113]
 layer=com_0
 type=text
 x=7
@@ -1065,7 +1065,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_89]
+[com_114]
 layer=com_0
 type=text
 x=7
@@ -1077,7 +1077,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_90]
+[com_115]
 layer=com_0
 type=text
 x=7
@@ -1089,7 +1089,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_91]
+[com_116]
 layer=com_0
 type=text
 x=7
@@ -1101,7 +1101,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_92]
+[com_117]
 layer=com_0
 type=text
 x=7
@@ -1113,7 +1113,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_93]
+[com_118]
 layer=com_0
 type=text
 x=7
@@ -1125,7 +1125,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_94]
+[com_119]
 layer=com_0
 type=text
 x=7
@@ -1137,7 +1137,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_95]
+[com_120]
 layer=com_0
 type=text
 x=7
@@ -1149,7 +1149,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_96]
+[com_121]
 layer=com_0
 type=text
 x=7
@@ -1161,7 +1161,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_97]
+[com_122]
 layer=com_0
 type=text
 x=7
@@ -1173,7 +1173,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_98]
+[com_123]
 layer=com_0
 type=text
 x=7
@@ -1185,7 +1185,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_99]
+[com_124]
 layer=com_0
 type=text
 x=7
@@ -1197,7 +1197,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_100]
+[com_125]
 layer=com_0
 type=text
 x=7
@@ -1209,7 +1209,7 @@ font=p12
 shadowed=yes
 colour=0xFFFFFF
 
-[com_101]
+[com_1]
 type=text
 x=51
 y=4
@@ -1220,7 +1220,7 @@ shadowed=yes
 text=Ignore list
 colour=0xFFFF00
 
-[com_102]
+[com_2]
 type=graphic
 x=15
 y=224
@@ -1231,7 +1231,7 @@ height=36
 graphic=combatboxes,0
 option=Add friend
 
-[com_103]
+[com_3]
 type=graphic
 x=95
 y=224
@@ -1242,7 +1242,7 @@ height=36
 graphic=combatboxes,0
 option=Delete friend
 
-[com_104]
+[com_4]
 type=text
 x=23
 y=234
@@ -1254,7 +1254,7 @@ text=Add Name
 colour=0xFFFF00
 activecolour=0xFFFFFF
 
-[com_105]
+[com_5]
 type=text
 x=105
 y=234
@@ -1266,7 +1266,7 @@ text=Del Name
 colour=0xFFFF00
 activecolour=0xFFFFFF
 
-[com_106]
+[com_6]
 type=graphic
 x=3
 y=20
@@ -1274,7 +1274,7 @@ width=25
 height=30
 graphic=steelborder,0
 
-[com_107]
+[com_7]
 type=graphic
 x=146
 y=20
@@ -1282,7 +1282,7 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_108]
+[com_8]
 type=graphic
 x=3
 y=194
@@ -1290,7 +1290,7 @@ width=25
 height=30
 graphic=steelborder,2
 
-[com_109]
+[com_9]
 type=graphic
 x=146
 y=194
@@ -1298,7 +1298,7 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_110]
+[com_10]
 type=graphic
 x=28
 y=5
@@ -1306,7 +1306,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_111]
+[com_11]
 type=graphic
 x=64
 y=5
@@ -1314,7 +1314,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_112]
+[com_12]
 type=graphic
 x=100
 y=5
@@ -1322,7 +1322,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_113]
+[com_13]
 type=graphic
 x=112
 y=5
@@ -1330,7 +1330,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_114]
+[com_14]
 type=graphic
 x=150
 y=50
@@ -1338,7 +1338,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_115]
+[com_15]
 type=graphic
 x=150
 y=86
@@ -1346,7 +1346,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_116]
+[com_16]
 type=graphic
 x=150
 y=122
@@ -1354,7 +1354,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_117]
+[com_17]
 type=graphic
 x=150
 y=158
@@ -1362,7 +1362,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_118]
+[com_18]
 type=graphic
 x=-12
 y=50
@@ -1370,7 +1370,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_119]
+[com_19]
 type=graphic
 x=-12
 y=86
@@ -1378,7 +1378,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_120]
+[com_20]
 type=graphic
 x=-12
 y=122
@@ -1386,7 +1386,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_121]
+[com_21]
 type=graphic
 x=-12
 y=158
@@ -1394,7 +1394,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_122]
+[com_22]
 type=graphic
 x=28
 y=203
@@ -1402,7 +1402,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_123]
+[com_23]
 type=graphic
 x=64
 y=203
@@ -1410,7 +1410,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_124]
+[com_24]
 type=graphic
 x=100
 y=203
@@ -1418,7 +1418,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_125]
+[com_25]
 type=graphic
 x=111
 y=203

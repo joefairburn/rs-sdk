@@ -186,7 +186,7 @@ font=p11
 text=(Defensive)
 colour=0xFFFF00
 
-[com_17]
+[com_20]
 layer=staff101
 type=graphic
 x=5
@@ -196,7 +196,7 @@ width=72
 height=36
 graphic=combatboxes,0
 
-[com_18]
+[com_21]
 layer=staff101
 type=graphic
 x=24
@@ -205,7 +205,7 @@ width=30
 height=30
 graphic=prayeron,12
 
-[com_19]
+[com_22]
 layer=staff101
 type=text
 x=78
@@ -217,7 +217,7 @@ shadowed=yes
 text=Re-Cast
 colour=0xFFFF00
 
-[com_20]
+[com_17]
 type=text
 x=82
 y=90
@@ -227,7 +227,7 @@ font=p11
 text=(Crush)
 colour=0xFFFF00
 
-[com_21]
+[com_18]
 type=text
 x=82
 y=136
@@ -237,7 +237,7 @@ font=p11
 text=(Crush)
 colour=0xFFFF00
 
-[com_22]
+[com_19]
 type=text
 x=82
 y=182

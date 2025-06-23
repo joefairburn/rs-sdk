@@ -22,7 +22,7 @@ text=Close Window
 colour=0xFAD782
 overcolour=0xFFFFFF
 
-[com_2]
+[com_8]
 type=model
 x=323
 y=166
@@ -33,7 +33,7 @@ zoom=1349
 xan=474
 yan=1775
 
-[com_3]
+[com_10]
 type=model
 x=150
 y=229
@@ -44,7 +44,7 @@ zoom=531
 xan=493
 yan=18
 
-[com_4]
+[com_11]
 type=model
 x=165
 y=49
@@ -55,7 +55,7 @@ zoom=531
 xan=527
 yan=515
 
-[com_5]
+[com_13]
 type=model
 x=340
 y=62
@@ -66,7 +66,7 @@ zoom=531
 xan=578
 yan=1030
 
-[com_6]
+[com_16]
 type=model
 x=321
 y=245
@@ -77,15 +77,15 @@ zoom=531
 xan=576
 yan=1544
 
-[com_7]
+[com_17]
 type=layer
 x=34
 y=32
 width=313
 height=239
 
-[com_8]
-layer=com_7
+[com_2]
+layer=com_17
 type=model
 x=210
 y=90
@@ -96,8 +96,8 @@ zoom=1322
 xan=642
 yan=787
 
-[com_9]
-layer=com_7
+[com_3]
+layer=com_17
 type=model
 x=226
 y=114
@@ -108,8 +108,8 @@ zoom=1322
 xan=658
 yan=875
 
-[com_10]
-layer=com_7
+[com_4]
+layer=com_17
 type=model
 x=236
 y=141
@@ -120,8 +120,8 @@ zoom=1322
 xan=682
 yan=942
 
-[com_11]
-layer=com_7
+[com_5]
+layer=com_17
 type=model
 x=241
 y=168
@@ -132,8 +132,8 @@ zoom=1322
 xan=686
 yan=974
 
-[com_12]
-layer=com_7
+[com_6]
+layer=com_17
 type=model
 x=247
 y=193
@@ -144,8 +144,8 @@ zoom=1351
 xan=692
 yan=929
 
-[com_13]
-layer=com_7
+[com_7]
+layer=com_17
 type=model
 x=255
 y=212
@@ -156,8 +156,8 @@ zoom=1351
 xan=702
 yan=877
 
-[com_14]
-layer=com_7
+[com_9]
+layer=com_17
 type=model
 x=133
 y=20
@@ -168,8 +168,8 @@ zoom=1351
 xan=675
 yan=744
 
-[com_15]
-layer=com_7
+[com_12]
+layer=com_17
 type=model
 x=189
 y=71
@@ -180,8 +180,8 @@ zoom=1351
 xan=679
 yan=758
 
-[com_16]
-layer=com_7
+[com_14]
+layer=com_17
 type=model
 x=152
 y=36
@@ -192,8 +192,8 @@ zoom=1351
 xan=693
 yan=793
 
-[com_17]
-layer=com_7
+[com_15]
+layer=com_17
 type=model
 x=170
 y=54

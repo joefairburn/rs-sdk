@@ -709,7 +709,7 @@ y=20
 width=440
 height=299
 
-[com_89]
+[com_91]
 type=text
 x=190
 y=31
@@ -720,7 +720,7 @@ shadowed=yes
 text=Party Drop Chest
 colour=0x929CFE
 
-[com_90]
+[com_92]
 type=text
 x=415
 y=32
@@ -733,7 +733,7 @@ text=Close Window
 colour=0x808080
 overcolour=0xFFFFFF
 
-[com_91]
+[com_93]
 type=layer
 x=39
 y=61
@@ -742,7 +742,7 @@ height=170
 scroll=940
 
 [inv]
-layer=com_91
+layer=com_93
 type=inv
 x=13
 y=18
@@ -751,15 +751,15 @@ height=24
 draggable=yes
 margin=15,6
 
-[com_93]
+[com_94]
 type=layer
 x=30
 y=263
 width=453
 height=41
 
-[com_94]
-layer=com_93
+[com_89]
+layer=com_94
 type=rect
 x=385
 y=3
@@ -768,8 +768,8 @@ width=68
 height=25
 fill=yes
 
-[com_95]
-layer=com_93
+[com_90]
+layer=com_94
 type=text
 x=400
 y=8
@@ -780,8 +780,8 @@ shadowed=yes
 text=Accept
 colour=0x929CFE
 
-[com_96]
-layer=com_93
+[com_109]
+layer=com_94
 type=text
 x=103
 y=-129
@@ -793,7 +793,7 @@ text=Text
 colour=0xFFFF00
 
 [playerinv]
-layer=com_93
+layer=com_94
 type=inv
 x=6
 y=1
@@ -806,7 +806,7 @@ option3=Withdraw 10
 option4=Withdraw All
 option5=Withdraw X
 
-[com_98]
+[com_95]
 type=graphic
 x=16
 y=225
@@ -814,7 +814,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_99]
+[com_96]
 type=graphic
 x=52
 y=225
@@ -822,7 +822,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_100]
+[com_97]
 type=graphic
 x=124
 y=225
@@ -830,7 +830,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_101]
+[com_98]
 type=graphic
 x=88
 y=225
@@ -838,7 +838,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_102]
+[com_99]
 type=graphic
 x=412
 y=225
@@ -846,7 +846,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_103]
+[com_100]
 type=graphic
 x=376
 y=225
@@ -854,7 +854,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_104]
+[com_101]
 type=graphic
 x=340
 y=225
@@ -862,7 +862,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_105]
+[com_102]
 type=graphic
 x=304
 y=225
@@ -870,7 +870,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_106]
+[com_103]
 type=graphic
 x=160
 y=225
@@ -878,7 +878,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_107]
+[com_104]
 type=graphic
 x=268
 y=225
@@ -886,7 +886,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_108]
+[com_105]
 type=graphic
 x=232
 y=225
@@ -894,7 +894,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_109]
+[com_106]
 type=graphic
 x=196
 y=225
@@ -902,7 +902,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_110]
+[com_107]
 type=graphic
 x=448
 y=225
@@ -910,7 +910,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_111]
+[com_108]
 type=graphic
 x=460
 y=225
@@ -918,7 +918,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_112]
+[com_110]
 type=graphic
 x=409
 y=267
@@ -926,7 +926,7 @@ width=25
 height=30
 graphic=steelborder,2
 
-[com_113]
+[com_111]
 type=graphic
 x=409
 y=261
@@ -934,7 +934,7 @@ width=4
 height=29
 graphic=steelborder,0
 
-[com_114]
+[com_112]
 type=graphic
 x=463
 y=261
@@ -942,7 +942,7 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_115]
+[com_113]
 type=graphic
 x=433
 y=276
@@ -950,7 +950,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_116]
+[com_114]
 type=graphic
 x=463
 y=267
@@ -958,7 +958,7 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_117]
+[com_115]
 type=graphic
 x=433
 y=246

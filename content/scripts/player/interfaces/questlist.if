@@ -1,14 +1,12 @@
-type=overlay
-
 [com_0]
 type=layer
 x=5
 y=20
 width=168
 height=229
-scroll=875
+scroll=885
 
-[com_1]
+[com_24]
 layer=com_0
 type=text
 x=5
@@ -245,7 +243,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=816
+y=829
 buttontype=normal
 width=68
 height=14
@@ -254,7 +252,7 @@ shadowed=yes
 text=Watch Tower
 colour=0xFF0000
 
-[com_20]
+[com_43]
 layer=com_0
 type=text
 x=10
@@ -270,7 +268,7 @@ colour=0xF99B15
 layer=com_0
 type=text
 x=10
-y=831
+y=844
 buttontype=normal
 width=89
 height=14
@@ -283,7 +281,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=846
+y=859
 buttontype=normal
 width=82
 height=14
@@ -296,7 +294,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=339
+y=338
 buttontype=normal
 width=57
 height=14
@@ -309,7 +307,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=354
+y=353
 buttontype=normal
 width=63
 height=14
@@ -322,7 +320,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=369
+y=368
 buttontype=normal
 width=76
 height=14
@@ -331,24 +329,24 @@ shadowed=yes
 text=Digsite Quest
 colour=0xFF0000
 
-[druid]
+[chompybird]
 layer=com_0
 type=text
 x=10
-y=385
+y=323
 buttontype=normal
-width=73
+width=135
 height=14
 font=p12
 shadowed=yes
-text=Druidic Ritual
+text=Big Chompy Bird Hunting
 colour=0xFF0000
 
 [mcannon]
 layer=com_0
 type=text
 x=10
-y=401
+y=398
 buttontype=normal
 width=77
 height=14
@@ -361,7 +359,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=416
+y=429
 buttontype=normal
 width=69
 height=14
@@ -374,7 +372,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=432
+y=445
 buttontype=normal
 width=65
 height=14
@@ -387,7 +385,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=448
+y=461
 buttontype=normal
 width=88
 height=14
@@ -400,7 +398,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=465
+y=478
 buttontype=normal
 width=83
 height=14
@@ -413,7 +411,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=481
+y=494
 buttontype=normal
 width=83
 height=14
@@ -426,7 +424,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=497
+y=510
 buttontype=normal
 width=63
 height=14
@@ -439,7 +437,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=513
+y=526
 buttontype=normal
 width=73
 height=14
@@ -452,7 +450,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=530
+y=543
 buttontype=normal
 width=53
 height=14
@@ -465,7 +463,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=546
+y=559
 buttontype=normal
 width=77
 height=14
@@ -478,7 +476,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=562
+y=575
 buttontype=normal
 width=85
 height=14
@@ -491,7 +489,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=578
+y=591
 buttontype=normal
 width=50
 height=14
@@ -504,7 +502,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=594
+y=607
 buttontype=normal
 width=88
 height=14
@@ -517,7 +515,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=610
+y=623
 buttontype=normal
 width=77
 height=14
@@ -530,7 +528,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=626
+y=639
 buttontype=normal
 width=90
 height=14
@@ -543,7 +541,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=641
+y=654
 buttontype=normal
 width=109
 height=14
@@ -556,7 +554,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=657
+y=670
 buttontype=normal
 width=63
 height=14
@@ -569,7 +567,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=672
+y=685
 buttontype=normal
 width=96
 height=14
@@ -582,7 +580,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=688
+y=701
 buttontype=normal
 width=85
 height=14
@@ -595,7 +593,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=704
+y=717
 buttontype=normal
 width=76
 height=14
@@ -608,7 +606,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=720
+y=733
 buttontype=normal
 width=67
 height=14
@@ -621,7 +619,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=736
+y=749
 buttontype=normal
 width=80
 height=14
@@ -634,7 +632,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=753
+y=766
 buttontype=normal
 width=88
 height=14
@@ -647,7 +645,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=769
+y=782
 buttontype=normal
 width=105
 height=14
@@ -660,7 +658,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=785
+y=798
 buttontype=normal
 width=66
 height=14
@@ -673,7 +671,7 @@ colour=0xFF0000
 layer=com_0
 type=text
 x=10
-y=801
+y=814
 buttontype=normal
 width=105
 height=14
@@ -695,20 +693,33 @@ shadowed=yes
 text=Dragon Slayer
 colour=0xFF0000
 
-[chompybird]
+[com_77]
 layer=com_0
 type=text
 x=10
-y=323
+y=413
 buttontype=normal
-width=135
+width=112
 height=14
 font=p12
 shadowed=yes
-text=Big Chompy Bird Hunting
+text=Elemental Workshop
 colour=0xFF0000
 
-[com_55]
+[druid]
+layer=com_0
+type=text
+x=10
+y=383
+buttontype=normal
+width=73
+height=14
+font=p12
+shadowed=yes
+text=Druidic Ritual
+colour=0xFF0000
+
+[com_1]
 type=text
 x=41
 y=4
@@ -719,7 +730,7 @@ shadowed=yes
 text=Quest Journal
 colour=0xFFFF00
 
-[com_56]
+[com_2]
 type=graphic
 x=-12
 y=194
@@ -727,7 +738,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_57]
+[com_3]
 type=graphic
 x=150
 y=194
@@ -735,7 +746,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_58]
+[com_4]
 type=graphic
 x=3
 y=20
@@ -743,7 +754,7 @@ width=25
 height=30
 graphic=steelborder,0
 
-[com_59]
+[com_5]
 type=graphic
 x=146
 y=20
@@ -751,7 +762,7 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_60]
+[com_6]
 type=graphic
 x=3
 y=219
@@ -759,7 +770,7 @@ width=25
 height=30
 graphic=steelborder,2
 
-[com_61]
+[com_7]
 type=graphic
 x=146
 y=219
@@ -767,7 +778,7 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_62]
+[com_8]
 type=graphic
 x=28
 y=5
@@ -775,7 +786,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_63]
+[com_9]
 type=graphic
 x=64
 y=5
@@ -783,7 +794,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_64]
+[com_10]
 type=graphic
 x=100
 y=5
@@ -791,7 +802,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_65]
+[com_11]
 type=graphic
 x=112
 y=5
@@ -799,7 +810,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_66]
+[com_12]
 type=graphic
 x=150
 y=50
@@ -807,7 +818,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_67]
+[com_13]
 type=graphic
 x=150
 y=86
@@ -815,7 +826,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_68]
+[com_14]
 type=graphic
 x=150
 y=122
@@ -823,7 +834,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_69]
+[com_15]
 type=graphic
 x=150
 y=158
@@ -831,7 +842,7 @@ width=36
 height=36
 graphic=steelborder2,1
 
-[com_70]
+[com_16]
 type=graphic
 x=-12
 y=50
@@ -839,7 +850,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_71]
+[com_17]
 type=graphic
 x=-12
 y=86
@@ -847,7 +858,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_72]
+[com_18]
 type=graphic
 x=-12
 y=122
@@ -855,7 +866,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_73]
+[com_19]
 type=graphic
 x=-12
 y=158
@@ -863,7 +874,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_74]
+[com_20]
 type=graphic
 x=28
 y=228
@@ -871,7 +882,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_75]
+[com_21]
 type=graphic
 x=64
 y=228
@@ -879,7 +890,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_76]
+[com_22]
 type=graphic
 x=98
 y=228
@@ -887,7 +898,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_77]
+[com_23]
 type=graphic
 x=124
 y=228

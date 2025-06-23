@@ -8,7 +8,7 @@ script1op1=pushvar,option1
 script1=eq,2
 hide=yes
 
-[com_1]
+[com_8]
 layer=com_0
 type=inv
 x=8
@@ -17,7 +17,7 @@ width=5
 height=5
 margin=5,5
 
-[com_2]
+[com_1]
 type=text
 x=430
 y=8
@@ -30,7 +30,7 @@ text=Close Window
 colour=0xFAD782
 overcolour=0xFFFFFF
 
-[com_3]
+[com_2]
 type=model
 x=247
 y=145
@@ -40,7 +40,7 @@ model=model_3437
 zoom=430
 xan=512
 
-[com_4]
+[com_3]
 type=inv
 x=171
 y=54
@@ -49,15 +49,15 @@ height=5
 interactable=yes
 margin=5,5
 
-[com_5]
+[com_7]
 type=layer
 x=13
 y=243
 width=93
 height=77
 
-[com_6]
-layer=com_5
+[com_4]
+layer=com_7
 type=model
 x=28
 y=28
@@ -71,8 +71,8 @@ zoom=2486
 xan=288
 yan=2046
 
-[com_7]
-layer=com_5
+[com_5]
+layer=com_7
 type=text
 x=32
 y=25
@@ -84,8 +84,8 @@ font=p12
 activetext=Show
 colour=0xFAD782
 
-[com_8]
-layer=com_5
+[com_6]
+layer=com_7
 type=text
 x=23
 y=41

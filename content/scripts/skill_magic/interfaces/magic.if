@@ -3891,7 +3891,7 @@ height=54
 center=yes
 font=p11
 shadowed=yes
-text=A strength 25 missile attack
+text=Summons the wrath of Iban
 colour=0x6B6F33
 
 [com_255]
@@ -5795,11 +5795,11 @@ type=text
 x=3
 y=17
 width=174
-height=54
+height=20
 center=yes
 font=p11
 shadowed=yes
-text=Reduces you opponents\nstrength by 10%
+text=Reduces your opponents\nstrength by 10%
 colour=0x6B6F33
 
 [com_395]
@@ -5916,11 +5916,11 @@ type=text
 x=3
 y=17
 width=174
-height=54
+height=11
 center=yes
 font=p11
 shadowed=yes
-text=A high level Fire mssile
+text=A high level Fire missile
 colour=0x6B6F33
 
 [com_404]

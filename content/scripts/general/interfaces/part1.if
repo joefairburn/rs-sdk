@@ -248,7 +248,7 @@ shadowed=yes
 text=part2c
 colour=0xFFFF00
 
-[com_29]
+[com_30]
 layer=com_25
 type=text
 x=16
@@ -260,7 +260,7 @@ shadowed=yes
 text=part3c
 colour=0xFFFF00
 
-[com_30]
+[com_31]
 layer=com_25
 type=text
 x=16
@@ -272,7 +272,7 @@ shadowed=yes
 text=part4c
 colour=0xFFFF00
 
-[com_31]
+[com_29]
 type=layer
 x=13
 y=12
@@ -280,7 +280,7 @@ width=165
 height=65
 
 [com_32]
-layer=com_31
+layer=com_29
 type=rect
 x=0
 y=4
@@ -289,7 +289,7 @@ height=9
 fill=yes
 
 [com_33]
-layer=com_31
+layer=com_29
 type=text
 x=16
 y=0
@@ -301,7 +301,7 @@ text=part1a
 colour=0xFFFF00
 
 [com_34]
-layer=com_31
+layer=com_29
 type=text
 x=16
 y=16
@@ -313,7 +313,7 @@ text=part2a
 colour=0xFFFF00
 
 [com_35]
-layer=com_31
+layer=com_29
 type=text
 x=16
 y=32
@@ -325,7 +325,7 @@ text=part3a
 colour=0xFFFF00
 
 [com_36]
-layer=com_31
+layer=com_29
 type=text
 x=16
 y=48

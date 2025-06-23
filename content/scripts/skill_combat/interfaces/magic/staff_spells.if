@@ -387,7 +387,7 @@ y=178
 width=186
 height=85
 
-[com_17]
+[com_18]
 layer=com_16
 type=rect
 x=3
@@ -396,7 +396,7 @@ width=178
 height=72
 colour=0x726451
 
-[com_18]
+[com_19]
 layer=com_16
 type=rect
 x=4
@@ -405,7 +405,7 @@ width=176
 height=70
 colour=0x726451
 
-[com_19]
+[com_20]
 layer=com_16
 type=rect
 x=4
@@ -414,7 +414,7 @@ width=177
 height=71
 colour=0x2E2B23
 
-[com_20]
+[com_21]
 layer=com_16
 type=rect
 x=5
@@ -423,7 +423,7 @@ width=174
 height=68
 fill=yes
 
-[com_21]
+[com_17]
 type=text
 x=34
 y=213

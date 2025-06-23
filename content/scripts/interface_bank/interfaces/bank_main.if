@@ -709,7 +709,7 @@ y=20
 width=440
 height=299
 
-[com_89]
+[com_90]
 type=text
 x=181
 y=30
@@ -720,7 +720,7 @@ shadowed=yes
 text=The Bank of RuneScape
 colour=0xFF981F
 
-[com_90]
+[com_91]
 type=text
 x=419
 y=32
@@ -733,7 +733,7 @@ text=Close Window
 colour=0x808080
 overcolour=0xFFFFFF
 
-[com_91]
+[com_92]
 type=layer
 x=37
 y=55
@@ -742,7 +742,7 @@ height=229
 scroll=1145
 
 [inv]
-layer=com_91
+layer=com_92
 type=inv
 x=38
 y=3

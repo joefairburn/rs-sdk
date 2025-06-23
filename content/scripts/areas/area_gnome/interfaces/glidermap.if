@@ -114,7 +114,7 @@ font=q8
 text=Kar-Hewo
 colour=0x3B1C0F
 
-[com_11]
+[com_16]
 type=layer
 x=215
 y=220
@@ -123,7 +123,7 @@ height=80
 hide=yes
 
 [com_12]
-layer=com_11
+layer=com_16
 type=model
 x=11
 y=4
@@ -134,7 +134,7 @@ zoom=851
 xan=469
 yan=11
 
-[com_13]
+[com_17]
 type=layer
 x=39
 y=31
@@ -142,8 +142,8 @@ width=105
 height=109
 hide=yes
 
-[com_14]
-layer=com_13
+[com_13]
+layer=com_17
 type=model
 x=34
 y=20
@@ -154,7 +154,7 @@ zoom=1061
 xan=539
 yan=2044
 
-[com_15]
+[com_18]
 type=layer
 x=183
 y=28
@@ -162,8 +162,8 @@ width=142
 height=58
 hide=yes
 
-[com_16]
-layer=com_15
+[com_11]
+layer=com_18
 type=model
 x=74
 y=15
@@ -174,7 +174,7 @@ zoom=2073
 xan=424
 yan=8
 
-[com_17]
+[com_19]
 type=layer
 x=370
 y=30
@@ -182,8 +182,8 @@ width=112
 height=81
 hide=yes
 
-[com_18]
-layer=com_17
+[com_14]
+layer=com_19
 type=model
 x=23
 y=4
@@ -194,7 +194,7 @@ zoom=1438
 xan=506
 yan=2043
 
-[com_19]
+[com_20]
 type=layer
 x=397
 y=144
@@ -202,8 +202,8 @@ width=95
 height=85
 hide=yes
 
-[com_20]
-layer=com_19
+[com_15]
+layer=com_20
 type=model
 x=32
 y=5
@@ -221,7 +221,7 @@ y=220
 buttontype=normal
 width=59
 height=81
-overlayer=com_11
+overlayer=com_16
 zoom=400
 
 [com_22]
@@ -231,7 +231,7 @@ y=32
 buttontype=normal
 width=101
 height=106
-overlayer=com_13
+overlayer=com_17
 zoom=400
 
 [com_23]
@@ -241,7 +241,7 @@ y=29
 buttontype=normal
 width=139
 height=56
-overlayer=com_15
+overlayer=com_18
 zoom=400
 
 [com_24]
@@ -251,7 +251,7 @@ y=32
 buttontype=normal
 width=107
 height=78
-overlayer=com_17
+overlayer=com_19
 zoom=400
 
 [com_25]
@@ -261,7 +261,7 @@ y=139
 buttontype=normal
 width=127
 height=61
-overlayer=com_19
+overlayer=com_20
 zoom=400
 
 [com_26]

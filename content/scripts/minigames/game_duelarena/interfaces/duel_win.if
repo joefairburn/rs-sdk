@@ -728,7 +728,7 @@ y=264
 width=78
 height=42
 
-[com_91]
+[com_92]
 layer=com_90
 type=rect
 x=6
@@ -738,7 +738,7 @@ width=66
 height=31
 fill=yes
 
-[com_92]
+[com_93]
 layer=com_90
 type=text
 x=23
@@ -751,7 +751,7 @@ text=Claim!
 colour=0x008000
 overcolour=0x00FF00
 
-[com_93]
+[com_94]
 layer=com_90
 type=graphic
 x=21
@@ -760,7 +760,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_94]
+[com_95]
 layer=com_90
 type=graphic
 x=0
@@ -769,7 +769,7 @@ width=25
 height=30
 graphic=steelborder,0
 
-[com_95]
+[com_96]
 layer=com_90
 type=graphic
 x=53
@@ -778,7 +778,7 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_96]
+[com_97]
 layer=com_90
 type=graphic
 x=0
@@ -787,7 +787,7 @@ width=25
 height=30
 graphic=steelborder,2
 
-[com_97]
+[com_98]
 layer=com_90
 type=graphic
 x=53
@@ -796,7 +796,7 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_98]
+[com_99]
 layer=com_90
 type=graphic
 x=21
@@ -805,7 +805,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_99]
+[com_91]
 type=text
 x=21
 y=29

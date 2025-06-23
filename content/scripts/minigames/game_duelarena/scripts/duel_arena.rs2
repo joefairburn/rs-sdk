@@ -106,11 +106,11 @@ if (.finduid(%duelpartner) = true & ~enough_duel_space = true) { // https://yout
 
         def_int $tempinvused = sub(inv_size(dueloffer), inv_freespace(dueloffer));
         if ($tempinvused < 1) {
-            if_settext(duel_confirm:com_91, "Absolutely nothing!");
-            .if_settext(duel_confirm:com_96, "Absolutely nothing!");
+            if_settext(duel_confirm:com_103, "Absolutely nothing!");
+            .if_settext(duel_confirm:com_104, "Absolutely nothing!");
         } else {
-            if_settext(duel_confirm:com_91, "");
-            .if_settext(duel_confirm:com_96, "");
+            if_settext(duel_confirm:com_103, "");
+            .if_settext(duel_confirm:com_104, "");
 
             inv_transmit(dueloffer, duel_confirm:inv);
             .invother_transmit(uid, dueloffer, duel_confirm:otherinv);
@@ -118,11 +118,11 @@ if (.finduid(%duelpartner) = true & ~enough_duel_space = true) { // https://yout
 
         def_int $other_tempinvused = sub(inv_size(dueloffer), .inv_freespace(dueloffer));
         if ($other_tempinvused < 1) {
-            if_settext(duel_confirm:com_96, "Absolutely nothing!");
-            .if_settext(duel_confirm:com_91, "Absolutely nothing!");
+            if_settext(duel_confirm:com_104, "Absolutely nothing!");
+            .if_settext(duel_confirm:com_103, "Absolutely nothing!");
         } else {
-            if_settext(duel_confirm:com_96, "");
-            .if_settext(duel_confirm:com_91, "");
+            if_settext(duel_confirm:com_104, "");
+            .if_settext(duel_confirm:com_103, "");
 
             invother_transmit(.uid, dueloffer, duel_confirm:otherinv);
             .inv_transmit(dueloffer, duel_confirm:inv);

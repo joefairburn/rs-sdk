@@ -45,15 +45,15 @@ font=q8
 text=option3
 overcolour=0x00C000
 
-[com_4]
+[com_6]
 type=layer
 x=126
 y=1
 width=229
 height=13
 
-[com_5]
-layer=com_4
+[com_4]
+layer=com_6
 type=graphic
 x=0
 y=0
@@ -61,8 +61,8 @@ width=57
 height=13
 graphic=sworddecor,1
 
-[com_6]
-layer=com_4
+[com_5]
+layer=com_6
 type=graphic
 x=172
 y=0
@@ -70,7 +70,7 @@ width=57
 height=13
 graphic=sworddecor,0
 
-[com_7]
+[com_9]
 type=layer
 x=2
 y=1
@@ -78,8 +78,8 @@ width=476
 height=13
 hide=yes
 
-[com_8]
-layer=com_7
+[com_7]
+layer=com_9
 type=graphic
 x=0
 y=0
@@ -87,8 +87,8 @@ width=57
 height=13
 graphic=sworddecor,1
 
-[com_9]
-layer=com_7
+[com_8]
+layer=com_9
 type=graphic
 x=419
 y=0

@@ -199,7 +199,7 @@ script1=eq,1
 graphic=combatboxes,0
 activegraphic=combatboxes,1
 
-[com_18]
+[com_21]
 layer=com_4
 type=graphic
 x=24
@@ -208,7 +208,7 @@ width=30
 height=30
 graphic=prayeron,12
 
-[com_19]
+[com_22]
 layer=com_4
 type=text
 x=79
@@ -224,7 +224,7 @@ activetext=Attack with
 colour=0xFFFF00
 activecolour=0xB0A392
 
-[com_20]
+[com_17]
 type=text
 x=82
 y=81
@@ -234,7 +234,7 @@ font=p11
 text=(Crush)
 colour=0xFFFF00
 
-[com_21]
+[com_18]
 type=text
 x=81
 y=129
@@ -244,7 +244,7 @@ font=p11
 text=(Crush)
 colour=0xFFFF00
 
-[com_22]
+[com_19]
 type=text
 x=82
 y=174

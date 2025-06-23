@@ -649,7 +649,7 @@ y=162
 width=400
 height=66
 
-[com_78]
+[com_73]
 layer=necklace_mould
 type=model
 x=184
@@ -661,7 +661,7 @@ zoom=571
 xan=300
 yan=302
 
-[com_79]
+[com_74]
 layer=necklace_mould
 type=text
 x=0
@@ -757,7 +757,7 @@ y=250
 width=400
 height=66
 
-[com_89]
+[com_79]
 layer=amulet_mould
 type=model
 x=184
@@ -769,7 +769,7 @@ zoom=571
 xan=300
 yan=302
 
-[com_90]
+[com_80]
 layer=amulet_mould
 type=text
 x=0

@@ -8,15 +8,15 @@ model=model_3035
 zoom=525
 xan=395
 
-[com_1]
+[com_2]
 type=layer
 x=34
 y=259
 width=45
 height=36
 
-[com_2]
-layer=com_1
+[com_1]
+layer=com_2
 type=graphic
 x=0
 y=0
@@ -25,15 +25,15 @@ width=45
 height=36
 graphic=leftarrow,0
 
-[com_3]
+[com_4]
 type=layer
 x=432
 y=259
 width=45
 height=36
 
-[com_4]
-layer=com_3
+[com_3]
+layer=com_4
 type=graphic
 x=0
 y=0

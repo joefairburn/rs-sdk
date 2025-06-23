@@ -699,10 +699,10 @@ type=layer
 x=19
 y=55
 width=218
-height=142
+height=122
 scroll=188
 
-[com_88]
+[com_90]
 layer=com_87
 type=text
 x=42
@@ -740,7 +740,7 @@ shadowed=yes
 colour=0xAAAAAA
 margin=0,2
 
-[com_91]
+[com_103]
 layer=com_87
 type=text
 x=55
@@ -753,16 +753,16 @@ shadowed=yes
 text=Absolutely nothing!
 colour=0xAAAAAA
 
-[com_92]
+[com_88]
 type=layer
 x=260
 y=55
 width=218
-height=142
+height=122
 scroll=188
 
 [otherinv_nothing]
-layer=com_92
+layer=com_88
 type=invtext
 x=109
 y=28
@@ -774,8 +774,8 @@ shadowed=yes
 colour=0xAAAAAA
 margin=0,2
 
-[com_94]
-layer=com_92
+[com_91]
+layer=com_88
 type=text
 x=37
 y=1
@@ -788,7 +788,7 @@ text=Your opponent will stake:
 colour=0xAA8822
 
 [otherinv]
-layer=com_92
+layer=com_88
 type=invtext
 x=49
 y=28
@@ -800,8 +800,8 @@ shadowed=yes
 colour=0xAAAAAA
 margin=0,2
 
-[com_96]
-layer=com_92
+[com_104]
+layer=com_88
 type=text
 x=52
 y=16
@@ -813,7 +813,7 @@ shadowed=yes
 text=Absolutely nothing!
 colour=0xAAAAAA
 
-[com_97]
+[com_92]
 type=text
 x=139
 y=29
@@ -828,7 +828,7 @@ colour=0xFFAA44
 [obstacles]
 type=text
 x=298
-y=270
+y=250
 width=57
 height=14
 font=p12
@@ -836,7 +836,7 @@ shadowed=yes
 text=Obstacles
 colour=0xAA8822
 
-[com_99]
+[com_97]
 type=text
 x=425
 y=29
@@ -849,7 +849,7 @@ text=Close Window
 colour=0x808080
 overcolour=0xFFFFFF
 
-[com_100]
+[com_98]
 type=graphic
 x=325
 y=299
@@ -857,7 +857,7 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_101]
+[com_99]
 type=graphic
 x=239
 y=88
@@ -865,7 +865,7 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_102]
+[com_100]
 type=graphic
 x=239
 y=52
@@ -873,15 +873,15 @@ width=36
 height=36
 graphic=miscgraphics,2
 
-[com_103]
+[com_101]
 type=graphic
 x=239
-y=160
+y=141
 width=36
 height=36
 graphic=miscgraphics,2
 
-[com_104]
+[com_102]
 type=graphic
 x=239
 y=124
@@ -892,7 +892,7 @@ graphic=miscgraphics,2
 [com_105]
 type=layer
 x=391
-y=212
+y=192
 width=78
 height=42
 
@@ -919,7 +919,7 @@ text=Accept
 colour=0x008000
 overcolour=0x00FF00
 
-[com_108]
+[com_111]
 layer=com_105
 type=graphic
 x=21
@@ -928,7 +928,7 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_109]
+[com_113]
 layer=com_105
 type=graphic
 x=0
@@ -937,7 +937,7 @@ width=25
 height=30
 graphic=steelborder,0
 
-[com_110]
+[com_115]
 layer=com_105
 type=graphic
 x=53
@@ -946,7 +946,7 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_111]
+[com_117]
 layer=com_105
 type=graphic
 x=0
@@ -955,7 +955,7 @@ width=25
 height=30
 graphic=steelborder,2
 
-[com_112]
+[com_119]
 layer=com_105
 type=graphic
 x=53
@@ -964,7 +964,7 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_113]
+[com_120]
 layer=com_105
 type=graphic
 x=21
@@ -973,15 +973,15 @@ width=36
 height=36
 graphic=miscgraphics,3
 
-[com_114]
+[com_106]
 type=layer
 x=391
-y=262
+y=242
 width=78
 height=43
 
 [decline]
-layer=com_114
+layer=com_106
 type=rect
 x=6
 y=6
@@ -991,7 +991,7 @@ height=31
 fill=yes
 
 [decline_text]
-layer=com_114
+layer=com_106
 type=text
 x=20
 y=14
@@ -1003,8 +1003,8 @@ text=Decline
 colour=0x800000
 overcolour=0xFF0000
 
-[com_117]
-layer=com_114
+[com_112]
+layer=com_106
 type=graphic
 x=21
 y=-15
@@ -1012,8 +1012,8 @@ width=36
 height=36
 graphic=steelborder2,0
 
-[com_118]
-layer=com_114
+[com_114]
+layer=com_106
 type=graphic
 x=0
 y=0
@@ -1021,8 +1021,8 @@ width=25
 height=30
 graphic=steelborder,0
 
-[com_119]
-layer=com_114
+[com_116]
+layer=com_106
 type=graphic
 x=53
 y=0
@@ -1030,8 +1030,8 @@ width=25
 height=30
 graphic=steelborder,1
 
-[com_120]
-layer=com_114
+[com_118]
+layer=com_106
 type=graphic
 x=0
 y=13
@@ -1040,7 +1040,7 @@ height=30
 graphic=steelborder,2
 
 [com_121]
-layer=com_114
+layer=com_106
 type=graphic
 x=53
 y=13
@@ -1048,8 +1048,8 @@ width=25
 height=30
 graphic=steelborder,3
 
-[com_122]
-layer=com_114
+[com_156]
+layer=com_106
 type=graphic
 x=20
 y=22
@@ -1060,7 +1060,7 @@ graphic=miscgraphics,3
 [no_forfeit_text]
 type=text
 x=61
-y=210
+y=190
 buttontype=normal
 width=57
 height=14
@@ -1072,7 +1072,7 @@ colour=0xAA8822
 [no_magic_text]
 type=text
 x=188
-y=250
+y=230
 width=50
 height=14
 font=p12
@@ -1083,7 +1083,7 @@ colour=0xAA8822
 [no_ranged_text]
 type=text
 x=188
-y=210
+y=190
 width=60
 height=14
 font=p12
@@ -1094,7 +1094,7 @@ colour=0xAA8822
 [no_melee_text]
 type=text
 x=188
-y=230
+y=210
 width=51
 height=14
 font=p12
@@ -1106,7 +1106,7 @@ colour=0xAA8822
 [no_weapons_text]
 type=text
 x=61
-y=250
+y=230
 width=69
 height=14
 font=p12
@@ -1117,7 +1117,7 @@ colour=0xAA8822
 [no_potions_text]
 type=text
 x=298
-y=210
+y=190
 width=61
 height=14
 font=p12
@@ -1128,7 +1128,7 @@ colour=0xAA8822
 [no_food_text]
 type=text
 x=298
-y=230
+y=210
 width=45
 height=14
 font=p12
@@ -1139,7 +1139,7 @@ colour=0xAA8822
 [no_prayer_text]
 type=text
 x=298
-y=250
+y=230
 width=56
 height=14
 font=p12
@@ -1150,7 +1150,7 @@ colour=0xAA8822
 [no_movement_text]
 type=text
 x=61
-y=230
+y=210
 width=76
 height=14
 font=p12
@@ -1161,7 +1161,7 @@ colour=0xAA8822
 [no_armour_text]
 type=text
 x=61
-y=270
+y=250
 width=59
 height=14
 font=p12
@@ -1169,117 +1169,128 @@ shadowed=yes
 text=No Armour
 colour=0xAA8822
 
-[com_133]
+[com_132]
 type=graphic
 x=18
-y=182
+y=162
+width=36
+height=36
+graphic=steelborder2,0
+
+[com_133]
+type=graphic
+x=54
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_134]
 type=graphic
-x=54
-y=182
+x=90
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_135]
 type=graphic
-x=90
-y=182
+x=126
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_136]
 type=graphic
-x=126
-y=182
+x=162
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_137]
 type=graphic
-x=162
-y=182
+x=198
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_138]
 type=graphic
-x=198
-y=182
+x=234
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_139]
 type=graphic
-x=234
-y=182
+x=270
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_140]
 type=graphic
-x=270
-y=182
+x=306
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_141]
 type=graphic
-x=306
-y=182
+x=342
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_142]
 type=graphic
-x=342
-y=182
+x=378
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_143]
 type=graphic
-x=378
-y=182
+x=414
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_144]
 type=graphic
-x=414
-y=182
+x=450
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_145]
 type=graphic
-x=450
-y=182
+x=458
+y=162
 width=36
 height=36
 graphic=steelborder2,0
 
 [com_146]
 type=graphic
-x=458
-y=182
-width=36
-height=36
-graphic=steelborder2,0
+x=36
+y=190
+width=14
+height=15
+script1op1=testbit,duel_settings,0
+script1=eq,1
+graphic=miscgraphics,10
+activegraphic=miscgraphics,11
 
 [com_147]
 type=graphic
@@ -1287,7 +1298,7 @@ x=36
 y=210
 width=14
 height=15
-script1op1=testbit,duel_settings,0
+script1op1=testbit,duel_settings,1
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1298,7 +1309,7 @@ x=36
 y=230
 width=14
 height=15
-script1op1=testbit,duel_settings,1
+script1op1=testbit,duel_settings,2
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1309,18 +1320,18 @@ x=36
 y=250
 width=14
 height=15
-script1op1=testbit,duel_settings,2
+script1op1=testbit,duel_settings,3
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
 
 [com_150]
 type=graphic
-x=36
-y=270
+x=162
+y=190
 width=14
 height=15
-script1op1=testbit,duel_settings,3
+script1op1=testbit,duel_settings,4
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1331,7 +1342,7 @@ x=162
 y=210
 width=14
 height=15
-script1op1=testbit,duel_settings,4
+script1op1=testbit,duel_settings,5
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1342,18 +1353,18 @@ x=162
 y=230
 width=14
 height=15
-script1op1=testbit,duel_settings,5
+script1op1=testbit,duel_settings,6
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
 
 [com_153]
 type=graphic
-x=162
-y=250
+x=272
+y=190
 width=14
 height=15
-script1op1=testbit,duel_settings,6
+script1op1=testbit,duel_settings,7
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1364,7 +1375,7 @@ x=272
 y=210
 width=14
 height=15
-script1op1=testbit,duel_settings,7
+script1op1=testbit,duel_settings,8
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
@@ -1375,17 +1386,6 @@ x=272
 y=230
 width=14
 height=15
-script1op1=testbit,duel_settings,8
-script1=eq,1
-graphic=miscgraphics,10
-activegraphic=miscgraphics,11
-
-[com_156]
-type=graphic
-x=272
-y=250
-width=14
-height=15
 script1op1=testbit,duel_settings,9
 script1=eq,1
 graphic=miscgraphics,10
@@ -1394,7 +1394,7 @@ activegraphic=miscgraphics,11
 [com_157]
 type=graphic
 x=272
-y=270
+y=250
 width=14
 height=15
 script1op1=testbit,duel_settings,10
@@ -1404,24 +1404,17 @@ activegraphic=miscgraphics,11
 
 [status]
 type=text
-x=194
+x=73
 y=293
-width=130
+width=360
 height=11
+center=yes
 font=p11
 shadowed=yes
-text=Waiting for other player...
+text=You can't have No Ranged, No Melee AND No Magic, how would you fight?
 colour=0xAAAAAA
 
 [com_159]
-type=graphic
-x=239
-y=161
-width=36
-height=36
-graphic=miscgraphics,2
-
-[flower_power_text]
 type=text
 x=188
 y=270
@@ -1432,7 +1425,7 @@ shadowed=yes
 text=Flower Power
 colour=0xAA8822
 
-[com_161]
+[flower_power_text]
 type=graphic
 x=162
 y=270
@@ -1443,10 +1436,10 @@ script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
 
-[no_jewelry_text]
+[com_161]
 type=text
 x=61
-y=290
+y=270
 width=61
 height=14
 font=p12
@@ -1454,13 +1447,42 @@ shadowed=yes
 text=No Jewelry
 colour=0xAA8822
 
-[com_163]
+[no_jewelry_text]
 type=graphic
 x=36
-y=290
+y=270
 width=14
 height=15
 script1op1=testbit,duel_settings,11
 script1=eq,1
 graphic=miscgraphics,10
 activegraphic=miscgraphics,11
+
+[com_163]
+type=layer
+x=130
+y=130
+width=32
+height=32
+
+[com_164]
+type=graphic
+x=162
+y=250
+width=14
+height=15
+script1op1=testbit,duel_settings,13
+script1=eq,1
+graphic=miscgraphics,10
+activegraphic=miscgraphics,11
+
+[com_165]
+type=text
+x=188
+y=250
+width=57
+height=14
+font=p12
+shadowed=yes
+text=No Sp. Atk
+colour=0xAA8822
