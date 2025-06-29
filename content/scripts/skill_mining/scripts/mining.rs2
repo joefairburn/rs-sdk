@@ -124,7 +124,7 @@ if (random($chance) = ^true) {
     }
 } else if (stat_random(mining, db_getfield($data, mining_table:rock_successchance, 0)) = true) {
     // They added a 1t p_delay in this update: https://oldschool.runescape.wiki/w/Update:Special_Attacks
-    // p_delay(0);
+    p_delay(0);
     // deplete
     def_int $respawn = ~scale_by_playercount(db_getfield($data, mining_table:rock_respawnrate, 0));
     // Temp note: dur does not need updated
