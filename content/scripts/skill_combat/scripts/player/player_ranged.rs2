@@ -126,7 +126,7 @@ return(~npc_projectile(coord, npc_uid, oc_param($ammo, proj_travel), 40, 36, 32,
 [proc,ranged_dropammo_npc](obj $ammo, int $delay)
 if (random(^dropammo_chance) ! 0 | $ammo = holy_water) {
     if (map_blocked(npc_coord) = false) {
-        inv_dropitem_delayed(inv, npc_coord, $ammo, 1, ^lootdrop_duration, $delay);
+        inv_dropitem_delayed(worn, npc_coord, $ammo, 1, ^lootdrop_duration, $delay);
         return;
     }
 }
