@@ -76,10 +76,12 @@ export default class ClientProj extends ModelSource {
         this.yaw = ((Math.atan2(this.projVelocityX, this.projVelocityZ) * 325.949 + 1024) | 0) & 0x7ff;
         this.pitch = ((Math.atan2(this.projVelocityY, this.projVelocity) * 325.949) | 0) & 0x7ff;
 
-        if (!this.spotanim.seq || !this.spotanim.seq.delay) {
+        if (!this.spotanim.seq) {
             return;
         }
+
         this.seqCycle += delta;
+
         while (this.seqCycle > this.spotanim.seq.getFrameDuration(this.seqFrame)) {
             this.seqCycle -= this.spotanim.seq.getFrameDuration(this.seqFrame) + 1;
             this.seqFrame++;

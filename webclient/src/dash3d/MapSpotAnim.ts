@@ -28,7 +28,7 @@ export default class MapSpotAnim extends ModelSource {
     }
 
     update(delta: number): void {
-        if (!this.spotType.seq || !this.spotType.seq.delay) {
+        if (!this.spotType.seq) {
             return;
         }
 

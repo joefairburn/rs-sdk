@@ -77,6 +77,17 @@ export default class World {
         return Number(((n1 * (n1 * n1 * 15731n + 789221n) + 1376312589n) & 0x7fffffffn) >> 19n) & 0xff;
     }
 
+    static isLocReady(id: number, shape: number): boolean {
+		const loc = LocType.get(id);
+		if (shape == 11) {
+			shape = 10;
+		}
+		if (shape >= 5 && shape <= 8) {
+			shape = 4;
+		}
+		return loc.shapeModelsAreReady(shape);
+	}
+
     static addLoc(loopCycle: number, level: number, x: number, z: number, scene: World3D | null, levelHeightmap: Int32Array[][], collision: CollisionMap | null, locId: number, shape: number, angle: number, trueLevel: number): void {
         const heightSW: number = levelHeightmap[trueLevel][x][z];
         const heightSE: number = levelHeightmap[trueLevel][x + 1][z];

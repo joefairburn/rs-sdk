@@ -334,6 +334,20 @@ export default class Component {
         this.imageCache = null;
     }
 
+    swapObj(src: number, dst: number) {
+        if (!this.invSlotObjId || !this.invSlotObjCount) {
+            return;
+        }
+
+        let tmp = this.invSlotObjId[src];
+		this.invSlotObjId[src] = this.invSlotObjId[dst];
+		this.invSlotObjId[dst] = tmp;
+
+		tmp = this.invSlotObjCount[src];
+		this.invSlotObjCount[src] = this.invSlotObjCount[dst];
+		this.invSlotObjCount[dst] = tmp;
+    }
+
     getModel(primaryFrame: number, secondaryFrame: number, active: boolean, localPlayer: ClientPlayer | null): Model | null {
         let model: Model | null = null;
         if (active) {

@@ -19,8 +19,8 @@ export default abstract class ClientEntity extends ModelSource {
     runanim: number = -1;
     chatMessage: string | null = null;
     chatTimer: number = 100;
-    chatColor: number = 0;
-    chatStyle: number = 0;
+    chatColour: number = 0;
+    chatEffect: number = 0;
     combatCycle: number = -1000;
     damageValues: Int32Array = new Int32Array(4);
     damageTypes: Int32Array = new Int32Array(4);
@@ -58,12 +58,6 @@ export default abstract class ClientEntity extends ModelSource {
     routeFlagZ: Int32Array = new Int32Array(10);
     routeRun: boolean[] = new TypedArray1d(10, false);
     seqDelayMove: number = 0;
-
-    lastMask: number = -1;
-    lastMaskCycle: number = -1;
-    lastFaceX: number = -1;
-    lastFaceZ: number = -1;
-
     preanimRouteLength: number = 0;
 
     abstract isVisible(): boolean;

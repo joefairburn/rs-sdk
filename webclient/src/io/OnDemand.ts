@@ -624,9 +624,9 @@ export default class OnDemand extends OnDemandProvider {
         const trailerPos = src.length - 2;
 
         const version = ((src[trailerPos] & 0xFF) << 8) + (src[trailerPos + 1] & 0xFF);
-        const crc = 0; // todo: getcrc
+        const crc = Packet.crc32(src.subarray(0, src.length - 2));
 
-        return true;
+        return version === expectedVersion && crc === expectedCrc;
     }
 
     async send(req: OnDemandRequest) {

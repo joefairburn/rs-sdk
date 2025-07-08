@@ -235,10 +235,10 @@ export default class LocType extends ConfigType {
             return true;
         }
 
-        for (let i = 0; i < this.models.length && ready; i++) {
+        for (let i = 0; i < this.models.length; i++) {
             const model = this.models[i];
             if (model != -1) {
-                ready = Model.isReady(model & 0xFFFF);
+                ready &&= Model.isReady(model & 0xFFFF);
             }
         }
 
