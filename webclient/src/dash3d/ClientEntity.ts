@@ -54,8 +54,8 @@ export default abstract class ClientEntity extends ModelSource {
     height: number = 0;
     dstYaw: number = 0;
     routeLength: number = 0;
-    routeFlagX: Int32Array = new Int32Array(10);
-    routeFlagZ: Int32Array = new Int32Array(10);
+    routeTileX: Int32Array = new Int32Array(10);
+    routeTileZ: Int32Array = new Int32Array(10);
     routeRun: boolean[] = new TypedArray1d(10, false);
     seqDelayMove: number = 0;
     preanimRouteLength: number = 0;
@@ -68,8 +68,8 @@ export default abstract class ClientEntity extends ModelSource {
         }
 
         if (!teleport) {
-            const dx: number = x - this.routeFlagX[0];
-            const dz: number = z - this.routeFlagZ[0];
+            const dx: number = x - this.routeTileX[0];
+            const dz: number = z - this.routeTileZ[0];
 
             if (dx >= -8 && dx <= 8 && dz >= -8 && dz <= 8) {
                 if (this.routeLength < 9) {
@@ -77,13 +77,13 @@ export default abstract class ClientEntity extends ModelSource {
                 }
 
                 for (let i: number = this.routeLength; i > 0; i--) {
-                    this.routeFlagX[i] = this.routeFlagX[i - 1];
-                    this.routeFlagZ[i] = this.routeFlagZ[i - 1];
+                    this.routeTileX[i] = this.routeTileX[i - 1];
+                    this.routeTileZ[i] = this.routeTileZ[i - 1];
                     this.routeRun[i] = this.routeRun[i - 1];
                 }
 
-                this.routeFlagX[0] = x;
-                this.routeFlagZ[0] = z;
+                this.routeTileX[0] = x;
+                this.routeTileZ[0] = z;
                 this.routeRun[0] = false;
                 return;
             }
@@ -92,15 +92,15 @@ export default abstract class ClientEntity extends ModelSource {
         this.routeLength = 0;
         this.preanimRouteLength = 0;
         this.seqDelayMove = 0;
-        this.routeFlagX[0] = x;
-        this.routeFlagZ[0] = z;
-        this.x = this.routeFlagX[0] * 128 + this.size * 64;
-        this.z = this.routeFlagZ[0] * 128 + this.size * 64;
+        this.routeTileX[0] = x;
+        this.routeTileZ[0] = z;
+        this.x = this.routeTileX[0] * 128 + this.size * 64;
+        this.z = this.routeTileZ[0] * 128 + this.size * 64;
     }
 
     step(running: boolean, direction: number): void {
-        let nextX: number = this.routeFlagX[0];
-        let nextZ: number = this.routeFlagZ[0];
+        let nextX: number = this.routeTileX[0];
+        let nextZ: number = this.routeTileZ[0];
 
         if (direction === 0) {
             nextX--;
@@ -133,13 +133,13 @@ export default abstract class ClientEntity extends ModelSource {
         }
 
         for (let i: number = this.routeLength; i > 0; i--) {
-            this.routeFlagX[i] = this.routeFlagX[i - 1];
-            this.routeFlagZ[i] = this.routeFlagZ[i - 1];
+            this.routeTileX[i] = this.routeTileX[i - 1];
+            this.routeTileZ[i] = this.routeTileZ[i - 1];
             this.routeRun[i] = this.routeRun[i - 1];
         }
 
-        this.routeFlagX[0] = nextX;
-        this.routeFlagZ[0] = nextZ;
+        this.routeTileX[0] = nextX;
+        this.routeTileZ[0] = nextZ;
         this.routeRun[0] = running;
     }
 

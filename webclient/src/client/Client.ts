@@ -383,7 +383,7 @@ export class Client extends GameShell {
     private sceneMapLocFile: number[] = [];
     private sceneMapIndex: Int32Array | null = null;
     private withinTutorialIsland: boolean = false;
-    private sceneAwaitingSync: boolean = false;
+    private awaitingSync: boolean = false;
     private scenePrevBaseTileX: number = 0;
     private scenePrevBaseTileZ: number = 0;
     private textureBuffer: Int8Array = new Int8Array(16384);
@@ -437,10 +437,10 @@ export class Client extends GameShell {
 
     // player
     private localPlayer: ClientPlayer | null = null;
-    private energy: number = 0;
+    private runenergy: number = 0;
     private inMultizone: number = 0;
     private localPid: number = -1;
-    private weightCarried: number = 0;
+    private runweight: number = 0;
     private noTimeoutCycle: number = 0;
     private wildernessLevel: number = 0;
     private worldLocationState: number = 0;
@@ -1861,7 +1861,7 @@ export class Client extends GameShell {
                 if (this.localPlayer) {
                     const x: number = World3D.clickTileX;
                     const z: number = World3D.clickTileZ;
-                    const success: boolean = this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], x, z, 0, 0, 0, 0, 0, 0, true);
+                    const success: boolean = this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], x, z, 0, 0, 0, 0, 0, 0, true);
                     World3D.clickTileX = -1;
 
                     if (success) {
@@ -2075,7 +2075,7 @@ export class Client extends GameShell {
 
         if (!ready) {
             return -3;
-        } else if (this.sceneAwaitingSync) {
+        } else if (this.awaitingSync) {
             return -4;
         }
 
@@ -2975,7 +2975,7 @@ export class Client extends GameShell {
         const tileX: number = (this.localPlayer.x + relX) >> 7;
         const tileZ: number = (this.localPlayer.z - relY) >> 7;
 
-        if (this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], tileX, tileZ, 1, 0, 0, 0, 0, 0, true)) {
+        if (this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], tileX, tileZ, 1, 0, 0, 0, 0, 0, true)) {
             // the additional 14-bytes in MOVE_MINIMAPCLICK
             this.out.p1(x);
             this.out.p1(y);
@@ -3675,8 +3675,8 @@ export class Client extends GameShell {
             e.spotanimId = -1;
             e.forceMoveEndCycle = 0;
             e.forceMoveStartCycle = 0;
-            e.x = e.routeFlagX[0] * 128 + e.size * 64;
-            e.z = e.routeFlagZ[0] * 128 + e.size * 64;
+            e.x = e.routeTileX[0] * 128 + e.size * 64;
+            e.z = e.routeTileZ[0] * 128 + e.size * 64;
             e.clearRoute();
         }
 
@@ -3685,8 +3685,8 @@ export class Client extends GameShell {
             e.spotanimId = -1;
             e.forceMoveEndCycle = 0;
             e.forceMoveStartCycle = 0;
-            e.x = e.routeFlagX[0] * 128 + e.size * 64;
-            e.z = e.routeFlagZ[0] * 128 + e.size * 64;
+            e.x = e.routeTileX[0] * 128 + e.size * 64;
+            e.z = e.routeTileZ[0] * 128 + e.size * 64;
             e.clearRoute();
         }
 
@@ -3773,8 +3773,8 @@ export class Client extends GameShell {
 
         const x: number = e.x;
         const z: number = e.z;
-        const dstX: number = e.routeFlagX[e.routeLength - 1] * 128 + e.size * 64;
-        const dstZ: number = e.routeFlagZ[e.routeLength - 1] * 128 + e.size * 64;
+        const dstX: number = e.routeTileX[e.routeLength - 1] * 128 + e.size * 64;
+        const dstZ: number = e.routeTileZ[e.routeLength - 1] * 128 + e.size * 64;
 
         if (dstX - x > 256 || dstX - x < -256 || dstZ - z > 256 || dstZ - z < -256) {
             e.x = dstX;
@@ -5749,9 +5749,9 @@ export class Client extends GameShell {
                 forceapproach = ((forceapproach << angle) & 0xf) + (forceapproach >> (4 - angle));
             }
 
-            this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], x, z, 2, width, height, 0, 0, forceapproach, false);
+            this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], x, z, 2, width, height, 0, 0, forceapproach, false);
         } else {
-            this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], x, z, 2, 0, 0, angle, shape + 1, 0, false);
+            this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], x, z, 2, 0, 0, angle, shape + 1, 0, false);
         }
 
         this.crossX = this.mouseClickX;
@@ -6083,18 +6083,116 @@ export class Client extends GameShell {
             this.ptype1 = this.ptype0;
             this.ptype0 = this.ptype;
 
-            if (this.ptype === ServerProt.VARP_SMALL) {
-                const varp: number = this.in.g2();
-                const value: number = this.in.g1b();
-                this.varCache[varp] = value;
-                if (this.varps[varp] !== value) {
-                    this.varps[varp] = value;
-                    this.updateVarp(varp);
-                    this.redrawSidebar = true;
-                    if (this.stickyChatInterfaceId !== -1) {
-                        this.redrawChatback = true;
+            if (this.ptype === ServerProt.LAST_LOGIN_INFO) {
+                this.lastAddress = this.in.g4();
+                this.daysSinceLastLogin = this.in.g2();
+                this.daysSinceRecoveriesChanged = this.in.g1();
+                this.unreadMessages = this.in.g2();
+                this.warnMembersInNonMembers = this.in.g1();
+
+                if (this.lastAddress !== 0 && this.viewportInterfaceId === -1) {
+                    this.closeInterfaces();
+
+                    let contentType: number = 650;
+                    if (this.daysSinceRecoveriesChanged !== 201 || this.warnMembersInNonMembers == 1) {
+                        contentType = 655;
+                    }
+
+                    this.reportAbuseInput = '';
+                    this.reportAbuseMuteOption = false;
+
+                    for (let i: number = 0; i < Component.types.length; i++) {
+                        if (Component.types[i] && Component.types[i].clientCode === contentType) {
+                            this.viewportInterfaceId = Component.types[i].layer;
+                            break;
+                        }
                     }
                 }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_INV_FULL) {
+                this.redrawSidebar = true;
+
+                const com: number = this.in.g2();
+                const inv: Component = Component.types[com];
+                const size: number = this.in.g1();
+
+                if (inv.invSlotObjId && inv.invSlotObjCount) {
+                    for (let i: number = 0; i < size; i++) {
+                        inv.invSlotObjId[i] = this.in.g2();
+
+                        let count: number = this.in.g1();
+                        if (count === 255) {
+                            count = this.in.g4();
+                        }
+
+                        inv.invSlotObjCount[i] = count;
+                    }
+
+                    for (let i: number = size; i < inv.invSlotObjId.length; i++) {
+                        inv.invSlotObjId[i] = 0;
+                        inv.invSlotObjCount[i] = 0;
+                    }
+                } else {
+                    for (let i: number = 0; i < size; i++) {
+                        this.in.g2();
+
+                        if (this.in.g1() === 255) {
+                            this.in.g4();
+                        }
+                    }
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETOBJECT) {
+                const com: number = this.in.g2();
+                const objId: number = this.in.g2();
+                const zoom: number = this.in.g2();
+
+                const obj: ObjType = ObjType.get(objId);
+                Component.types[com].modelType = 4;
+                Component.types[com].model = objId;
+                Component.types[com].xan = obj.xan2d;
+                Component.types[com].yan = obj.yan2d;
+                Component.types[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_OPENMAIN_SIDE) {
+                const main: number = this.in.g2();
+                const side: number = this.in.g2();
+
+                if (this.chatInterfaceId !== -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+
+                this.viewportInterfaceId = main;
+                this.sidebarInterfaceId = side;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+                this.pressedContinueOption = false;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype == 192) {
+                this.field1264 = 255;
+
                 this.ptype = -1;
                 return true;
             }
@@ -6102,6 +6200,7 @@ export class Client extends GameShell {
             if (this.ptype === ServerProt.UPDATE_FRIENDLIST) {
                 const username: bigint = this.in.g8();
                 const world: number = this.in.g1();
+
                 let displayName: string | null = JString.formatName(JString.fromBase37(username));
                 for (let i: number = 0; i < this.friendCount; i++) {
                     if (username === this.friendName37[i]) {
@@ -6115,10 +6214,12 @@ export class Client extends GameShell {
                                 this.addMessage(5, displayName + ' has logged out.', '');
                             }
                         }
+
                         displayName = null;
                         break;
                     }
                 }
+
                 if (displayName && this.friendCount < 100) {
                     this.friendName37[this.friendCount] = username;
                     this.friendName[this.friendCount] = displayName;
@@ -6126,9 +6227,11 @@ export class Client extends GameShell {
                     this.friendCount++;
                     this.redrawSidebar = true;
                 }
+
                 let sorted: boolean = false;
                 while (!sorted) {
                     sorted = true;
+
                     for (let i: number = 0; i < this.friendCount - 1; i++) {
                         if ((this.friendWorld[i] !== Client.nodeId && this.friendWorld[i + 1] === Client.nodeId) || (this.friendWorld[i] === 0 && this.friendWorld[i + 1] !== 0)) {
                             const oldWorld: number = this.friendWorld[i];
@@ -6147,18 +6250,260 @@ export class Client extends GameShell {
                         }
                     }
                 }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.LOGOUT) {
+                await this.logout();
+
+                this.ptype = -1;
+                return false;
+            }
+
+            if (this.ptype === ServerProt.CAM_SHAKE) {
+                const type: number = this.in.g1();
+                const jitter: number = this.in.g1();
+                const wobbleScale: number = this.in.g1();
+                const wobbleSpeed: number = this.in.g1();
+
+                this.cameraModifierEnabled[type] = true;
+                this.cameraModifierJitter[type] = jitter;
+                this.cameraModifierWobbleScale[type] = wobbleScale;
+                this.cameraModifierWobbleSpeed[type] = wobbleSpeed;
+                this.cameraModifierCycle[type] = 0;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.ENABLE_TRACKING) {
+                InputTracking.setEnabled();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_RUNWEIGHT) {
+                if (this.selectedTab === 12) {
+                    this.redrawSidebar = true;
+                }
+
+                this.runweight = this.in.g2b();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_ZONE_PARTIAL_FOLLOWS) {
+                this.baseX = this.in.g1();
+                this.baseZ = this.in.g1();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETCOLOUR) {
+                const com: number = this.in.g2();
+                const color: number = this.in.g2();
+
+                const r: number = (color >> 10) & 0x1f;
+                const g: number = (color >> 5) & 0x1f;
+                const b: number = color & 0x1f;
+                Component.types[com].colour = (r << 19) + (g << 11) + (b << 3);
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.P_COUNTDIALOG) {
+                this.showSocialInput = false;
+                this.chatbackInputOpen = true;
+                this.chatbackInput = '';
+                this.redrawChatback = true;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.CAM_RESET) {
+                this.cutscene = false;
+
+                for (let i: number = 0; i < 5; i++) {
+                    this.cameraModifierEnabled[i] = false;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.MIDI_SONG) {
+                let id: number = this.in.g2();
+                if (id == 65535) {
+                    id = -1;
+                }
+
+                if (this.nextMidiSong != id && this.midiActive && !Client.lowMemory) {
+                    this.midiSong = id;
+                    this.midiFading = true;
+                    this.onDemand?.request(2, this.midiSong);
+                }
+
+                this.nextMidiSong = id;
+                this.nextMusicDelay = 0;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.MIDI_JINGLE) {
+                const id: number = this.in.g2();
+                const delay: number = this.in.g2();
+
+                if (this.midiActive && !Client.lowMemory) {
+                    this.midiSong = id;
+                    this.midiFading = false;
+                    this.onDemand?.request(2, this.midiSong);
+                    this.nextMusicDelay = delay;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype == 158) {
+                // IF_OPENOVERLAY
+                const com = this.in.g2b();
+                this.viewportOverlayInterfaceId = com;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.CHAT_FILTER_SETTINGS) {
+                this.chatPublicMode = this.in.g1();
+                this.chatPrivateMode = this.in.g1();
+                this.chatTradeMode = this.in.g1();
+
+                this.redrawPrivacySettings = true;
+                this.redrawChatback = true;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (
+                this.ptype === ServerProt.OBJ_COUNT ||
+                this.ptype === ServerProt.LOC_MERGE ||
+                this.ptype === ServerProt.OBJ_REVEAL ||
+                this.ptype === ServerProt.MAP_ANIM ||
+                this.ptype === ServerProt.MAP_PROJANIM ||
+                this.ptype === ServerProt.OBJ_DEL ||
+                this.ptype === ServerProt.OBJ_ADD ||
+                this.ptype === ServerProt.LOC_ANIM ||
+                this.ptype === ServerProt.LOC_DEL ||
+                this.ptype === ServerProt.LOC_ADD_CHANGE
+            ) {
+                this.readZonePacket(this.in, this.ptype);
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETPOSITION) {
+                const comId: number = this.in.g2();
+                const x: number = this.in.g2b();
+                const z: number = this.in.g2b();
+
+                const com: Component = Component.types[comId];
+                com.x = x;
+                com.y = z;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.VARP_LARGE) {
+                const varp: number = this.in.g2();
+                const value: number = this.in.g4();
+
+                this.varCache[varp] = value;
+
+                if (this.varps[varp] !== value) {
+                    this.varps[varp] = value;
+                    this.updateVarp(varp);
+
+                    this.redrawSidebar = true;
+
+                    if (this.stickyChatInterfaceId !== -1) {
+                        this.redrawChatback = true;
+                    }
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_PID) {
+                this.localPid = this.in.g2();
+                this.membersAccount = this.in.g1();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.SET_MULTIWAY) {
+                this.inMultizone = this.in.g1();
+
                 this.ptype = -1;
                 return true;
             }
 
             if (this.ptype === ServerProt.UPDATE_REBOOT_TIMER) {
                 this.systemUpdateTimer = this.in.g2() * 30;
+
                 this.ptype = -1;
                 return true;
             }
 
-            if (this.ptype === ServerProt.NPC_INFO) {
-                this.getNpcPos(this.in, this.psize);
+            if (this.ptype === ServerProt.IF_SETMODEL) {
+                const com: number = this.in.g2();
+                const model: number = this.in.g2();
+
+                Component.types[com].modelType = 1;
+                Component.types[com].model = model;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.SYNTH_SOUND) {
+                const id: number = this.in.g2();
+                const loop: number = this.in.g1();
+                const delay: number = this.in.g2();
+
+                if (this.waveEnabled && !Client.lowMemory && this.waveCount < 50) {
+                    this.waveIds[this.waveCount] = id;
+                    this.waveLoops[this.waveCount] = loop;
+                    this.waveDelay[this.waveCount] = delay + Wave.delays[id];
+                    this.waveCount++;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.RESET_CLIENT_VARCACHE) {
+                for (let i: number = 0; i < this.varps.length; i++) {
+                    if (this.varps[i] !== this.varCache[i]) {
+                        this.varps[i] = this.varCache[i];
+                        this.updateVarp(i);
+
+                        this.redrawSidebar = true;
+                    }
+                }
+
                 this.ptype = -1;
                 return true;
             }
@@ -6185,6 +6530,7 @@ export class Client extends GameShell {
                 }
 
                 this.sceneState = 1;
+                this.sceneLoadStartTime = Date.now();
 
                 this.areaViewport?.bind();
                 this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', Colors.BLACK);
@@ -6238,8 +6584,8 @@ export class Client extends GameShell {
                     const npc: ClientNpc | null = this.npcs[i];
                     if (npc) {
                         for (let j: number = 0; j < 10; j++) {
-                            npc.routeFlagX[j] -= dx;
-                            npc.routeFlagZ[j] -= dz;
+                            npc.routeTileX[j] -= dx;
+                            npc.routeTileZ[j] -= dz;
                         }
 
                         npc.x -= dx * 128;
@@ -6251,8 +6597,8 @@ export class Client extends GameShell {
                     const player: ClientPlayer | null = this.players[i];
                     if (player) {
                         for (let j: number = 0; j < 10; j++) {
-                            player.routeFlagX[j] -= dx;
-                            player.routeFlagZ[j] -= dz;
+                            player.routeTileX[j] -= dx;
+                            player.routeTileZ[j] -= dz;
                         }
 
                         player.x -= dx * 128;
@@ -6260,7 +6606,7 @@ export class Client extends GameShell {
                     }
                 }
 
-                this.sceneAwaitingSync = true;
+                this.awaitingSync = true;
 
                 let startTileX: number = 0;
                 let endTileX: number = CollisionConstants.SIZE;
@@ -6310,6 +6656,137 @@ export class Client extends GameShell {
                 }
 
                 this.cutscene = false;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_CLOSE) {
+                if (this.sidebarInterfaceId !== -1) {
+                    this.sidebarInterfaceId = -1;
+                    this.redrawSidebar = true;
+                    this.redrawSideicons = true;
+                }
+
+                if (this.chatInterfaceId !== -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+
+                this.viewportInterfaceId = -1;
+                this.pressedContinueOption = false;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETANIM) {
+                const com: number = this.in.g2();
+                Component.types[com].anim = this.in.g2();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.MESSAGE_GAME) {
+                const message: string = this.in.gjstr();
+
+                if (message.endsWith(':tradereq:')) {
+                    const player: string = message.substring(0, message.indexOf(':'));
+                    const username = JString.toBase37(player);
+
+                    let ignored: boolean = false;
+                    for (let i: number = 0; i < this.ignoreCount; i++) {
+                        if (this.ignoreName37[i] === username) {
+                            ignored = true;
+                            break;
+                        }
+                    }
+
+                    if (!ignored && this.overrideChat === 0) {
+                        this.addMessage(4, 'wishes to trade with you.', player);
+                    }
+                } else if (message.endsWith(':duelreq:')) {
+                    const player: string = message.substring(0, message.indexOf(':'));
+                    const username = JString.toBase37(player);
+
+                    let ignored: boolean = false;
+                    for (let i: number = 0; i < this.ignoreCount; i++) {
+                        if (this.ignoreName37[i] === username) {
+                            ignored = true;
+                            break;
+                        }
+                    }
+
+                    if (!ignored && this.overrideChat === 0) {
+                        this.addMessage(8, 'wishes to duel with you.', player);
+                    }
+                } else {
+                    this.addMessage(0, message, '');
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_STAT) {
+                this.redrawSidebar = true;
+
+                const stat: number = this.in.g1();
+                const xp: number = this.in.g4();
+                const level: number = this.in.g1();
+
+                this.skillExperience[stat] = xp;
+                this.skillLevel[stat] = level;
+                this.skillBaseLevel[stat] = 1;
+
+                for (let i: number = 0; i < 98; i++) {
+                    if (xp >= this.levelExperience[i]) {
+                        this.skillBaseLevel[stat] = i + 2;
+                    }
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.FINISH_TRACKING) {
+                const tracking: Packet | null = InputTracking.stop();
+                if (tracking) {
+                    this.out.p1isaac(ClientProt.EVENT_TRACKING);
+                    this.out.p2(tracking.pos);
+                    this.out.pdata(tracking.data, tracking.pos, 0);
+                    tracking.release();
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.RESET_ANIMS) {
+                for (let i: number = 0; i < this.players.length; i++) {
+                    const player: ClientPlayer | null = this.players[i];
+                    if (!player) {
+                        continue;
+                    }
+
+                    player.primarySeqId = -1;
+                }
+
+                for (let i: number = 0; i < this.npcs.length; i++) {
+                    const npc: ClientNpc | null = this.npcs[i];
+                    if (!npc) {
+                        continue;
+                    }
+
+                    npc.primarySeqId = -1;
+                }
+
                 this.ptype = -1;
                 return true;
             }
@@ -6326,328 +6803,9 @@ export class Client extends GameShell {
                 return true;
             }
 
-            if (this.ptype === ServerProt.HINT_ARROW) {
-                this.hintType = this.in.g1();
-                if (this.hintType === 1) {
-                    this.hintNpc = this.in.g2();
-                }
-                if (this.hintType >= 2 && this.hintType <= 6) {
-                    if (this.hintType === 2) {
-                        this.hintOffsetX = 64;
-                        this.hintOffsetZ = 64;
-                    }
-                    if (this.hintType === 3) {
-                        this.hintOffsetX = 0;
-                        this.hintOffsetZ = 64;
-                    }
-                    if (this.hintType === 4) {
-                        this.hintOffsetX = 128;
-                        this.hintOffsetZ = 64;
-                    }
-                    if (this.hintType === 5) {
-                        this.hintOffsetX = 64;
-                        this.hintOffsetZ = 0;
-                    }
-                    if (this.hintType === 6) {
-                        this.hintOffsetX = 64;
-                        this.hintOffsetZ = 128;
-                    }
-                    this.hintType = 2;
-                    this.hintTileX = this.in.g2();
-                    this.hintTileZ = this.in.g2();
-                    this.hintHeight = this.in.g1();
-                }
-                if (this.hintType === 10) {
-                    this.hintPlayer = this.in.g2();
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.MIDI_SONG) {
-                const id: number = this.in.g2();
-
-                if (this.nextMidiSong != id && this.midiActive && !Client.lowMemory) {
-                    this.midiSong = id;
-                    this.midiFading = true;
-                    this.onDemand?.request(2, this.midiSong);
-                }
-
-                this.nextMidiSong = id;
-                this.nextMusicDelay = 0;
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.LOGOUT) {
-                await this.logout();
-                this.ptype = -1;
-                return false;
-            }
-
-            if (this.ptype === ServerProt.UNSET_MAP_FLAG) {
-                this.flagSceneTileX = 0;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_PID) {
-                this.localPid = this.in.g2();
-                this.membersAccount = this.in.g1();
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (
-                this.ptype === ServerProt.OBJ_COUNT ||
-                this.ptype === ServerProt.LOC_MERGE ||
-                this.ptype === ServerProt.OBJ_REVEAL ||
-                this.ptype === ServerProt.MAP_ANIM ||
-                this.ptype === ServerProt.MAP_PROJANIM ||
-                this.ptype === ServerProt.OBJ_DEL ||
-                this.ptype === ServerProt.OBJ_ADD ||
-                this.ptype === ServerProt.LOC_ANIM ||
-                this.ptype === ServerProt.LOC_DEL ||
-                this.ptype === ServerProt.LOC_ADD_CHANGE
-            ) {
-                this.readZonePacket(this.in, this.ptype);
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_OPENMAIN_SIDE) {
-                const main: number = this.in.g2();
-                const side: number = this.in.g2();
-                if (this.chatInterfaceId !== -1) {
-                    this.chatInterfaceId = -1;
-                    this.redrawChatback = true;
-                }
-                if (this.chatbackInputOpen) {
-                    this.chatbackInputOpen = false;
-                    this.redrawChatback = true;
-                }
-                this.viewportInterfaceId = main;
-                this.sidebarInterfaceId = side;
-                this.redrawSidebar = true;
-                this.redrawSideicons = true;
-                this.pressedContinueOption = false;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.VARP_LARGE) {
-                const varp: number = this.in.g2();
-                const value: number = this.in.g4();
-                this.varCache[varp] = value;
-                if (this.varps[varp] !== value) {
-                    this.varps[varp] = value;
-                    this.updateVarp(varp);
-                    this.redrawSidebar = true;
-                    if (this.stickyChatInterfaceId !== -1) {
-                        this.redrawChatback = true;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETANIM) {
-                const com: number = this.in.g2();
-                Component.types[com].anim = this.in.g2();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETTAB) {
-                let com: number = this.in.g2();
-                const tab: number = this.in.g1();
-                if (com === 65535) {
-                    com = -1;
-                }
-                this.tabInterfaceId[tab] = com;
-                this.redrawSidebar = true;
-                this.redrawSideicons = true;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.FINISH_TRACKING) {
-                const tracking: Packet | null = InputTracking.stop();
-                if (tracking) {
-                    this.out.p1isaac(ClientProt.EVENT_TRACKING);
-                    this.out.p2(tracking.pos);
-                    this.out.pdata(tracking.data, tracking.pos, 0);
-                    tracking.release();
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_INV_FULL) {
-                this.redrawSidebar = true;
-                const com: number = this.in.g2();
-                const inv: Component = Component.types[com];
-                const size: number = this.in.g1();
-                if (inv.invSlotObjId && inv.invSlotObjCount) {
-                    for (let i: number = 0; i < size; i++) {
-                        inv.invSlotObjId[i] = this.in.g2();
-                        let count: number = this.in.g1();
-                        if (count === 255) {
-                            count = this.in.g4();
-                        }
-                        inv.invSlotObjCount[i] = count;
-                    }
-                    for (let i: number = size; i < inv.invSlotObjId.length; i++) {
-                        inv.invSlotObjId[i] = 0;
-                        inv.invSlotObjCount[i] = 0;
-                    }
-                } else {
-                    for (let i: number = 0; i < size; i++) {
-                        this.in.g2();
-                        if (this.in.g1() === 255) {
-                            this.in.g4();
-                        }
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.ENABLE_TRACKING) {
-                InputTracking.setEnabled();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.P_COUNTDIALOG) {
-                this.showSocialInput = false;
-                this.chatbackInputOpen = true;
-                this.chatbackInput = '';
-                this.redrawChatback = true;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_INV_STOP_TRANSMIT) {
-                const inv: Component = Component.types[this.in.g2()];
-                if (inv.invSlotObjId) {
-                    for (let i: number = 0; i < inv.invSlotObjId.length; i++) {
-                        inv.invSlotObjId[i] = -1;
-                        inv.invSlotObjId[i] = 0;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.LAST_LOGIN_INFO) {
-                this.lastAddress = this.in.g4();
-                this.daysSinceLastLogin = this.in.g2();
-                this.daysSinceRecoveriesChanged = this.in.g1();
-                this.unreadMessages = this.in.g2();
-                this.warnMembersInNonMembers = this.in.g1();
-
-                if (this.lastAddress !== 0 && this.viewportInterfaceId === -1) {
-                    this.closeInterfaces();
-
-                    let contentType: number = 650;
-                    if (this.daysSinceRecoveriesChanged !== 201 || this.warnMembersInNonMembers == 1) {
-                        contentType = 655;
-                    }
-
-                    this.reportAbuseInput = '';
-                    this.reportAbuseMuteOption = false;
-
-                    for (let i: number = 0; i < Component.types.length; i++) {
-                        if (Component.types[i] && Component.types[i].clientCode === contentType) {
-                            this.viewportInterfaceId = Component.types[i].layer;
-                            break;
-                        }
-                    }
-                }
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.TUT_FLASH) {
-                this.flashingTab = this.in.g1();
-                if (this.flashingTab === this.selectedTab) {
-                    if (this.flashingTab === 3) {
-                        this.selectedTab = 1;
-                    } else {
-                        this.selectedTab = 3;
-                    }
-                    this.redrawSidebar = true;
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.MIDI_JINGLE) {
-                const id: number = this.in.g2();
-                const delay: number = this.in.g2();
-
-                if (this.midiActive && !Client.lowMemory) {
-                    this.midiSong = id;
-                    this.midiFading = false;
-                    this.onDemand?.request(2, this.midiSong);
-                    this.nextMusicDelay = delay;
-                }
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.SET_MULTIWAY) {
-                this.inMultizone = this.in.g1();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.SYNTH_SOUND) {
-                const id: number = this.in.g2();
-                const loop: number = this.in.g1();
-                const delay: number = this.in.g2();
-
-                if (this.waveEnabled && !Client.lowMemory && this.waveCount < 50) {
-                    this.waveIds[this.waveCount] = id;
-                    this.waveLoops[this.waveCount] = loop;
-                    this.waveDelay[this.waveCount] = delay + Wave.delays[id];
-                    this.waveCount++;
-                }
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETNPCHEAD) {
-                const com: number = this.in.g2();
-                const npcId: number = this.in.g2();
-
-                Component.types[com].modelType = 2;
-                Component.types[com].model = npcId;
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_ZONE_PARTIAL_FOLLOWS) {
-                this.baseX = this.in.g1();
-                this.baseZ = this.in.g1();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.CHAT_FILTER_SETTINGS) {
-                this.chatPublicMode = this.in.g1();
-                this.chatPrivateMode = this.in.g1();
-                this.chatTradeMode = this.in.g1();
-
-                this.redrawPrivacySettings = true;
-                this.redrawChatback = true;
+            if (this.ptype === ServerProt.PLAYER_INFO) {
+                this.getPlayerPos(this.in, this.psize);
+                this.awaitingSync = false;
 
                 this.ptype = -1;
                 return true;
@@ -6678,10 +6836,192 @@ export class Client extends GameShell {
                 return true;
             }
 
-            if (this.ptype === ServerProt.IF_OPENCHAT) {
-                const com: number = this.in.g2();
+            if (this.ptype === ServerProt.TUT_FLASH) {
+                this.flashingTab = this.in.g1();
 
-                this.resetInterfaceAnimation(com);
+                if (this.flashingTab === this.selectedTab) {
+                    if (this.flashingTab === 3) {
+                        this.selectedTab = 1;
+                    } else {
+                        this.selectedTab = 3;
+                    }
+
+                    this.redrawSidebar = true;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.TUT_OPEN) {
+                this.stickyChatInterfaceId = this.in.g2b();
+                this.redrawChatback = true;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETTEXT) {
+                const comId: number = this.in.g2();
+                const text = this.in.gjstr();
+
+                Component.types[comId].text = text;
+
+                if (Component.types[comId].layer === this.tabInterfaceId[this.selectedTab]) {
+                    this.redrawSidebar = true;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETTAB) {
+                let comId: number = this.in.g2();
+                const tab: number = this.in.g1();
+
+                if (comId === 65535) {
+                    comId = -1;
+                }
+
+                this.tabInterfaceId[tab] = comId;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETTAB_ACTIVE) {
+                this.selectedTab = this.in.g1();
+
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_SETNPCHEAD) {
+                const com: number = this.in.g2();
+                const npcId: number = this.in.g2();
+
+                Component.types[com].modelType = 2;
+                Component.types[com].model = npcId;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.CAM_LOOKAT) {
+                this.cutscene = true;
+
+                this.cutsceneDstLocalTileX = this.in.g1();
+                this.cutsceneDstLocalTileZ = this.in.g1();
+                this.cutsceneDstHeight = this.in.g2();
+                this.cutsceneRotateSpeed = this.in.g1();
+                this.cutsceneRotateAcceleration = this.in.g1();
+
+                if (this.cutsceneRotateAcceleration >= 100) {
+                    const sceneX: number = this.cutsceneDstLocalTileX * 128 + 64;
+                    const sceneZ: number = this.cutsceneDstLocalTileZ * 128 + 64;
+                    const sceneY: number = this.getHeightmapY(this.currentLevel, this.cutsceneDstLocalTileX, this.cutsceneDstLocalTileZ) - this.cutsceneDstHeight;
+
+                    const deltaX: number = sceneX - this.cameraX;
+                    const deltaY: number = sceneY - this.cameraY;
+                    const deltaZ: number = sceneZ - this.cameraZ;
+
+                    const distance: number = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) | 0;
+
+                    this.cameraPitch = ((Math.atan2(deltaY, distance) * 325.949) | 0) & 0x7ff;
+                    this.cameraYaw = ((Math.atan2(deltaX, deltaZ) * -325.949) | 0) & 0x7ff;
+
+                    if (this.cameraPitch < 128) {
+                        this.cameraPitch = 128;
+                    } else if (this.cameraPitch > 383) {
+                        this.cameraPitch = 383;
+                    }
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_RUNENERGY) {
+                if (this.selectedTab === 12) {
+                    this.redrawSidebar = true;
+                }
+
+                this.runenergy = this.in.g1();
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UNSET_MAP_FLAG) {
+                this.flagSceneTileX = 0;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_INV_STOP_TRANSMIT) {
+                const comId = this.in.g2();
+                const inv: Component = Component.types[comId];
+
+                if (inv.invSlotObjId) {
+                    for (let i: number = 0; i < inv.invSlotObjId.length; i++) {
+                        inv.invSlotObjId[i] = -1;
+                        inv.invSlotObjId[i] = 0;
+                    }
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.HINT_ARROW) {
+                this.hintType = this.in.g1();
+
+                if (this.hintType === 1) {
+                    this.hintNpc = this.in.g2();
+                }
+
+                if (this.hintType >= 2 && this.hintType <= 6) {
+                    if (this.hintType === 2) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 64;
+                    } else if (this.hintType === 3) {
+                        this.hintOffsetX = 0;
+                        this.hintOffsetZ = 64;
+                    } else if (this.hintType === 4) {
+                        this.hintOffsetX = 128;
+                        this.hintOffsetZ = 64;
+                    } else if (this.hintType === 5) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 0;
+                    } else if (this.hintType === 6) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 128;
+                    }
+
+                    this.hintType = 2;
+                    this.hintTileX = this.in.g2();
+                    this.hintTileZ = this.in.g2();
+                    this.hintHeight = this.in.g1();
+                }
+
+                if (this.hintType === 10) {
+                    this.hintPlayer = this.in.g2();
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_OPENMAIN) {
+                const comId: number = this.in.g2();
+
+                this.resetInterfaceAnimation(comId);
 
                 if (this.sidebarInterfaceId !== -1) {
                     this.sidebarInterfaceId = -1;
@@ -6689,7 +7029,35 @@ export class Client extends GameShell {
                     this.redrawSideicons = true;
                 }
 
-                this.chatInterfaceId = com;
+                if (this.chatInterfaceId !== -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+
+                this.viewportInterfaceId = comId;
+                this.pressedContinueOption = false;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.IF_OPENCHAT) {
+                const comId: number = this.in.g2();
+
+                this.resetInterfaceAnimation(comId);
+
+                if (this.sidebarInterfaceId !== -1) {
+                    this.sidebarInterfaceId = -1;
+                    this.redrawSidebar = true;
+                    this.redrawSideicons = true;
+                }
+
+                this.chatInterfaceId = comId;
                 this.redrawChatback = true;
                 this.viewportInterfaceId = -1;
                 this.pressedContinueOption = false;
@@ -6698,14 +7066,33 @@ export class Client extends GameShell {
                 return true;
             }
 
-            if (this.ptype === ServerProt.IF_SETPOSITION) {
-                const com: number = this.in.g2();
-                const x: number = this.in.g2b();
-                const z: number = this.in.g2b();
+            if (this.ptype === ServerProt.NPC_INFO) {
+                this.getNpcPos(this.in, this.psize);
 
-                const inter: Component = Component.types[com];
-                inter.x = x;
-                inter.y = z;
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_INV_PARTIAL) {
+                this.redrawSidebar = true;
+
+                const com: number = this.in.g2();
+                const inv: Component = Component.types[com];
+
+                while (this.in.pos < this.psize) {
+                    const slot: number = this.in.g1();
+                    const id: number = this.in.g2();
+
+                    let count: number = this.in.g1();
+                    if (count === 255) {
+                        count = this.in.g4();
+                    }
+
+                    if (inv.invSlotObjId && inv.invSlotObjCount && slot >= 0 && slot < inv.invSlotObjId.length) {
+                        inv.invSlotObjId[slot] = id;
+                        inv.invSlotObjCount[slot] = count;
+                    }
+                }
 
                 this.ptype = -1;
                 return true;
@@ -6724,6 +7111,19 @@ export class Client extends GameShell {
                     this.cameraX = this.cutsceneSrcLocalTileX * 128 + 64;
                     this.cameraZ = this.cutsceneSrcLocalTileZ * 128 + 64;
                     this.cameraY = this.getHeightmapY(this.currentLevel, this.cutsceneSrcLocalTileX, this.cutsceneSrcLocalTileZ) - this.cutsceneSrcHeight;
+                }
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.UPDATE_ZONE_PARTIAL_ENCLOSED) {
+                this.baseX = this.in.g1();
+                this.baseZ = this.in.g1();
+
+                while (this.in.pos < this.psize) {
+                    const opcode: number = this.in.g1();
+                    this.readZonePacket(this.in, opcode);
                 }
 
                 this.ptype = -1;
@@ -6798,188 +7198,33 @@ export class Client extends GameShell {
                 return true;
             }
 
-            if (this.ptype === ServerProt.RESET_CLIENT_VARCACHE) {
-                for (let i: number = 0; i < this.varps.length; i++) {
-                    if (this.varps[i] !== this.varCache[i]) {
-                        this.varps[i] = this.varCache[i];
-                        this.updateVarp(i);
-                        this.redrawSidebar = true;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETMODEL) {
-                const com: number = this.in.g2();
-                const model: number = this.in.g2();
-
-                Component.types[com].modelType = 1;
-                Component.types[com].model = model;
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.TUT_OPEN) {
-                this.stickyChatInterfaceId = this.in.g2b();
-                this.redrawChatback = true;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_RUNENERGY) {
-                if (this.selectedTab === 12) {
-                    this.redrawSidebar = true;
-                }
-                this.energy = this.in.g1();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.CAM_LOOKAT) {
-                this.cutscene = true;
-                this.cutsceneDstLocalTileX = this.in.g1();
-                this.cutsceneDstLocalTileZ = this.in.g1();
-                this.cutsceneDstHeight = this.in.g2();
-                this.cutsceneRotateSpeed = this.in.g1();
-                this.cutsceneRotateAcceleration = this.in.g1();
-                if (this.cutsceneRotateAcceleration >= 100) {
-                    const sceneX: number = this.cutsceneDstLocalTileX * 128 + 64;
-                    const sceneZ: number = this.cutsceneDstLocalTileZ * 128 + 64;
-                    const sceneY: number = this.getHeightmapY(this.currentLevel, this.cutsceneDstLocalTileX, this.cutsceneDstLocalTileZ) - this.cutsceneDstHeight;
-                    const deltaX: number = sceneX - this.cameraX;
-                    const deltaY: number = sceneY - this.cameraY;
-                    const deltaZ: number = sceneZ - this.cameraZ;
-                    const distance: number = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) | 0;
-                    this.cameraPitch = ((Math.atan2(deltaY, distance) * 325.949) | 0) & 0x7ff;
-                    this.cameraYaw = ((Math.atan2(deltaX, deltaZ) * -325.949) | 0) & 0x7ff;
-                    if (this.cameraPitch < 128) {
-                        this.cameraPitch = 128;
-                    }
-                    if (this.cameraPitch > 383) {
-                        this.cameraPitch = 383;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETTAB_ACTIVE) {
-                this.selectedTab = this.in.g1();
-                this.redrawSidebar = true;
-                this.redrawSideicons = true;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.MESSAGE_GAME) {
-                const message: string = this.in.gjstr();
-                let username: bigint;
-                if (message.endsWith(':tradereq:')) {
-                    const player: string = message.substring(0, message.indexOf(':'));
-                    username = JString.toBase37(player);
-                    let ignored: boolean = false;
-                    for (let i: number = 0; i < this.ignoreCount; i++) {
-                        if (this.ignoreName37[i] === username) {
-                            ignored = true;
-                            break;
-                        }
-                    }
-                    if (!ignored && this.overrideChat === 0) {
-                        this.addMessage(4, 'wishes to trade with you.', player);
-                    }
-                } else if (message.endsWith(':duelreq:')) {
-                    const player: string = message.substring(0, message.indexOf(':'));
-                    username = JString.toBase37(player);
-                    let ignored: boolean = false;
-                    for (let i: number = 0; i < this.ignoreCount; i++) {
-                        if (this.ignoreName37[i] === username) {
-                            ignored = true;
-                            break;
-                        }
-                    }
-                    if (!ignored && this.overrideChat === 0) {
-                        this.addMessage(8, 'wishes to duel with you.', player);
-                    }
-                } else {
-                    this.addMessage(0, message, '');
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETOBJECT) {
-                const com: number = this.in.g2();
-                const objId: number = this.in.g2();
-                const zoom: number = this.in.g2();
-
-                const obj: ObjType = ObjType.get(objId);
-                Component.types[com].modelType = 4;
-                Component.types[com].model = objId;
-                Component.types[com].xan = obj.xan2d;
-                Component.types[com].yan = obj.yan2d;
-                Component.types[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
-
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_OPENMAIN) {
-                const com: number = this.in.g2();
-                this.resetInterfaceAnimation(com);
-                if (this.sidebarInterfaceId !== -1) {
-                    this.sidebarInterfaceId = -1;
-                    this.redrawSidebar = true;
-                    this.redrawSideicons = true;
-                }
-                if (this.chatInterfaceId !== -1) {
-                    this.chatInterfaceId = -1;
-                    this.redrawChatback = true;
-                }
-                if (this.chatbackInputOpen) {
-                    this.chatbackInputOpen = false;
-                    this.redrawChatback = true;
-                }
-                this.viewportInterfaceId = com;
-                this.pressedContinueOption = false;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETCOLOUR) {
-                const com: number = this.in.g2();
-                const color: number = this.in.g2();
-                const r: number = (color >> 10) & 0x1f;
-                const g: number = (color >> 5) & 0x1f;
-                const b: number = color & 0x1f;
-                Component.types[com].colour = (r << 19) + (g << 11) + (b << 3);
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.RESET_ANIMS) {
-                for (let i: number = 0; i < this.players.length; i++) {
-                    const player: ClientPlayer | null = this.players[i];
-                    if (!player) {
-                        continue;
-                    }
-                    player.primarySeqId = -1;
-                }
-                for (let i: number = 0; i < this.npcs.length; i++) {
-                    const npc: ClientNpc | null = this.npcs[i];
-                    if (!npc) {
-                        continue;
-                    }
-                    npc.primarySeqId = -1;
-                }
-                this.ptype = -1;
-                return true;
-            }
-
             if (this.ptype === ServerProt.IF_SETHIDE) {
-                const com: number = this.in.g2();
-                Component.types[com].hide = this.in.g1() === 1;
+                const comId: number = this.in.g2();
+                const hide = this.in.g1() === 1;
+
+                Component.types[comId].hide = hide;
+
+                this.ptype = -1;
+                return true;
+            }
+
+            if (this.ptype === ServerProt.VARP_SMALL) {
+                const varp: number = this.in.g2();
+                const value: number = this.in.g1b();
+
+                this.varCache[varp] = value;
+
+                if (this.varps[varp] !== value) {
+                    this.varps[varp] = value;
+                    this.updateVarp(varp);
+
+                    this.redrawSidebar = true;
+
+                    if (this.stickyChatInterfaceId !== -1) {
+                        this.redrawChatback = true;
+                    }
+                }
+
                 this.ptype = -1;
                 return true;
             }
@@ -6989,131 +7234,23 @@ export class Client extends GameShell {
                 for (let i: number = 0; i < this.ignoreCount; i++) {
                     this.ignoreName37[i] = this.in.g8();
                 }
+
                 this.ptype = -1;
                 return true;
             }
 
-            if (this.ptype === ServerProt.CAM_RESET) {
-                this.cutscene = false;
-                for (let i: number = 0; i < 5; i++) {
-                    this.cameraModifierEnabled[i] = false;
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_CLOSE) {
-                if (this.sidebarInterfaceId !== -1) {
-                    this.sidebarInterfaceId = -1;
-                    this.redrawSidebar = true;
-                    this.redrawSideicons = true;
-                }
-                if (this.chatInterfaceId !== -1) {
-                    this.chatInterfaceId = -1;
-                    this.redrawChatback = true;
-                }
-                if (this.chatbackInputOpen) {
-                    this.chatbackInputOpen = false;
-                    this.redrawChatback = true;
-                }
-                this.viewportInterfaceId = -1;
-                this.pressedContinueOption = false;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.IF_SETTEXT) {
-                const com: number = this.in.g2();
-                Component.types[com].text = this.in.gjstr();
-                if (Component.types[com].layer === this.tabInterfaceId[this.selectedTab]) {
-                    this.redrawSidebar = true;
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_STAT) {
-                this.redrawSidebar = true;
-                const stat: number = this.in.g1();
-                const xp: number = this.in.g4();
-                const level: number = this.in.g1();
-                this.skillExperience[stat] = xp;
-                this.skillLevel[stat] = level;
-                this.skillBaseLevel[stat] = 1;
-                for (let i: number = 0; i < 98; i++) {
-                    if (xp >= this.levelExperience[i]) {
-                        this.skillBaseLevel[stat] = i + 2;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_ZONE_PARTIAL_ENCLOSED) {
-                this.baseX = this.in.g1();
-                this.baseZ = this.in.g1();
-                while (this.in.pos < this.psize) {
-                    const opcode: number = this.in.g1();
-                    this.readZonePacket(this.in, opcode);
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_RUNWEIGHT) {
-                if (this.selectedTab === 12) {
-                    this.redrawSidebar = true;
-                }
-                this.weightCarried = this.in.g2b();
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.CAM_SHAKE) {
-                const type: number = this.in.g1();
-                const jitter: number = this.in.g1();
-                const wobbleScale: number = this.in.g1();
-                const wobbleSpeed: number = this.in.g1();
-                this.cameraModifierEnabled[type] = true;
-                this.cameraModifierJitter[type] = jitter;
-                this.cameraModifierWobbleScale[type] = wobbleScale;
-                this.cameraModifierWobbleSpeed[type] = wobbleSpeed;
-                this.cameraModifierCycle[type] = 0;
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.UPDATE_INV_PARTIAL) {
-                this.redrawSidebar = true;
-                const com: number = this.in.g2();
-                const inv: Component = Component.types[com];
-                while (this.in.pos < this.psize) {
-                    const slot: number = this.in.g1();
-                    const id: number = this.in.g2();
-                    let count: number = this.in.g1();
-                    if (count === 255) {
-                        count = this.in.g4();
-                    }
-                    if (inv.invSlotObjId && inv.invSlotObjCount && slot >= 0 && slot < inv.invSlotObjId.length) {
-                        inv.invSlotObjId[slot] = id;
-                        inv.invSlotObjCount[slot] = count;
-                    }
-                }
-                this.ptype = -1;
-                return true;
-            }
-
-            if (this.ptype === ServerProt.PLAYER_INFO) {
-                this.getPlayerPos(this.in, this.psize);
-                this.sceneAwaitingSync = false;
-                this.ptype = -1;
-                return true;
-            }
-
+            console.error(`T1 - ${this.ptype},${this.psize} - ${this.ptype1},${this.ptype2}`);
             await this.logout();
         } catch (e) {
-            // todo: support reconnecting if there was an IO error
+            // todo: try reconnecting if there was an IO error
             console.error(e);
+
+            let str = `T1 - ${this.ptype},${this.psize} - ${this.ptype1},${this.ptype2} - ${this.psize},${(this.localPlayer?.routeTileX[0] ?? 0) + this.sceneBaseTileX},${(this.localPlayer?.routeTileZ[0] ?? 0) + this.sceneBaseTileZ} -`;
+            for (let i = 0; i < this.psize && i < 50; i++) {
+                str += this.in.data[i] + ',';
+            }
+            console.error(str);
+
             await this.logout();
         }
 
@@ -7278,6 +7415,7 @@ export class Client extends GameShell {
             const shape: number = info >> 2;
             const angle: number = info & 0x3;
             const layer: number = LocShape.of(shape).layer;
+
             const id: number = buf.g2();
             const start: number = buf.g2();
             const end: number = buf.g2();
@@ -7720,7 +7858,7 @@ export class Client extends GameShell {
             const jump: number = buf.gBit(1);
 
             if (this.localPlayer) {
-                player?.move(jump === 1, this.localPlayer.routeFlagX[0] + dx, this.localPlayer.routeFlagZ[0] + dz);
+                player?.move(jump === 1, this.localPlayer.routeTileX[0] + dx, this.localPlayer.routeTileZ[0] + dz);
             }
 
             const extendedInfo: number = buf.gBit(1);
@@ -8054,7 +8192,7 @@ export class Client extends GameShell {
             }
 
             if (this.localPlayer) {
-                npc?.move(false, this.localPlayer.routeFlagX[0] + dx, this.localPlayer.routeFlagZ[0] + dz);
+                npc?.move(false, this.localPlayer.routeTileX[0] + dx, this.localPlayer.routeTileZ[0] + dz);
             }
 
             const extendedInfo: number = buf.gBit(1);
@@ -8299,130 +8437,65 @@ export class Client extends GameShell {
             action -= 2000;
         }
 
-        if (action === 903 || action === 363) {
-            let option: string = this.menuOption[optionId];
+        if (action === 1501) {
+            Client.oplogic6 += this.sceneBaseTileZ;
+            if (Client.oplogic6 >= 92) {
+                this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC6);
+                this.out.p4(0);
+            }
+
+            this.interactWithLoc(ClientProt.OPLOC5, b, c, a);
+        } else if (action === 34) {
+            // reportabuse input
+            const option: string = this.menuOption[optionId];
             const tag: number = option.indexOf('@whi@');
 
             if (tag !== -1) {
-                option = option.substring(tag + 5).trim();
-                const name: string = JString.formatName(JString.fromBase37(JString.toBase37(option)));
-                let found: boolean = false;
+                this.closeInterfaces();
 
-                for (let i: number = 0; i < this.playerCount; i++) {
-                    const player: ClientPlayer | null = this.players[this.playerIds[i]];
+                this.reportAbuseInput = option.substring(tag + 5).trim();
+                this.reportAbuseMuteOption = false;
 
-                    if (player && player.name && player.name.toLowerCase() === name.toLowerCase() && this.localPlayer) {
-                        this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], player.routeFlagX[0], player.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
-
-                        if (action === 903) {
-                            this.out.p1isaac(ClientProt.OPPLAYER4);
-                        } else if (action === 363) {
-                            this.out.p1isaac(ClientProt.OPPLAYER1);
-                        }
-
-                        this.out.p2(this.playerIds[i]);
-                        found = true;
+                for (let i: number = 0; i < Component.types.length; i++) {
+                    if (Component.types[i] && Component.types[i].clientCode === ClientCode.CC_REPORT_INPUT) {
+                        this.reportAbuseInterfaceId = this.viewportInterfaceId = Component.types[i].layer;
                         break;
                     }
                 }
-
-                if (!found) {
-                    this.addMessage(0, 'Unable to find ' + name, '');
-                }
             }
-        } else if (action === 450 && this.interactWithLoc(ClientProt.OPLOCU, b, c, a)) {
-            this.out.p2(this.objInterface);
-            this.out.p2(this.objSelectedSlot);
-            this.out.p2(this.objSelectedInterface);
-        } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
-            if (action === 478) {
-                if ((b & 0x3) === 0) {
-                    Client.oplogic5++;
-                }
-
-                if (Client.oplogic5 >= 90) {
-                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC5);
-                }
-
-                this.out.p1isaac(ClientProt.OPHELD4);
-            } else if (action === 347) {
-                this.out.p1isaac(ClientProt.OPHELD5);
-            } else if (action === 422) {
-                this.out.p1isaac(ClientProt.OPHELD3);
-            } else if (action === 405) {
-                Client.oplogic3 += a;
-                if (Client.oplogic3 >= 97) {
-                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC3);
-                    this.out.p3(14953816);
-                }
-
-                this.out.p1isaac(ClientProt.OPHELD1);
-            } else if (action === 38) {
-                this.out.p1isaac(ClientProt.OPHELD2);
-            }
-
-            this.out.p2(a);
-            this.out.p2(b);
-            this.out.p2(c);
-            this.selectedCycle = 0;
-            this.selectedInterface = c;
-            this.selectedItem = b;
-            this.selectedArea = 2;
-
-            if (Component.types[c].layer === this.viewportInterfaceId) {
-                this.selectedArea = 1;
-            }
-
-            if (Component.types[c].layer === this.chatInterfaceId) {
-                this.selectedArea = 3;
-            }
-        } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
-            const npc: ClientNpc | null = this.npcs[a];
-            if (npc && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], npc.routeFlagX[0], npc.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
+        } else if (action === 367) {
+            const player: ClientPlayer | null = this.players[a];
+            if (player && this.localPlayer) {
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], player.routeTileX[0], player.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
 
                 this.crossX = this.mouseClickX;
                 this.crossY = this.mouseClickY;
                 this.crossMode = 2;
                 this.crossCycle = 0;
 
-                if (action === 542) {
-                    this.out.p1isaac(ClientProt.OPNPC2);
-                } else if (action === 6) {
-                    if ((a & 0x3) === 0) {
-                        Client.oplogic2++;
-                    }
-
-                    if (Client.oplogic2 >= 124) {
-                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC2);
-                        this.out.p4(0);
-                    }
-
-                    this.out.p1isaac(ClientProt.OPNPC3);
-                } else if (action === 963) {
-                    this.out.p1isaac(ClientProt.OPNPC4);
-                } else if (action === 728) {
-                    this.out.p1isaac(ClientProt.OPNPC1);
-                } else if (action === 245) {
-                    if ((a & 0x3) === 0) {
-                        Client.oplogic4++;
-                    }
-
-                    if (Client.oplogic4 >= 85) {
-                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC4);
-                        this.out.p2(39596);
-                    }
-
-                    this.out.p1isaac(ClientProt.OPNPC5);
-                }
-
+                this.out.p1isaac(ClientProt.OPPLAYERU);
                 this.out.p2(a);
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
+        } else if (action === 951) {
+            const com: Component = Component.types[c];
+            let notify: boolean = true;
+
+            if (com.clientCode > 0) {
+                notify = this.handleInterfaceAction(com);
+            }
+
+            if (notify) {
+                this.out.p1isaac(ClientProt.IF_BUTTON);
+                this.out.p2(c);
             }
         } else if (action === 217) {
             if (this.localPlayer) {
-                const success: boolean = this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                const success: boolean = this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
                 if (!success) {
-                    this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                    this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
                 }
 
                 this.crossX = this.mouseClickX;
@@ -8438,6 +8511,109 @@ export class Client extends GameShell {
                 this.out.p2(this.objSelectedSlot);
                 this.out.p2(this.objSelectedInterface);
             }
+        } else if (action === 450) {
+            if (this.interactWithLoc(ClientProt.OPLOCU, b, c, a)) {
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
+        } else if (action === 265) {
+            const npc: ClientNpc | null = this.npcs[a];
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], npc.routeTileX[0], npc.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                this.out.p1isaac(ClientProt.OPNPCT);
+                this.out.p2(a);
+                this.out.p2(this.activeSpellId);
+            }
+        } else if (action === 364) {
+            this.interactWithLoc(ClientProt.OPLOC3, b, c, a);
+        } else if (action === 55) {
+            if (this.interactWithLoc(ClientProt.OPLOCT, b, c, a)) {
+                this.out.p2(this.activeSpellId);
+            }
+        } else if (action === 224 || action === 993 || action === 99 || action === 746 || action === 877) {
+            if (this.localPlayer) {
+                const success: boolean = this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                if (!success) {
+                    this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                }
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 99) {
+                    this.out.p1isaac(ClientProt.OPOBJ3);
+                } else if (action === 993) {
+                    this.out.p1isaac(ClientProt.OPOBJ2);
+                } else if (action === 224) {
+                    this.out.p1isaac(ClientProt.OPOBJ1);
+                } else if (action === 877) {
+                    this.out.p1isaac(ClientProt.OPOBJ5);
+                } else if (action === 746) {
+                    this.out.p1isaac(ClientProt.OPOBJ4);
+                }
+
+                this.out.p2(b + this.sceneBaseTileX);
+                this.out.p2(c + this.sceneBaseTileZ);
+                this.out.p2(a);
+            }
+        } else if (action === 581) {
+            if ((a & 0x3) === 0) {
+                Client.oplogic1++;
+            }
+
+            if (Client.oplogic1 >= 99) {
+                this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC1);
+                this.out.p4(0);
+            }
+
+            this.interactWithLoc(ClientProt.OPLOC4, b, c, a);
+        } else if (action === 679) {
+            const option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag !== -1) {
+                const name37: bigint = JString.toBase37(option.substring(tag + 5).trim());
+                let friend: number = -1;
+
+                for (let i: number = 0; i < this.friendCount; i++) {
+                    if (this.friendName37[i] === name37) {
+                        friend = i;
+                        break;
+                    }
+                }
+
+                if (friend !== -1 && this.friendWorld[friend] > 0) {
+                    this.redrawChatback = true;
+                    this.chatbackInputOpen = false;
+                    this.showSocialInput = true;
+                    this.socialInput = '';
+                    this.socialInputType = 3;
+                    this.socialName37 = this.friendName37[friend];
+                    this.socialMessage = 'Enter message to send to ' + this.friendName[friend];
+                }
+            }
+        } else if (action === 960) {
+            this.out.p1isaac(ClientProt.IF_BUTTON);
+            this.out.p2(c);
+
+            const com: Component = Component.types[c];
+            if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
+                const varp: number = com.scripts[0][1];
+                if (com.scriptOperand && this.varps[varp] !== com.scriptOperand[0]) {
+                    this.varps[varp] = com.scriptOperand[0];
+                    this.updateVarp(varp);
+                    this.redrawSidebar = true;
+                }
+            }
         } else if (action === 1175) {
             // loc examine
             const locId: number = (a >> 14) & 0x7fff;
@@ -8451,8 +8627,6 @@ export class Client extends GameShell {
             }
 
             this.addMessage(0, examine, '');
-        } else if (action === 285) {
-            this.interactWithLoc(ClientProt.OPLOC1, b, c, a);
         } else if (action === 881) {
             this.out.p1isaac(ClientProt.OPHELDU);
             this.out.p2(a);
@@ -8474,6 +8648,220 @@ export class Client extends GameShell {
             if (Component.types[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
+        } else if (action === 44) {
+            if (!this.pressedContinueOption) {
+                this.out.p1isaac(ClientProt.RESUME_PAUSEBUTTON);
+                this.out.p2(c);
+                this.pressedContinueOption = true;
+            }
+        } else if (action === 285) {
+            this.interactWithLoc(ClientProt.OPLOC1, b, c, a);
+        } else if (action === 406 || action === 436 || action === 557 || action === 556) {
+            const option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag !== -1) {
+                const username: bigint = JString.toBase37(option.substring(tag + 5).trim());
+                if (action === 406) {
+                    this.addFriend(username);
+                } else if (action === 436) {
+                    this.addIgnore(username);
+                } else if (action === 557) {
+                    this.removeFriend(username);
+                } else if (action === 556) {
+                    this.removeIgnore(username);
+                }
+            }
+        } else if (action === 947) {
+            this.closeInterfaces();
+        } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
+            if (action === 347) {
+                this.out.p1isaac(ClientProt.OPHELD5);
+            } else if (action === 422) {
+                this.out.p1isaac(ClientProt.OPHELD3);
+            } else if (action === 478) {
+                if ((b & 0x3) === 0) {
+                    Client.oplogic5++;
+                }
+
+                if (Client.oplogic5 >= 90) {
+                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC5);
+                }
+
+                this.out.p1isaac(ClientProt.OPHELD4);
+            } else if (action === 405) {
+                Client.oplogic3 += a;
+                if (Client.oplogic3 >= 97) {
+                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC3);
+                    this.out.p3(14953816);
+                }
+
+                this.out.p1isaac(ClientProt.OPHELD1);
+            } else if (action === 38) {
+                this.out.p1isaac(ClientProt.OPHELD2);
+            }
+
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (Component.types[c].layer === this.viewportInterfaceId) {
+                this.selectedArea = 1;
+            }
+
+            if (Component.types[c].layer === this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
+        } else if (action === 965) {
+            if (this.localPlayer) {
+                const success: boolean = this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                if (!success) {
+                    this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                }
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                this.out.p1isaac(ClientProt.OPOBJT);
+                this.out.p2(b + this.sceneBaseTileX);
+                this.out.p2(c + this.sceneBaseTileZ);
+                this.out.p2(a);
+                this.out.p2(this.activeSpellId);
+            }
+        } else if (action === 602 || action === 596 || action === 22 || action === 892 || action === 415) {
+            if (action === 415) {
+                if ((c & 0x3) === 0) {
+                    Client.oplogic7++;
+                }
+
+                if (Client.oplogic7 >= 55) {
+                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC7);
+                    this.out.p4(0);
+                }
+
+                this.out.p1isaac(ClientProt.INV_BUTTON5);
+            } else if (action === 22) {
+                this.out.p1isaac(ClientProt.INV_BUTTON3);
+            } else if (action === 596) {
+                this.out.p1isaac(ClientProt.INV_BUTTON2);
+            } else if (action === 892) {
+                if ((b & 0x3) === 0) {
+                    Client.oplogic9++;
+                }
+
+                if (Client.oplogic9 >= 130) {
+                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC9);
+                    this.out.p1(177);
+                }
+
+                this.out.p1isaac(ClientProt.INV_BUTTON4);
+            } else if (action === 602) {
+                this.out.p1isaac(ClientProt.INV_BUTTON1);
+            }
+
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (Component.types[c].layer === this.viewportInterfaceId) {
+                this.selectedArea = 1;
+            }
+
+            if (Component.types[c].layer === this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
+        } else if (action === 465) {
+            this.out.p1isaac(ClientProt.IF_BUTTON);
+            this.out.p2(c);
+
+            const com: Component = Component.types[c];
+            if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
+                const varp: number = com.scripts[0][1];
+                this.varps[varp] = 1 - this.varps[varp];
+                this.updateVarp(varp);
+                this.redrawSidebar = true;
+            }
+        } else if (action === 900) {
+            const npc: ClientNpc | null = this.npcs[a];
+
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], npc.routeTileX[0], npc.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                this.out.p1isaac(ClientProt.OPNPCU);
+                this.out.p2(a);
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
+        } else if (action === 188) {
+            // select obj interface
+            this.objSelected = 1;
+            this.objSelectedSlot = b;
+            this.objSelectedInterface = c;
+            this.objInterface = a;
+            this.objSelectedName = ObjType.get(a).name;
+            this.spellSelected = 0;
+            this.redrawSidebar = true;
+            return;
+        } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
+            const npc: ClientNpc | null = this.npcs[a];
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], npc.routeTileX[0], npc.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 963) {
+                    this.out.p1isaac(ClientProt.OPNPC4);
+                } else if (action === 6) {
+                    if ((a & 0x3) === 0) {
+                        Client.oplogic2++;
+                    }
+
+                    if (Client.oplogic2 >= 124) {
+                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC2);
+                        this.out.p4(0);
+                    }
+
+                    this.out.p1isaac(ClientProt.OPNPC3);
+                } else if (action === 245) {
+                    if ((a & 0x3) === 0) {
+                        Client.oplogic4++;
+                    }
+
+                    if (Client.oplogic4 >= 85) {
+                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC4);
+                        this.out.p2(39596);
+                    }
+
+                    this.out.p1isaac(ClientProt.OPNPC5);
+                } else if (action === 728) {
+                    this.out.p1isaac(ClientProt.OPNPC1);
+                } else if (action === 542) {
+                    this.out.p1isaac(ClientProt.OPNPC2);
+                }
+
+                this.out.p2(a);
+            }
         } else if (action === 391) {
             this.out.p1isaac(ClientProt.OPHELDT);
             this.out.p2(a);
@@ -8493,171 +8881,6 @@ export class Client extends GameShell {
             if (Component.types[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
-        } else if (action === 660) {
-            if (this.menuVisible) {
-                this.scene?.click(b - 8, c - 11);
-            } else {
-                this.scene?.click(this.mouseClickX - 8, this.mouseClickY - 11);
-            }
-        } else if (action === 188) {
-            // select obj interface
-            this.objSelected = 1;
-            this.objSelectedSlot = b;
-            this.objSelectedInterface = c;
-            this.objInterface = a;
-            this.objSelectedName = ObjType.get(a).name;
-            this.spellSelected = 0;
-            this.redrawSidebar = true;
-            return;
-        } else if (action === 44) {
-            if (!this.pressedContinueOption) {
-                this.out.p1isaac(ClientProt.RESUME_PAUSEBUTTON);
-                this.out.p2(c);
-                this.pressedContinueOption = true;
-            }
-        } else if (action === 1773) {
-            // inv obj examine
-            const obj: ObjType = ObjType.get(a);
-            let examine: string;
-
-            if (c >= 100000) {
-                examine = c + ' x ' + obj.name;
-            } else if (!obj.desc) {
-                examine = "It's a " + obj.name + '.';
-            } else {
-                examine = obj.desc;
-            }
-            this.addMessage(0, examine, '');
-        } else if (action === 900) {
-            const npc: ClientNpc | null = this.npcs[a];
-
-            if (npc && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], npc.routeFlagX[0], npc.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                this.out.p1isaac(ClientProt.OPNPCU);
-                this.out.p2(a);
-                this.out.p2(this.objInterface);
-                this.out.p2(this.objSelectedSlot);
-                this.out.p2(this.objSelectedInterface);
-            }
-        } else if (action === 1373 || action === 1544 || action === 151 || action === 1101) {
-            const player: ClientPlayer | null = this.players[a];
-            if (player && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], player.routeFlagX[0], player.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
-
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                if (action === 1101) {
-                    this.out.p1isaac(ClientProt.OPPLAYER1);
-                } else if (action === 151) {
-                    Client.oplogic8++;
-                    if (Client.oplogic8 >= 90) {
-                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC8);
-                        this.out.p2(31114);
-                    }
-
-                    this.out.p1isaac(ClientProt.OPPLAYER2);
-                } else if (action === 1373) {
-                    this.out.p1isaac(ClientProt.OPPLAYER4);
-                } else if (action === 1544) {
-                    this.out.p1isaac(ClientProt.OPPLAYER3);
-                }
-
-                this.out.p2(a);
-            }
-        } else if (action === 265) {
-            const npc: ClientNpc | null = this.npcs[a];
-            if (npc && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], npc.routeFlagX[0], npc.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
-
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                this.out.p1isaac(ClientProt.OPNPCT);
-                this.out.p2(a);
-                this.out.p2(this.activeSpellId);
-            }
-        } else if (action === 679) {
-            const option: string = this.menuOption[optionId];
-            const tag: number = option.indexOf('@whi@');
-
-            if (tag !== -1) {
-                const name37: bigint = JString.toBase37(option.substring(tag + 5).trim());
-                let friend: number = -1;
-                for (let i: number = 0; i < this.friendCount; i++) {
-                    if (this.friendName37[i] === name37) {
-                        friend = i;
-                        break;
-                    }
-                }
-
-                if (friend !== -1 && this.friendWorld[friend] > 0) {
-                    this.redrawChatback = true;
-                    this.chatbackInputOpen = false;
-                    this.showSocialInput = true;
-                    this.socialInput = '';
-                    this.socialInputType = 3;
-                    this.socialName37 = this.friendName37[friend];
-                    this.socialMessage = 'Enter message to send to ' + this.friendName[friend];
-                }
-            }
-        } else if (action === 55) {
-            if (this.interactWithLoc(ClientProt.OPLOCT, b, c, a)) {
-                this.out.p2(this.activeSpellId);
-            }
-        } else if (action === 224 || action === 993 || action === 99 || action === 746 || action === 877) {
-            if (this.localPlayer) {
-                const success: boolean = this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
-                if (!success) {
-                    this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
-                }
-
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                if (action === 224) {
-                    this.out.p1isaac(ClientProt.OPOBJ1);
-                } else if (action === 746) {
-                    this.out.p1isaac(ClientProt.OPOBJ4);
-                } else if (action === 877) {
-                    this.out.p1isaac(ClientProt.OPOBJ5);
-                } else if (action === 99) {
-                    this.out.p1isaac(ClientProt.OPOBJ3);
-                } else if (action === 993) {
-                    this.out.p1isaac(ClientProt.OPOBJ2);
-                }
-
-                this.out.p2(b + this.sceneBaseTileX);
-                this.out.p2(c + this.sceneBaseTileZ);
-                this.out.p2(a);
-            }
-        } else if (action === 1607) {
-            // npc examine
-            const npc: ClientNpc | null = this.npcs[a];
-            if (npc && npc.type) {
-                let examine: string;
-
-                if (!npc.type.desc) {
-                    examine = "It's a " + npc.type.name + '.';
-                } else {
-                    examine = npc.type.desc;
-                }
-
-                this.addMessage(0, examine, '');
-            }
-        } else if (action === 504) {
-            this.interactWithLoc(ClientProt.OPLOC2, b, c, a);
         } else if (action === 930) {
             const com: Component = Component.types[c];
             this.spellSelected = 1;
@@ -8677,6 +8900,7 @@ export class Client extends GameShell {
             }
 
             this.spellCaption = prefix + ' ' + com.targetText + ' ' + suffix;
+
             if (this.activeSpellFlags === 16) {
                 this.redrawSidebar = true;
                 this.selectedTab = 3;
@@ -8684,196 +8908,62 @@ export class Client extends GameShell {
             }
 
             return;
-        } else if (action === 951) {
-            const com: Component = Component.types[c];
-            let notify: boolean = true;
-
-            if (com.clientCode > 0) {
-                notify = this.handleInterfaceAction(com);
-            }
-
-            if (notify) {
-                this.out.p1isaac(ClientProt.IF_BUTTON);
-                this.out.p2(c);
-            }
-        } else if (action === 602 || action === 596 || action === 22 || action === 892 || action === 415) {
-            if (action === 22) {
-                this.out.p1isaac(ClientProt.INV_BUTTON3);
-            } else if (action === 415) {
-                if ((c & 0x3) === 0) {
-                    Client.oplogic7++;
-                }
-
-                if (Client.oplogic7 >= 55) {
-                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC7);
-                    this.out.p4(0);
-                }
-
-                this.out.p1isaac(ClientProt.INV_BUTTON5);
-            } else if (action === 602) {
-                this.out.p1isaac(ClientProt.INV_BUTTON1);
-            } else if (action === 892) {
-                if ((b & 0x3) === 0) {
-                    Client.oplogic9++;
-                }
-
-                if (Client.oplogic9 >= 130) {
-                    this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC9);
-                    this.out.p1(177);
-                }
-
-                this.out.p1isaac(ClientProt.INV_BUTTON4);
-            } else if (action === 596) {
-                this.out.p1isaac(ClientProt.INV_BUTTON2);
-            }
-
-            this.out.p2(a);
-            this.out.p2(b);
-            this.out.p2(c);
-
-            this.selectedCycle = 0;
-            this.selectedInterface = c;
-            this.selectedItem = b;
-            this.selectedArea = 2;
-
-            if (Component.types[c].layer === this.viewportInterfaceId) {
-                this.selectedArea = 1;
-            }
-
-            if (Component.types[c].layer === this.chatInterfaceId) {
-                this.selectedArea = 3;
-            }
-        } else if (action === 581) {
-            if ((a & 0x3) === 0) {
-                Client.oplogic1++;
-            }
-
-            if (Client.oplogic1 >= 99) {
-                this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC1);
-                this.out.p4(0);
-            }
-
-            this.interactWithLoc(ClientProt.OPLOC4, b, c, a);
-        } else if (action === 965) {
-            if (this.localPlayer) {
-                const success: boolean = this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
-                if (!success) {
-                    this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
-                }
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                this.out.p1isaac(ClientProt.OPOBJT);
-                this.out.p2(b + this.sceneBaseTileX);
-                this.out.p2(c + this.sceneBaseTileZ);
-                this.out.p2(a);
-                this.out.p2(this.activeSpellId);
-            }
-        } else if (action === 1501) {
-            Client.oplogic6 += this.sceneBaseTileZ;
-            if (Client.oplogic6 >= 92) {
-                this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC6);
-                this.out.p4(0);
-            }
-
-            this.interactWithLoc(ClientProt.OPLOC5, b, c, a);
-        } else if (action === 364) {
-            this.interactWithLoc(ClientProt.OPLOC3, b, c, a);
-        } else if (action === 1102) {
-            // obj examine
-            const obj: ObjType = ObjType.get(a);
-            let examine: string;
-
-            if (!obj.desc) {
-                examine = "It's a " + obj.name + '.';
+        } else if (action === 660) {
+            if (this.menuVisible) {
+                this.scene?.click(b - 8, c - 11);
             } else {
-                examine = obj.desc;
+                this.scene?.click(this.mouseClickX - 8, this.mouseClickY - 11);
             }
-            this.addMessage(0, examine, '');
-        } else if (action === 960) {
-            this.out.p1isaac(ClientProt.IF_BUTTON);
-            this.out.p2(c);
-
-            const com: Component = Component.types[c];
-            if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
-                const varp: number = com.scripts[0][1];
-                if (com.scriptOperand && this.varps[varp] !== com.scriptOperand[0]) {
-                    this.varps[varp] = com.scriptOperand[0];
-                    this.updateVarp(varp);
-                    this.redrawSidebar = true;
-                }
-            }
-        } else if (action === 34) {
-            // reportabuse input
-            const option: string = this.menuOption[optionId];
+        } else if (action === 903 || action === 363) {
+            let option: string = this.menuOption[optionId];
             const tag: number = option.indexOf('@whi@');
 
             if (tag !== -1) {
-                this.closeInterfaces();
+                option = option.substring(tag + 5).trim();
+                const name: string = JString.formatName(JString.fromBase37(JString.toBase37(option)));
+                let found: boolean = false;
 
-                this.reportAbuseInput = option.substring(tag + 5).trim();
-                this.reportAbuseMuteOption = false;
+                for (let i: number = 0; i < this.playerCount; i++) {
+                    const player: ClientPlayer | null = this.players[this.playerIds[i]];
 
-                for (let i: number = 0; i < Component.types.length; i++) {
-                    if (Component.types[i] && Component.types[i].clientCode === ClientCode.CC_REPORT_INPUT) {
-                        this.reportAbuseInterfaceId = this.viewportInterfaceId = Component.types[i].layer;
+                    if (player && player.name && player.name.toLowerCase() === name.toLowerCase() && this.localPlayer) {
+                        this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], player.routeTileX[0], player.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                        if (action === 903) {
+                            this.out.p1isaac(ClientProt.OPPLAYER4);
+                        } else if (action === 363) {
+                            this.out.p1isaac(ClientProt.OPPLAYER1);
+                        }
+
+                        this.out.p2(this.playerIds[i]);
+                        found = true;
                         break;
                     }
                 }
-            }
-        } else if (action === 947) {
-            // close interfaces
-            this.closeInterfaces();
-        } else if (action === 367) {
-            const player: ClientPlayer | null = this.players[a];
-            if (player && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], player.routeFlagX[0], player.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
 
-                this.crossX = this.mouseClickX;
-                this.crossY = this.mouseClickY;
-                this.crossMode = 2;
-                this.crossCycle = 0;
-
-                this.out.p1isaac(ClientProt.OPPLAYERU);
-                this.out.p2(a);
-                this.out.p2(this.objInterface);
-                this.out.p2(this.objSelectedSlot);
-                this.out.p2(this.objSelectedInterface);
-            }
-        } else if (action === 465) {
-            this.out.p1isaac(ClientProt.IF_BUTTON);
-            this.out.p2(c);
-
-            const com: Component = Component.types[c];
-            if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
-                const varp: number = com.scripts[0][1];
-                this.varps[varp] = 1 - this.varps[varp];
-                this.updateVarp(varp);
-                this.redrawSidebar = true;
-            }
-        } else if (action === 406 || action === 436 || action === 557 || action === 556) {
-            const option: string = this.menuOption[optionId];
-            const tag: number = option.indexOf('@whi@');
-
-            if (tag !== -1) {
-                const username: bigint = JString.toBase37(option.substring(tag + 5).trim());
-                if (action === 406) {
-                    this.addFriend(username);
-                } else if (action === 436) {
-                    this.addIgnore(username);
-                } else if (action === 557) {
-                    this.removeFriend(username);
-                } else if (action === 556) {
-                    this.removeIgnore(username);
+                if (!found) {
+                    this.addMessage(0, 'Unable to find ' + name, '');
                 }
+            }
+        } else if (action === 1607) {
+            // npc examine
+            const npc: ClientNpc | null = this.npcs[a];
+            if (npc && npc.type) {
+                let examine: string;
+
+                if (!npc.type.desc) {
+                    examine = "It's a " + npc.type.name + '.';
+                } else {
+                    examine = npc.type.desc;
+                }
+
+                this.addMessage(0, examine, '');
             }
         } else if (action === 651) {
             const player: ClientPlayer | null = this.players[a];
 
             if (player && this.localPlayer) {
-                this.tryMove(this.localPlayer.routeFlagX[0], this.localPlayer.routeFlagZ[0], player.routeFlagX[0], player.routeFlagZ[0], 2, 1, 1, 0, 0, 0, false);
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], player.routeTileX[0], player.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
 
                 this.crossX = this.mouseClickX;
                 this.crossY = this.mouseClickY;
@@ -8884,6 +8974,62 @@ export class Client extends GameShell {
                 this.out.p2(a);
                 this.out.p2(this.activeSpellId);
             }
+        } else if (action === 1102) {
+            // obj examine
+            const obj: ObjType = ObjType.get(a);
+            let examine: string;
+
+            if (!obj.desc) {
+                examine = "It's a " + obj.name + '.';
+            } else {
+                examine = obj.desc;
+            }
+
+            this.addMessage(0, examine, '');
+        } else if (action === 1373 || action === 1544 || action === 151 || action === 1101) {
+            const player: ClientPlayer | null = this.players[a];
+            if (player && this.localPlayer) {
+                this.tryMove(this.localPlayer.routeTileX[0], this.localPlayer.routeTileZ[0], player.routeTileX[0], player.routeTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 1544) {
+                    this.out.p1isaac(ClientProt.OPPLAYER3);
+                } else if (action === 1373) {
+                    this.out.p1isaac(ClientProt.OPPLAYER4);
+                } else if (action === 151) {
+                    Client.oplogic8++;
+                    if (Client.oplogic8 >= 90) {
+                        this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC8);
+                        this.out.p2(31114);
+                    }
+
+                    this.out.p1isaac(ClientProt.OPPLAYER2);
+                } else if (action === 1101) {
+                    this.out.p1isaac(ClientProt.OPPLAYER1);
+                }
+
+                this.out.p2(a);
+            }
+        } else if (action === 504) {
+            this.interactWithLoc(ClientProt.OPLOC2, b, c, a);
+        } else if (action === 1773) {
+            // inv obj examine
+            const obj: ObjType = ObjType.get(a);
+            let examine: string;
+
+            if (c >= 100000) {
+                examine = c + ' x ' + obj.name;
+            } else if (!obj.desc) {
+                examine = "It's a " + obj.name + '.';
+            } else {
+                examine = obj.desc;
+            }
+
+            this.addMessage(0, examine, '');
         }
 
         this.objSelected = 0;
@@ -9632,10 +9778,10 @@ export class Client extends GameShell {
                     }
                 } else if (opcode === 11) {
                     // load_energy
-                    register += this.energy;
+                    register += this.runenergy;
                 } else if (opcode === 12) {
                     // load_weight
-                    register += this.weightCarried;
+                    register += this.runweight;
                 } else if (opcode === 13) {
                     // load_bool {varp} {bit: 0..31}
                     const varp: number = this.varps[script[pc++]];
@@ -10229,11 +10375,11 @@ export class Client extends GameShell {
             }
         } else if (clientCode === ClientCode.CC_RECOVERY1) {
             if (this.daysSinceRecoveriesChanged === 201) {
-				if (this.warnMembersInNonMembers == 1) {
-					com.text = '@yel@This is a non-members world: @whi@Since you are a member we';
-				} else {
-					com.text = '';
-				}
+                if (this.warnMembersInNonMembers == 1) {
+                    com.text = '@yel@This is a non-members world: @whi@Since you are a member we';
+                } else {
+                    com.text = '';
+                }
             } else if (this.daysSinceRecoveriesChanged === 200) {
                 com.text = 'You have not yet set any password recovery questions.';
             } else {
@@ -10250,11 +10396,11 @@ export class Client extends GameShell {
             }
         } else if (clientCode === ClientCode.CC_RECOVERY2) {
             if (this.daysSinceRecoveriesChanged === 201) {
-				if (this.warnMembersInNonMembers == 1) {
-					com.text = '@whi@recommend you use a members world instead. You may use';
-				} else {
-					com.text = '';
-				}
+                if (this.warnMembersInNonMembers == 1) {
+                    com.text = '@whi@recommend you use a members world instead. You may use';
+                } else {
+                    com.text = '';
+                }
             } else if (this.daysSinceRecoveriesChanged === 200) {
                 com.text = 'We strongly recommend you do so now to secure your account.';
             } else {
@@ -10262,11 +10408,11 @@ export class Client extends GameShell {
             }
         } else if (clientCode === ClientCode.CC_RECOVERY3) {
             if (this.daysSinceRecoveriesChanged === 201) {
-				if (this.warnMembersInNonMembers == 1) {
-					com.text = '@whi@this world but member benefits are unavailable whilst here.';
-				} else {
-					com.text = '';
-				}
+                if (this.warnMembersInNonMembers == 1) {
+                    com.text = '@whi@this world but member benefits are unavailable whilst here.';
+                } else {
+                    com.text = '';
+                }
             } else if (this.daysSinceRecoveriesChanged === 200) {
                 com.text = "Do this from the 'account management' area on our front webpage";
             } else {
