@@ -136,15 +136,6 @@ if (%zanaris_progress < ^zanaris_complete) {
 }
 return(true);
 
-[label,elemental_shield_equip](int $slot)
-if (testbit(%elemental_workshop_bits, ^elemental_workshop_complete) = ^false) {
-    mes("You need to complete the Elemental Workshop quest"); // osrs, guessed the linebreak, confirm for 2004
-    mes("before you can equip the shield.");
-    return;
-}
-~equip($slot);
-
-
 [label,levelrequire_iban_staff](int $slot)
 // https://youtu.be/FKFdDdH5rlE?si=rTj214wpX9RKHiMy&t=188
 if (stat_base(magic) < 50) {

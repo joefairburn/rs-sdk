@@ -12,7 +12,8 @@ mes("You flip the book open to the introduction and start reading.");
 [opheldu,elemental_workshop_shield_book]
 if(testbit(%elemental_workshop_bits, ^elemental_workshop_read_book) = ^true & inv_total(inv, elemental_workshop_key) = 0 & last_useitem = knife) { 
     mes("You make a small cut in the spine of the book.");
-    mes("Inside you find a small, old, battered key.");
+    // https://web.archive.org/web/20041214093302im_/http://img.photobucket.com/albums/v289/MrFlibble/ScreenHunter_038.bmp
+    mes("Inside you find a small old battered key.");
     // no slashed book, don't think it deletes cause you need book to make shield
     inv_add(inv, elemental_workshop_key, 1);
     if(testbit(%elemental_workshop_bits, ^elemental_workshop_slashed_book) = ^false) {

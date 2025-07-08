@@ -44,9 +44,6 @@ if (p_finduid(uid) = true) {
             }
         }
     }
-
-    ~update_all($previous);
-    
     if($obj = elemental_shield) {
         spotanim_pl(elemental_shield_equip, 92, 0);
         sound_synth(shield_appear, 0, 0);
@@ -55,6 +52,8 @@ if (p_finduid(uid) = true) {
         // https://youtu.be/n_ip_vEDbCA?si=0uESoOC98Fvl7HqS&t=2333
         mes("You equip the staff of Iban.");
     }
+
+    ~update_all($previous);
 
 }
 

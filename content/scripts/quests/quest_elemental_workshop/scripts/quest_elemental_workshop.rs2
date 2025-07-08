@@ -3,12 +3,13 @@ if(inv_total(inv, elemental_workshop_shield_book) > 0) {
     mes("You search the bookcase but find nothing of interest.");
     return;
 }
+// https://web.archive.org/web/20041214093302im_/http://img.photobucket.com/albums/v289/MrFlibble/ScreenHunter_037.bmp
+mes("You find a book titled 'The elemental shield'.");
 if(inv_freespace(inv) = 0) {
-    ~objbox(elemental_workshop_shield_book, "You find a book titled 'The Elemental Shield'.|However, you don't have enough room to take it.", 250, 0, 0);
+    mes("However, you don't have enough room to take it.");
     return;
 }
 inv_add(inv, elemental_workshop_shield_book, 1);
-~objbox(elemental_workshop_shield_book, "You find a book titled 'The Elemental Shield'.", 250, 0, 0);
 
 [oploc1,elemental_workshop_oddwall_l] @push_elemental_workshop_wall(^left);
 [oploc1,elemental_workshop_oddwall_r] @push_elemental_workshop_wall(^right);
@@ -82,9 +83,13 @@ if(testbit(%elemental_workshop_bits, ^elemental_workshop_water_flowing) = ^true)
 }
 mes("You turn the handle.");
 anim(human_pickuptable, 0); // guess
-sound_synth(squeaky_valve, 0, 0);
 if(testbit(%elemental_workshop_bits, ^elemental_workshop_water_controls_left) = ^false) { // cant toggle this side if left side is on
     %elemental_workshop_bits = togglebit(%elemental_workshop_bits, ^elemental_workshop_water_controls_right);
+}
+if(testbit(%elemental_workshop_bits, ^elemental_workshop_water_flowing) = ^true) {
+    sound_synth(squeaky_valve_gush, 0, 0);
+} else {
+    sound_synth(squeaky_valve, 0, 0);
 }
 p_delay(0);
 
@@ -95,8 +100,12 @@ if(testbit(%elemental_workshop_bits, ^elemental_workshop_water_flowing) = ^true)
 }
 mes("You turn the handle.");
 anim(human_pickuptable, 0); // guess
-sound_synth(squeaky_valve, 0, 0);
 %elemental_workshop_bits = togglebit(%elemental_workshop_bits, ^elemental_workshop_water_controls_left);
+if(testbit(%elemental_workshop_bits, ^elemental_workshop_water_flowing) = ^true) {
+    sound_synth(squeaky_valve_gush, 0, 0);
+} else {
+    sound_synth(squeaky_valve, 0, 0);
+}
 p_delay(0);
 
 [oploc1,elemental_workshop_water_lever]
