@@ -7298,7 +7298,7 @@ export class Client extends GameShell {
                 const heightNW = this.levelHeightmap[this.currentLevel][x][z + 1];
 
                 if (layer == 0) {
-                    const wall = this.scene.getWall(x, z, this.currentLevel);
+                    const wall = this.scene.getWall(this.currentLevel, x, z);
                     if (wall) {
                         const locId = wall.typecode >> 14 & 0x7FFF;
                         if (shape == 2) {
@@ -7309,12 +7309,12 @@ export class Client extends GameShell {
                         }
                     }
                 } else if (layer == 1) {
-                    const decor = this.scene.getDecor(x, this.currentLevel, z);
+                    const decor = this.scene.getDecor(this.currentLevel, z, x);
                     if (decor) {
                         decor.model = new ClientLocAnim(this.loopCycle, decor.typecode >> 14 & 0x7FFF, 4, 0, heightSW, heightNE, heightNE, heightNW, seqId, false);
                     }
                 } else if (layer == 2) {
-                    const sprite = this.scene.getLoc(this.currentLevel, z, x);
+                    const sprite = this.scene.getLoc(this.currentLevel, x, z);
                     if (shape == 11) {
                         shape = 10;
                     }
@@ -7323,7 +7323,7 @@ export class Client extends GameShell {
                         sprite.model = new ClientLocAnim(this.loopCycle, sprite.typecode >> 14 & 0x7FFF, shape, angle, heightSW, heightSE, heightNE, heightNW, seqId, false);
                     }
                 } else if (layer == 3) {
-                    const decor = this.scene.getGroundDecor(x, z, this.currentLevel);
+                    const decor = this.scene.getGroundDecor(this.currentLevel, x, z);
                     if (decor) {
                         decor.model = new ClientLocAnim(this.loopCycle, decor.typecode >> 14 & 0x7FFF, 22, angle, heightSW, heightSE, heightNE, heightNW, seqId, false);
                     }
