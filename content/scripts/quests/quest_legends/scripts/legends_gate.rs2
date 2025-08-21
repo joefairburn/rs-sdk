@@ -1,7 +1,7 @@
-[oploc1,legends_gate_west] @open_legends_gate(^left);
-[oploc1,legends_gate_east] @open_legends_gate(^right);
-[oploc2,legends_gate_west] mes("These gates seem to be made of pure mithril!");
-[oploc2,legends_gate_east] mes("These gates seem to be made of pure mithril!");
+[oploc1,legendsguildgatel] @open_legends_gate(^left);
+[oploc1,legendsguildgater] @open_legends_gate(^right);
+[oploc2,legendsguildgatel] mes("These gates seem to be made of pure mithril!");
+[oploc2,legendsguildgater] mes("These gates seem to be made of pure mithril!");
 
 
 [label,open_legends_gate](int $side)

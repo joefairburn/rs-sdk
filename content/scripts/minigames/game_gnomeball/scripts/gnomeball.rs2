@@ -15,7 +15,7 @@ if (%gnomeball_progress = ^gnomeball_game_started) {
 }
 ~initalltabs;
 
-[oploc1,gnomeball_gate]
+[oploc1,gate_gnomeball_game]
 def_obj $rhand = inv_getobj(worn, ^wearpos_rhand);
 def_obj $lhand = inv_getobj(worn, ^wearpos_lhand);
 def_boolean $exiting = ~check_axis(coord, loc_coord, loc_angle);

@@ -353,7 +353,7 @@ model=model_loc_3429
 name=Machinery
 desc=Water powered machinery.
 
-[loc_3430]
+[duel_arena_bigwallb]
 ambient=15
 contrast=15
 active=no
