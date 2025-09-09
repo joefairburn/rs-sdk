@@ -627,10 +627,33 @@ frame7=anim_7847
 frame8=anim_7849
 
 [seq_1071]
+loops=11
+frame1=anim_7987
+frame2=anim_7989
+frame3=anim_7991
+frame4=anim_7993
+frame5=anim_7995
+frame6=anim_7996
+frame7=anim_7986
+frame8=anim_7988
+frame9=anim_7990
+frame10=anim_7992
+frame11=anim_7994
+delay11=50
 
 [seq_1072]
+loops=4
+frame1=anim_7933
+frame2=anim_7934
+frame3=anim_7935
+frame4=anim_7936
 
 [seq_1073]
+loops=4
+frame1=anim_7921
+frame2=anim_7919
+frame3=anim_7920
+frame4=anim_7919
 
 [snapshot]
 priority=6
@@ -665,3 +688,15 @@ frame5=anim_7840
 frame6=anim_7841
 
 [seq_1076]
+maxloops=8
+frame1=anim_7929
+frame2=anim_7931
+frame3=anim_7922
+frame4=anim_7923
+frame5=anim_7924
+frame6=anim_7925
+frame7=anim_7927
+frame8=anim_7930
+frame9=anim_7932
+frame10=anim_7926
+frame11=anim_7928

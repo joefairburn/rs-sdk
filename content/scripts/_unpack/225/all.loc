@@ -11566,6 +11566,7 @@ name=Ladder
 desc=This leads downwards.
 model=model_loc_10
 op1=Climb-down
+forceapproach=south
 
 [zqdoorhideplant]
 model=model_loc_1184

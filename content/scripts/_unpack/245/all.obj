@@ -1,0 +1,853 @@
+[obj_2894]
+name=Boots
+desc=Very stylish!
+recol1s=7298
+recol1d=10570
+model=model_2837_obj
+manwear=model_185_obj_wear,0
+womanwear=model_361_obj_wear,0
+iop2=Wear
+cost=500
+2dxof=1
+2dyof=-6
+2dzoom=770
+2dyan=160
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2896]
+name=Robe top
+desc=Some fine werewolf clothing.
+recol1s=14724
+recol1d=10570
+model=model_2786_obj
+manwear=model_170_idk,0
+womanwear=model_348_idk,0
+manwear2=model_292_idk
+womanwear2=model_456_idk
+iop2=Wear
+cost=500
+2dyof=7
+2dzoom=1370
+2dxan=536
+members=yes
+tradeable=yes
+
+[obj_2898]
+name=Robe bottoms
+desc=Made by werewolves for werewolves.
+recol1s=2340
+recol1d=10570
+model=model_2521_obj
+manwear=model_265_obj_wear,0
+womanwear=model_428_idk,0
+iop2=Wear
+cost=500
+2dyof=1
+2dzoom=1940
+2dxan=572
+members=yes
+tradeable=yes
+
+[obj_2900]
+name=Hat
+desc=A silly pointed hat.
+recol1s=239
+recol1d=10570
+model=model_2483_obj
+manwear=model_202_obj_wear,0
+womanwear=model_377_obj_wear,0
+manhead=model_44_obj_wear
+womanhead=model_102_obj_wear
+cost=500
+iop2=Wear
+2dxof=5
+2dyof=-10
+2dzoom=800
+2dyan=156
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2902]
+name=Gloves
+desc=These will keep my hands warm!
+recol1s=9473
+recol1d=10570
+recol2s=10468
+recol2d=10570
+cost=500
+model=model_2649_obj
+iop2=Wear
+manwear=model_179_obj_wear,0
+womanwear=model_356_obj_wear,0
+2dxof=8
+2dyof=-8
+2dzoom=930
+2dyan=828
+2dxan=420
+members=yes
+tradeable=yes
+
+[obj_2904]
+name=Boots
+desc=Very stylish!
+recol1s=7298
+recol1d=10240
+model=model_2837_obj
+manwear=model_185_obj_wear,0
+womanwear=model_361_obj_wear,0
+iop2=Wear
+cost=500
+2dxof=1
+2dyof=-6
+2dzoom=770
+2dyan=160
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2906]
+name=Robe top
+desc=Some fine werewolf clothing.
+recol1s=14724
+recol1d=10240
+model=model_2786_obj
+manwear=model_170_idk,0
+womanwear=model_348_idk,0
+manwear2=model_292_idk
+womanwear2=model_456_idk
+iop2=Wear
+cost=500
+2dyof=7
+2dzoom=1370
+2dxan=536
+members=yes
+tradeable=yes
+
+[obj_2908]
+name=Robe bottoms
+desc=Made by werewolves for werewolves.
+recol1s=2340
+recol1d=10240
+model=model_2521_obj
+manwear=model_265_obj_wear,0
+womanwear=model_428_idk,0
+iop2=Wear
+cost=500
+2dyof=1
+2dzoom=1940
+2dxan=572
+members=yes
+tradeable=yes
+
+[obj_2910]
+name=Hat
+desc=A silly pointed hat.
+recol1s=239
+recol1d=10240
+model=model_2483_obj
+manwear=model_202_obj_wear,0
+womanwear=model_377_obj_wear,0
+manhead=model_44_obj_wear
+womanhead=model_102_obj_wear
+cost=500
+iop2=Wear
+2dxof=5
+2dyof=-10
+2dzoom=800
+2dyan=156
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2912]
+name=Gloves
+desc=These will keep my hands warm!
+recol1s=9473
+recol1d=10240
+recol2s=10468
+recol2d=10240
+cost=500
+model=model_2649_obj
+iop2=Wear
+manwear=model_179_obj_wear,0
+womanwear=model_356_obj_wear,0
+2dxof=8
+2dyof=-8
+2dzoom=930
+2dyan=828
+2dxan=420
+members=yes
+tradeable=yes
+
+[obj_2914]
+name=Boots
+desc=Very stylish!
+recol1s=7298
+recol1d=30337
+model=model_2837_obj
+manwear=model_185_obj_wear,0
+womanwear=model_361_obj_wear,0
+iop2=Wear
+cost=500
+2dxof=1
+2dyof=-6
+2dzoom=770
+2dyan=160
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2916]
+name=Robe top
+desc=Some fine werewolf clothing.
+recol1s=14724
+recol1d=30337
+model=model_2786_obj
+manwear=model_170_idk,0
+womanwear=model_348_idk,0
+manwear2=model_292_idk
+womanwear2=model_456_idk
+iop2=Wear
+cost=500
+2dyof=7
+2dzoom=1370
+2dxan=536
+members=yes
+tradeable=yes
+
+[obj_2918]
+name=Robe bottoms
+desc=Made by werewolves for werewolves.
+recol1s=2340
+recol1d=30337
+model=model_2521_obj
+manwear=model_265_obj_wear,0
+womanwear=model_428_idk,0
+iop2=Wear
+cost=500
+2dyof=1
+2dzoom=1940
+2dxan=572
+members=yes
+tradeable=yes
+
+[obj_2920]
+name=Hat
+desc=A silly pointed hat.
+recol1s=239
+recol1d=30337
+model=model_2483_obj
+manwear=model_202_obj_wear,0
+womanwear=model_377_obj_wear,0
+manhead=model_44_obj_wear
+womanhead=model_102_obj_wear
+cost=500
+iop2=Wear
+2dxof=5
+2dyof=-10
+2dzoom=800
+2dyan=156
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2922]
+name=Gloves
+desc=These will keep my hands warm!
+recol1s=9473
+recol1d=30337
+recol2s=10468
+recol2d=30337
+cost=500
+model=model_2649_obj
+iop2=Wear
+manwear=model_179_obj_wear,0
+womanwear=model_356_obj_wear,0
+2dxof=8
+2dyof=-8
+2dzoom=930
+2dyan=828
+2dxan=420
+members=yes
+tradeable=yes
+
+[obj_2924]
+name=Boots
+desc=Very stylish!
+recol1s=7298
+recol1d=231
+model=model_2837_obj
+manwear=model_185_obj_wear,0
+womanwear=model_361_obj_wear,0
+iop2=Wear
+cost=500
+2dxof=1
+2dyof=-6
+2dzoom=770
+2dyan=160
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2926]
+name=Robe top
+desc=Some fine werewolf clothing.
+recol1s=14724
+recol1d=231
+model=model_2786_obj
+manwear=model_170_idk,0
+womanwear=model_348_idk,0
+manwear2=model_292_idk
+womanwear2=model_456_idk
+iop2=Wear
+cost=500
+2dyof=7
+2dzoom=1370
+2dxan=536
+members=yes
+tradeable=yes
+
+[obj_2928]
+name=Robe bottoms
+desc=Made by werewolves for werewolves.
+recol1s=2340
+recol1d=231
+model=model_2521_obj
+manwear=model_265_obj_wear,0
+womanwear=model_428_idk,0
+iop2=Wear
+cost=500
+2dyof=1
+2dzoom=1940
+2dxan=572
+members=yes
+tradeable=yes
+
+[obj_2930]
+name=Hat
+desc=A silly pointed hat.
+recol1s=239
+recol1d=231
+model=model_2483_obj
+manwear=model_202_obj_wear,0
+womanwear=model_377_obj_wear,0
+manhead=model_44_obj_wear
+womanhead=model_102_obj_wear
+cost=500
+iop2=Wear
+2dxof=5
+2dyof=-10
+2dzoom=800
+2dyan=156
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2932]
+name=Gloves
+desc=These will keep my hands warm!
+recol1s=9473
+recol1d=231
+recol2s=10468
+recol2d=231
+cost=500
+model=model_2649_obj
+iop2=Wear
+manwear=model_179_obj_wear,0
+womanwear=model_356_obj_wear,0
+2dxof=8
+2dyof=-8
+2dzoom=930
+2dyan=828
+2dxan=420
+members=yes
+tradeable=yes
+
+[obj_2934]
+name=Boots
+desc=Very stylish!
+recol1s=7298
+recol1d=13325
+model=model_2837_obj
+manwear=model_185_obj_wear,0
+womanwear=model_361_obj_wear,0
+iop2=Wear
+cost=500
+2dxof=1
+2dyof=-6
+2dzoom=770
+2dyan=160
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2936]
+name=Robe top
+desc=Some fine werewolf clothing.
+recol1s=14724
+recol1d=13325
+model=model_2786_obj
+manwear=model_170_idk,0
+womanwear=model_348_idk,0
+manwear2=model_292_idk
+womanwear2=model_456_idk
+iop2=Wear
+cost=500
+2dyof=7
+2dzoom=1370
+2dxan=536
+members=yes
+tradeable=yes
+
+[obj_2938]
+name=Robe bottoms
+desc=Made by werewolves for werewolves.
+recol1s=2340
+recol1d=13325
+model=model_2521_obj
+manwear=model_265_obj_wear,0
+womanwear=model_428_idk,0
+iop2=Wear
+cost=500
+2dyof=1
+2dzoom=1940
+2dxan=572
+members=yes
+tradeable=yes
+
+[obj_2940]
+name=Hat
+desc=A silly pointed hat.
+recol1s=239
+recol1d=13325
+model=model_2483_obj
+manwear=model_202_obj_wear,0
+womanwear=model_377_obj_wear,0
+manhead=model_44_obj_wear
+womanhead=model_102_obj_wear
+cost=500
+iop2=Wear
+2dxof=5
+2dyof=-10
+2dzoom=800
+2dyan=156
+2dxan=152
+members=yes
+tradeable=yes
+
+[obj_2942]
+name=Gloves
+desc=These will keep my hands warm!
+recol1s=9473
+recol1d=13325
+recol2s=10468
+recol2d=13325
+cost=500
+model=model_2649_obj
+iop2=Wear
+manwear=model_179_obj_wear,0
+womanwear=model_356_obj_wear,0
+2dxof=8
+2dyof=-8
+2dzoom=930
+2dyan=828
+2dxan=420
+members=yes
+tradeable=yes
+
+[obj_2944]
+name=Golden key
+desc=A replica key made of solid gold.
+recol1s=31393
+recol1d=26209
+cost=300
+members=yes
+model=model_2372_obj
+2dxof=-3
+2dyof=5
+2dzoom=700
+2dyan=20
+2dxan=328
+
+[obj_2945]
+name=Iron key
+desc=A key made of solid Iron.
+recol1s=31393
+recol1d=8456
+cost=2
+members=yes
+model=model_2372_obj
+2dxof=-3
+2dyof=5
+2dzoom=700
+2dyan=20
+2dxan=328
+
+[obj_2946]
+name=Golden tinderbox
+desc=A replica tinderbox made of solid gold.
+recol1s=32767
+recol1d=26209
+cost=300
+model=model_2348_obj
+manwear=model_488_obj_wear,0
+womanwear=model_488_obj_wear,0
+members=yes
+2dxof=1
+2dyof=-10
+2dzoom=660
+2dyan=1968
+2dxan=196
+
+[obj_2947]
+name=Golden candle
+desc=A replica candle made of solid gold.
+recol1s=32767
+recol1d=26209
+cost=300
+model=model_2467_obj
+members=yes
+2dyof=-2
+2dzoom=570
+2dyan=1864
+2dxan=168
+
+[obj_2948]
+name=Golden pot
+desc=A replica pot made of solid gold.
+recol1s=16643
+recol1d=26209
+recol2s=14529
+recol2d=26209
+recol3s=14529
+recol3d=26209
+recol4s=12448
+recol4d=26209
+recol5s=10336
+recol5d=26209
+cost=300
+model=model_2345_obj
+members=yes
+2dxof=-1
+2dyof=2
+2dzoom=990
+2dyan=8
+2dxan=112
+
+[obj_2949]
+name=Golden hammer
+desc=A replica hammer made of solid gold.
+recol1s=839
+recol1d=26209
+recol2s=11627
+recol2d=26209
+cost=300
+model=model_2376_obj
+manwear=model_491_obj_wear,0
+womanwear=model_491_obj_wear,6
+members=yes
+2dxof=-3
+2dyof=-1
+2dzoom=900
+2dyan=2012
+2dxan=356
+
+[obj_2950]
+name=Golden feather
+desc=A replica feather made of solid gold.
+recol1s=32767
+recol1d=26209
+cost=300
+model=model_2476_obj
+members=yes
+2dxof=4
+2dyof=10
+2dzoom=700
+2dyan=692
+2dxan=428
+
+[obj_2951]
+name=Golden needle
+desc=A replica needle made of solid gold.
+recol1s=19026
+recol1d=26209
+cost=300
+model=model_2770_obj
+members=yes
+2dxof=2
+2dyof=4
+2dzoom=850
+2dyan=868
+2dxan=368
+
+[obj_2952]
+name=Wolfbane
+desc=A silver dagger that can prevent werewolves changing form.
+members=yes
+model=obj_2952
+cost=350
+cost=300
+members=yes
+2dyof=-4
+2dzoom=760
+2dyan=1276
+2dxan=472
+iop2=Wield
+manwear=obj_2952_manwear,0
+womanwear=obj_2952_manwear,6
+
+[obj_2953]
+name=Bucket of water
+members=yes
+desc=It's a bucket of murky water.
+cost=6
+model=model_2504_obj
+2dyof=-18
+2dzoom=1020
+2dyan=1688
+2dxan=204
+
+[obj_2954]
+name=Bucket of water
+desc=It's a bucket of blessed water.
+members=yes
+cost=6
+model=model_2504_obj
+2dyof=-18
+2dzoom=1020
+2dyan=1688
+2dxan=204
+
+[obj_2955]
+name=Moonlight mead
+desc=A foul smelling brew.
+recol1s=25025
+recol1d=11330
+recol2s=31367
+recol2d=14468
+cost=5
+iop1=Drink
+members=yes
+model=model_2491_obj
+2dxof=-3
+2dyof=2
+2dzoom=660
+2dyan=1904
+2dxan=140
+tradeable=yes
+
+[obj_2957]
+name=Druid pouch
+desc=An empty druid pouch.
+recol1s=9376
+recol1d=480
+recol2s=21000
+recol2d=992
+cost=5
+model=model_2678_obj
+2dxof=-2
+2dyof=-4
+2dzoom=550
+2dyan=1844
+2dxan=116
+members=yes
+iop1=Fill
+
+[obj_2958]
+name=Druid pouch
+desc=A druid pouch.
+recol1s=9376
+recol1d=480
+recol2s=21000
+recol2d=992
+cost=5
+model=model_2678_obj
+2dxof=-2
+2dyof=-4
+2dzoom=550
+2dyan=1844
+2dxan=116
+members=yes
+stackable=yes
+iop1=Fill
+
+[obj_2959]
+name=Rotten food
+desc=Erhhh! It stinks.
+cost=1
+model=obj_2959
+2dxof=1
+2dyof=-19
+2dzoom=740
+2dxan=236
+members=yes
+tradeable=yes
+
+[obj_2961]
+name=Silver sickle
+desc=It's a silver sickle.
+cost=175
+model=obj_2961
+2dxof=-4
+2dyof=2
+2dzoom=980
+2dyan=948
+2dxan=604
+iop2=Wield
+manwear=obj_2961_manwear,0
+womanwear=obj_2961_manwear,6
+members=yes
+tradeable=yes
+
+[obj_2963]
+name=Silver sickle(b)
+desc=It's a blessed silver sickle.
+recol1s=8456
+recol1d=32767
+recol2s=6342
+recol2d=11630
+cost=250
+model=obj_2961
+2dxof=-4
+2dyof=2
+2dzoom=980
+2dyan=948
+2dxan=604
+iop2=Wield
+iop3=Cast Bloom
+manwear=obj_2961_manwear,0
+womanwear=obj_2961_manwear,6
+members=yes
+
+[obj_2964]
+name=Washing bowl
+desc=Used for washing your face, amongst other things.
+recol1s=16705
+recol1d=320
+recol2s=19841
+recol2d=480
+cost=4
+model=model_2807_obj
+2dzoom=910
+2dyan=1856
+2dxan=204
+members=yes
+tradeable=yes
+
+[obj_2966]
+name=Mirror
+desc=A small mirror, probably used for grooming.
+model=obj_2966
+2dxof=-3
+2dzoom=1090
+2dxan=344
+members=yes
+
+[obj_2967]
+name=Journal
+desc=This must be Filliman Tarlocks personal journal.
+recol1s=13472
+recol1d=640
+recol2s=29594
+recol2d=14273
+members=yes
+model=model_2633_obj
+2dxof=1
+2dyof=22
+2dzoom=860
+2dyan=120
+2dxan=276
+iop1=Read
+
+[obj_2968]
+name=Druidic spell
+desc=A druidic spell given to you freely by the spirit of Filliman Tarlock.
+recol1s=0
+recol1d=160
+recol2s=1024
+recol2d=160
+recol3s=2048
+recol3d=14273
+recol4s=3072
+recol4d=160
+recol5s=4096
+recol5d=14273
+recol6s=29494
+recol6d=14273
+members=yes
+model=model_2838_obj
+manwear=model_532_obj_wear,0
+womanwear=model_532_obj_wear,6
+2dzoom=940
+2dyan=112
+2dxan=248
+iop1=Cast
+
+[obj_2969]
+name=A used spell
+desc=A used druidic spell given to you freely by the spirit of Filliman Tarlock.
+recol1s=0
+recol1d=14273
+recol2s=1024
+recol2d=14273
+recol3s=2048
+recol3d=14273
+recol4s=3072
+recol4d=14273
+recol5s=4096
+recol5d=14273
+recol6s=29494
+recol6d=14273
+members=yes
+model=model_2838_obj
+manwear=model_532_obj_wear,0
+womanwear=model_532_obj_wear,6
+2dzoom=940
+2dyan=112
+2dxan=248
+
+[obj_2970]
+name=Mort myre fungi
+desc=A mushroom from the swamps of Mort Myre.
+model=obj_2970
+2dxof=3
+2dzoom=790
+2dyan=60
+2dxan=232
+members=yes
+tradeable=yes
+
+[obj_2972]
+name=Mort myre stem
+desc=A cutting from a budding branch.
+model=obj_2972
+2dyof=-9
+2dzoom=1160
+2dyan=680
+2dxan=504
+members=yes
+tradeable=yes
+
+[obj_2974]
+name=Mort myre pear
+desc=A pear picked from a dying bush in Mort Myre.
+model=obj_2974
+2dzoom=830
+2dyan=1740
+2dxan=52
+members=yes
+tradeable=yes
+
+[obj_2976]
+name=Sickle mould
+desc=Used to make sickles
+cost=10
+model=obj_2976
+2dzoom=1330
+2dyan=1100
+2dxan=284
+members=yes
+tradeable=yes
