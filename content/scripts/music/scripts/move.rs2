@@ -482,11 +482,25 @@ settimer(mercenary_check, 25);
 [mapzone,0_52_61] @music_playbyregion(coord);
 [mapzone,0_52_152] @music_playbyregion(coord);
 [mapzone,0_52_153] @music_playbyregion(coord);
-[mapzone,0_53_52] @music_playbyregion(coord);
-[mapzone,0_53_53] @music_playbyregion(coord);
+
+[mapzone,0_53_52]
+~start_swampdecay_timer;
+@music_playbyregion(coord);
+
+[mapzone,0_53_53]
+~start_swampdecay_timer;
+@music_playbyregion(coord);
+
 [mapzone,0_53_54] @music_playbyregion(coord);
 [mapzone,0_53_152] @music_playbyregion(coord);
 [mapzone,0_53_154] @music_playbyregion(coord);
-[mapzone,0_54_52] @music_playbyregion(coord);
-[mapzone,0_54_53] @music_playbyregion(coord);
+
+[mapzone,0_54_52]
+~start_swampdecay_timer;
+@music_playbyregion(coord);
+
+[mapzone,0_54_53]
+~start_swampdecay_timer;
+@music_playbyregion(coord);
+
 [mapzone,0_54_54] @music_playbyregion(coord);

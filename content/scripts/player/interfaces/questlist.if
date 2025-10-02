@@ -734,7 +734,7 @@ shadowed=yes
 text=Priest in Peril
 colour=0xFF0000
 
-[com_80]
+[druidspirit]
 layer=com_0
 type=text
 x=10

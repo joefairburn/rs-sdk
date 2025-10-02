@@ -4,7 +4,7 @@ if (%priestperil = ^priestperil_unlocked_drezel) {
     ~chatnpc("<p,happy>Well excellent work adventurer! Unfortunately, as you know, I cannot risk waking that vampire in the coffin.");
     if (inv_total(inv, bucket_blessedwater) >= 1) {
         ~chatplayer("<p,quiz>I have some blessed water from the Salve in this bucket. Do you think it would help against that vampire?");
-        ~chatnpc("<p,neutral>Yes! Great idea! If his coffin is doused in the blessed water he will be unable to leave it! Use it on his coffin, quickly!");
+        ~chatnpc("<p,happy>Yes! Great idea! If his coffin is doused in the blessed water he will be unable to leave it! Use it on his coffin, quickly!");
         return;
     }
     if (inv_total(inv, bucket_murkywater) >= 1) {
@@ -37,8 +37,13 @@ if (%priestperil >= ^priestperil_unlocked_drezel) {
 }
 
 [oplocu,pip_prisondoor]
+// TODO: confirm theres no special mes (osrs deletes all iron keys in ur inv)
 if(last_useitem = pipkey_iron) {
     if (npc_find(coord, priestperiltrappedmonk, 15, 0) = true) {
+        if(%priestperil >= ^priestperil_unlocked_drezel) {
+            ~chatnpc("<p,shock>Aargh! What are you trying to lock me back in here for?");
+            return;
+        }
         %priestperil = ^priestperil_unlocked_drezel;
         inv_del(inv, pipkey_iron, 1);
         ~chatnpc("<p,happy >Oh! Thank you! You have found the key!");

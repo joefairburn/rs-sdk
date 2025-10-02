@@ -5,7 +5,6 @@
 ~chatnpc("<p,happy>Many thanks adventurer! I would have sent one of my squires but they wanted payment for it!");
 
 [queue,priestperil_complete]
-%priestperil = ^priestperil_complete;
 inv_add(inv, dagger_wolfbane, 1);
 stat_advance(prayer, 14060);
 session_log(^log_adventure, "Quest complete: Priest in Peril");

@@ -188,6 +188,10 @@ if (npc_type = wormbrain & (~quest_dragon_getting_map_parts = false | inv_total(
     return (false);
 }
 if (npc_type = priestperilguarddog) {
+    if(~priestperilguarddog_attack = false) {
+        return (false);
+    }
+    mes("Your spells do not seem to affect it.");
     return(~priestperilguarddog_attack);
 }
 if (npc_type = grip) {

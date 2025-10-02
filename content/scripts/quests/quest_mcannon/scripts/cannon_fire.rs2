@@ -98,6 +98,9 @@ if(npc_type = ikov_firewarrior) { // separate from attackable check
     ~chatnpc("<p,angry>Your puny weapons do nothing against me human! Come back when you can give me a real fight!");
     return;
 }
+if(npc_type = priestperilguarddog) {
+    return;
+}
 if (~npc_is_attackable = false) {
     return;
 }

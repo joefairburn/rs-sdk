@@ -56,7 +56,15 @@ def_namedobj $grave_item = enum(int, namedobj, monument_graves_models, $content_
 def_int $swap_bit = sub($grave_no, 1);
 def_int $is_swapped = testbit(%priestperil_mausoleum, $swap_bit);
 
-if($is_swapped = 0) {
+if($is_swapped = ^false | $grave_item = pipkey_iron) {
+    if(last_useitem = pipkey_gold & $grave_item = pipkey_iron & ~obj_gettotal(pipkey_iron) > 0) {
+        mes("You have already swapped the golden key for the iron key.");
+        return;
+    }
+    if(last_useitem = pipkey_iron & $grave_item = pipkey_iron) {
+        ~chatplayer("<p,quiz>I think this key is more useful to me right now than the Golden key is.");
+        return;
+    }
     def_obj $required_item = enum(namedobj, obj, monument_graves_objs, $grave_item);
     if(last_useitem = $required_item) {
         def_string $item_name = oc_name($grave_item);
@@ -69,27 +77,52 @@ if($is_swapped = 0) {
     }
 } else {
     if(last_useitem = pipneedle_gold & $grave_item = pipneedle_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold needle.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold needle.");
         return;
     }
     if(last_useitem = pipfeather_gold & $grave_item = pipfeather_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold feather.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold feather.");
         return;
     }
     if(last_useitem = pippot_gold & $grave_item = pippot_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold pot.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold pot.");
         return;
     }
     if(last_useitem = piptinderbox_gold & $grave_item = piptinderbox_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold tinderbox.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold tinderbox.");
         return;
     }
     if(last_useitem = piphammer_gold & $grave_item = piphammer_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold hammer.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold hammer.");
         return;
     }
     if(last_useitem = pipcandle_gold & $grave_item = pipcandle_gold) {
-        mes("You know... I think I'd rather keep the valuable solid gold candle.");
+        ~chatplayer("<p,confused>You know... I think I'd rather keep the valuable solid gold candle.");
+        return;
+    }
+
+    if(last_useitem = needle & $grave_item = pipneedle_gold) {
+        ~mesbox("You have already taken the Golden needle.");
+        return;
+    }
+    if(last_useitem = feather & $grave_item = pipfeather_gold) {
+        ~mesbox("You have already taken the Golden feather.");
+        return;
+    }
+    if(last_useitem = pot_empty & $grave_item = pippot_gold) {
+        ~mesbox("You have already taken the Golden pot.");
+        return;
+    }
+    if(last_useitem = tinderbox & $grave_item = piptinderbox_gold) {
+        ~mesbox("You have already taken the Golden tinderbox.");
+        return;
+    }
+    if(last_useitem = hammer & $grave_item = piphammer_gold) {
+        ~mesbox("You have already taken the Golden hammer.");
+        return;
+    }
+    if(last_useitem = unlit_candle & $grave_item = pipcandle_gold) {
+        ~mesbox("You have already taken the Golden candle.");
         return;
     }
 }

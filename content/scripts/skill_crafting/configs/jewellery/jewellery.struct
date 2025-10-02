@@ -138,6 +138,12 @@ param=gem,ruby
 param=levelrequired,40
 param=productexp,750
 
+[silver_sickle]
+param=product,silver_sickle
+param=levelrequired,18
+param=productexp,500
+param=name,Silver sickle
+
 
 
 

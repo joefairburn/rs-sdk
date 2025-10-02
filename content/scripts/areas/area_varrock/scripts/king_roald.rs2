@@ -53,12 +53,19 @@ if(%priestperil = ^priestperil_not_started) {
     ~chatnpc("<p,neutral>Hmm, how strange that you don't. Well anyway, it has been some days since last I heard from Drezel, the priest who lives there.");
     ~chatnpc("<p,neutral>Be a sport and go make sure that nothing untoward has happened to the silly old codger for me, would you?");
     @multi2("Sure.", start_priestperil, "No, that sounds boring.", abandon_priestperil);
-} else if (%priestperil > ^priestperil_not_started & %priestperil < ^priestperil_killed_dog) {
+} else if (%priestperil = ^priestperil_started) {
     ~chatnpc("<p,quiz>Well hello there. What do you want?");
     ~chatnpc("<p,neutral>You have news of Drezel for me?");
     ~chatplayer("<p,quiz>Where am I supposed to go again?");
     ~chatnpc("<p,neutral>The temple east of here where Drezel lives. It lies south of the cliffs, at the source of the River Salve.");
     ~chatnpc("<p,neutral>Don't worry, you can't miss it.");
+} else if (%priestperil = ^priestperil_agree_to_kill_dog) {
+    ~chatnpc("<p,neutral>You have news of Drezel for me?");
+    ~chatplayer("<p,confused>Well... I went to the temple like you asked me to... and I spoke to someone inside...");
+    ~chatnpc("<p,neutral>Ah, well that must have been Drezel then. What did he say?");
+    ~chatplayer("<p,confused>Well... he seemed to be having some kind of trouble. He asked for my help.");
+    ~chatnpc("<p,neutral>Well I expect you to offer him your full assistance in whatever he needs.");
+    ~chatplayer("<p,neutral>Well... okay then.");
 } else if (%priestperil = ^priestperil_killed_dog) {
     ~chatnpc("<p,quiz>Well hello there. What do you want?");
     ~chatnpc("<p,neutral>You have news of Drezel for me?");
