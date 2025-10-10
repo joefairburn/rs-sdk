@@ -772,7 +772,7 @@ export default abstract class GameShell {
 
     private insideMobileInputArea() {
         // custom: for mobile keyboard input
-        return this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea() || this.in2FAInputArea() || this.insideReportInterfaceTextArea();
+        return this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea() || this.insideReportInterfaceTextArea();
     }
 
     private insideChatInputArea() {
@@ -872,14 +872,6 @@ export default abstract class GameShell {
         const passwordAreaX2: number = passwordAreaX1 + 278;
         const passwordAreaY2: number = passwordAreaY1 + 20;
         return !this.ingame && this.getTitleScreenState() === 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
-    }
-
-    private in2FAInputArea() {
-        const inputAreaX1: number = 280;
-        const inputAreaY1: number = 233;
-        const inputAreaX2: number = inputAreaX1 + 190;
-        const inputAreaY2: number = inputAreaY1 + 61;
-        return !this.ingame && this.getTitleScreenState() === 1 && this.mouseX >= inputAreaX1 && this.mouseX <= inputAreaX2 && this.mouseY >= inputAreaY1 && this.mouseY <= inputAreaY2;
     }
 
     private isFullScreen() {
