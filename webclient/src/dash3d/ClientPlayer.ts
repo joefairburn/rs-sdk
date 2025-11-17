@@ -511,7 +511,9 @@ export default class ClientPlayer extends ClientEntity {
             return model;
         }
 
-        const tmp: Model = Model.modelShareAlpha(model, true);
+        const tmp = Model.empty;
+        tmp.set(model, true);
+
         if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
             tmp.applyTransforms(primaryTransformId, secondaryTransformId, SeqType.types[this.primarySeqId].walkmerge);
         } else if (primaryTransformId !== -1) {

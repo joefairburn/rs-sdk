@@ -198,28 +198,29 @@ export default class NpcType extends ConfigType {
             }
         }
 
-        let tmp: Model | null = null;
+        if (!model) {
+            return null;
+        }
 
-        if (model) {
-            tmp = Model.modelShareAlpha(model, !this.animHasAlpha);
+        const tmp = Model.empty;
+        tmp.set(model, !this.animHasAlpha);
 
-            if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
-                tmp.applyTransforms(primaryTransformId, secondaryTransformId, seqMask);
-            } else if (primaryTransformId !== -1) {
-                tmp.applyTransform(primaryTransformId);
-            }
+        if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
+            tmp.applyTransforms(primaryTransformId, secondaryTransformId, seqMask);
+        } else if (primaryTransformId !== -1) {
+            tmp.applyTransform(primaryTransformId);
+        }
 
-            if (this.resizeh !== 128 || this.resizev !== 128) {
-                tmp.scale(this.resizeh, this.resizev, this.resizeh);
-            }
+        if (this.resizeh !== 128 || this.resizev !== 128) {
+            tmp.scale(this.resizeh, this.resizev, this.resizeh);
+        }
 
-            tmp.calculateBoundsCylinder();
-            tmp.labelFaces = null;
-            tmp.labelVertices = null;
+        tmp.calculateBoundsCylinder();
+        tmp.labelFaces = null;
+        tmp.labelVertices = null;
 
-            if (this.size === 1) {
-                tmp.picking = true;
-            }
+        if (this.size === 1) {
+            tmp.picking = true;
         }
 
         return tmp;

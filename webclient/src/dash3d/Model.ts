@@ -678,62 +678,6 @@ export default class Model extends ModelSource {
         });
     }
 
-    static modelShareAlpha(src: Model, shareAlpha: boolean): Model {
-        const vertexCount: number = src.vertexCount;
-        const faceCount: number = src.faceCount;
-        const texturedFaceCount: number = src.texturedFaceCount;
-
-        const vertexX: Int32Array = new Int32Array(vertexCount);
-        const vertexY: Int32Array = new Int32Array(vertexCount);
-        const vertexZ: Int32Array = new Int32Array(vertexCount);
-
-        for (let v: number = 0; v < vertexCount; v++) {
-            vertexX[v] = src.vertexX![v];
-            vertexY[v] = src.vertexY![v];
-            vertexZ[v] = src.vertexZ![v];
-        }
-
-        let faceAlpha: Int32Array | null;
-        if (shareAlpha) {
-            faceAlpha = src.faceAlpha;
-        } else {
-            faceAlpha = new Int32Array(faceCount);
-            if (!src.faceAlpha) {
-                for (let f: number = 0; f < faceCount; f++) {
-                    faceAlpha[f] = 0;
-                }
-            } else {
-                for (let f: number = 0; f < faceCount; f++) {
-                    faceAlpha[f] = src.faceAlpha[f];
-                }
-            }
-        }
-        return new Model({
-            vertexCount: vertexCount,
-            vertexX: vertexX,
-            vertexY: vertexY,
-            vertexZ: vertexZ,
-            faceCount: faceCount,
-            faceVertexA: src.faceVertexA!,
-            faceVertexB: src.faceVertexB!,
-            faceVertexC: src.faceVertexC!,
-            faceColorA: src.faceColourA,
-            faceColorB: src.faceColourB,
-            faceColorC: src.faceColourC,
-            faceInfo: src.faceInfo,
-            facePriority: src.facePriority,
-            faceAlpha: faceAlpha,
-            faceColor: src.faceColour,
-            priorityVal: src.priority,
-            texturedFaceCount: texturedFaceCount,
-            texturedVertexA: src.texturedVertexA!,
-            texturedVertexB: src.texturedVertexB!,
-            texturedVertexC: src.texturedVertexC!,
-            labelVertices: src.labelVertices,
-            labelFaces: src.labelFaces
-        });
-    }
-
     static modelFromModelsBounds(models: Model[], count: number): Model {
         let copyInfo: boolean = false;
         let copyPriority: boolean = false;
@@ -1093,6 +1037,10 @@ export default class Model extends ModelSource {
     }
 
     set(src: Model, shareAlpha: boolean): void {
+        this.vertexCount = src.vertexCount;
+        this.faceCount = src.faceCount;
+        this.texturedFaceCount = src.texturedFaceCount;
+
         if (Model.tmpVertexX.length < this.vertexCount) {
 			Model.tmpVertexX = new Int32Array(this.vertexCount + 100);
 			Model.tmpVertexY = new Int32Array(this.vertexCount + 100);
@@ -1116,7 +1064,7 @@ export default class Model extends ModelSource {
 				Model.tmpFaceAlpha = new Int32Array(this.faceCount + 100);
 			}
 
-            this.faceAlpha = new Int32Array(this.faceCount);
+            this.faceAlpha = Model.tmpFaceAlpha;
 
             if (!src.faceAlpha) {
                 for (let f: number = 0; f < this.faceCount; f++) {
