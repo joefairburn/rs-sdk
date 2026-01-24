@@ -275,8 +275,8 @@ function formatDelta(delta: StateDelta): string | null {
     // Nearby NPCs (compact: name[lvl]@dist: options)
     if (delta.npcsNearby.length > 0) {
         const npcs = delta.npcsNearby.map(n => {
-            const opts = n.options.length > 0 ? `: ${n.options.join('/')}` : '';
-            return `${n.name}[${n.combatLevel}]@${n.distance}${opts}`;
+            const opts = n.options.length > 0 ? `, actions: [${n.options.join('/')}]` : '';
+            return `${n.name}[${n.combatLevel}] ${n.distance} tiles away${opts}`;
         }).join(', ');
         lines.push(`NPCs: ${npcs}`);
     }
@@ -284,8 +284,8 @@ function formatDelta(delta: StateDelta): string | null {
     // Nearby objects (compact: name@dist: options)
     if (delta.locsNearby.length > 0) {
         const locs = delta.locsNearby.map(l => {
-            const opts = l.options.length > 0 ? `: ${l.options.join('/')}` : '';
-            return `${l.name}@${l.distance}${opts}`;
+            const opts = l.options.length > 0 ? `, actions: [${l.options.join('/')}]` : '';
+            return `${l.name} ${l.distance} tiles away${opts}`;
         }).join(', ');
         lines.push(`Locs: ${locs}`);
     }
@@ -294,7 +294,7 @@ function formatDelta(delta: StateDelta): string | null {
     if (delta.groundItems.length > 0) {
         const items = delta.groundItems.map(i => {
             const countStr = i.count > 1 ? ` x${i.count}` : '';
-            return `${i.name}${countStr}@${i.distance}`;
+            return `${i.name}${countStr} ${i.distance} tiles away`;
         }).join(', ');
         lines.push(`Ground: ${items}`);
     }
@@ -309,85 +309,179 @@ function formatDelta(delta: StateDelta): string | null {
 }
 
 function formatCurrentState(state: BotWorldState): string {
-    const lines: string[] = ['[CURRENT STATE]'];
+    const lines: string[] = ['[INITIAL STATE - Full Overview]'];
 
-    // Position
+    // Player identity and position
     if (state.player) {
-        lines.push(`Position: (${state.player.worldX}, ${state.player.worldZ})`);
+        const floorDesc = state.player.level === 0 ? 'ground floor' :
+                          state.player.level === 1 ? '1st floor (upstairs)' :
+                          state.player.level === 2 ? '2nd floor' : '3rd floor';
+        lines.push(`Player: ${state.player.name} | Combat Level: ${state.player.combatLevel}`);
+        lines.push(`Position: (${state.player.worldX}, ${state.player.worldZ}) on ${floorDesc}`);
     }
 
     // HP and Run energy
     const hp = state.skills.find(s => s.name === 'Hitpoints');
     if (hp && state.player) {
-        lines.push(`HP: ${hp.level}/${hp.baseLevel} | Run: ${Math.round(state.player.runEnergy)}%`);
+        lines.push(`HP: ${hp.level}/${hp.baseLevel} | Run Energy: ${Math.round(state.player.runEnergy)}% | Weight: ${state.player.runWeight}kg`);
     }
 
-    // Key combat skills
-    const combatSkills = ['Attack', 'Strength', 'Defence', 'Ranged', 'Magic', 'Prayer'];
-    const combatLevels = state.skills
-        .filter(s => combatSkills.includes(s.name) && s.baseLevel > 1)
-        .map(s => `${s.name} ${s.baseLevel}`);
-    if (combatLevels.length > 0) {
-        lines.push(`Combat: ${combatLevels.join(', ')}`);
-    }
+    // All skills grouped by category
+    const combatSkillNames = ['Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer'];
+    const gatheringSkillNames = ['Woodcutting', 'Mining', 'Fishing'];
+    const artisanSkillNames = ['Firemaking', 'Cooking', 'Smithing', 'Crafting', 'Fletching', 'Runecraft'];
+    const otherSkillNames = ['Agility', 'Herblore', 'Thieving', 'Slayer', 'Farming', 'Construction', 'Hunter'];
 
-    // Other notable skills (level > 1)
-    const otherSkills = state.skills
-        .filter(s => !combatSkills.includes(s.name) && s.name !== 'Hitpoints' && s.baseLevel > 1)
-        .map(s => `${s.name} ${s.baseLevel}`);
-    if (otherSkills.length > 0) {
-        lines.push(`Skills: ${otherSkills.join(', ')}`);
-    }
+    const formatSkillGroup = (names: string[], label: string) => {
+        const skills = state.skills
+            .filter(s => names.includes(s.name))
+            .map(s => `${s.name}: ${s.baseLevel}`);
+        if (skills.length > 0) {
+            lines.push(`${label}: ${skills.join(', ')}`);
+        }
+    };
+
+    lines.push('');
+    lines.push('=== Skills ===');
+    formatSkillGroup(combatSkillNames, 'Combat');
+    formatSkillGroup(gatheringSkillNames, 'Gathering');
+    formatSkillGroup(artisanSkillNames, 'Artisan');
+    formatSkillGroup(otherSkillNames, 'Other');
 
     // Equipment (non-empty slots)
+    lines.push('');
+    lines.push('=== Equipment ===');
     const equipped = state.equipment.filter(e => e && e.name).map(e => e.name);
     if (equipped.length > 0) {
-        lines.push(`Equipment: ${equipped.join(', ')}`);
+        lines.push(equipped.join(', '));
+    } else {
+        lines.push('(none equipped)');
     }
 
-    // Inventory summary
+    // Full inventory
+    lines.push('');
+    lines.push('=== Inventory ===');
     const invCount = state.inventory.length;
-    const invItems = state.inventory.slice(0, 5).map(i => i.count > 1 ? `${i.name} x${i.count}` : i.name);
-    const suffix = invCount > 5 ? `, +${invCount - 5} more` : '';
-    lines.push(`Inventory: ${invCount}/28 (${invItems.join(', ')}${suffix})`);
+    if (invCount === 0) {
+        lines.push('(empty)');
+    } else {
+        // Group identical items and show all
+        const itemCounts = new Map<string, number>();
+        for (const item of state.inventory) {
+            const existing = itemCounts.get(item.name) || 0;
+            itemCounts.set(item.name, existing + item.count);
+        }
+        const invItems = Array.from(itemCounts.entries())
+            .map(([name, count]) => count > 1 ? `${name} x${count}` : name);
+        lines.push(`${invCount}/28 slots used: ${invItems.join(', ')}`);
+    }
+
+    // Combat style if available
+    if (state.combatStyle) {
+        lines.push('');
+        lines.push('=== Combat Style ===');
+        lines.push(`Weapon: ${state.combatStyle.weaponName}`);
+        const currentStyle = state.combatStyle.styles.find(s => s.index === state.combatStyle!.currentStyle);
+        if (currentStyle) {
+            lines.push(`Current Style: ${currentStyle.name} (${currentStyle.type}, trains ${currentStyle.trainedSkill})`);
+        }
+        const otherStyles = state.combatStyle.styles
+            .filter(s => s.index !== state.combatStyle!.currentStyle)
+            .map(s => `${s.name} (${s.trainedSkill})`);
+        if (otherStyles.length > 0) {
+            lines.push(`Available: ${otherStyles.join(', ')}`);
+        }
+    }
 
     // Nearby NPCs (sorted by distance)
+    lines.push('');
+    lines.push('=== Nearby NPCs ===');
     if (state.nearbyNpcs.length > 0) {
         const npcs = state.nearbyNpcs
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, 8)
+            .slice(0, 12)
             .map(n => {
                 const opts = n.options.filter(o => o && o !== 'hidden');
-                const optsStr = opts.length > 0 ? `: ${opts.join('/')}` : '';
-                return `${n.name}[${n.combatLevel}]@${Math.round(n.distance)}${optsStr}`;
-            }).join(', ');
-        lines.push(`NPCs: ${npcs}`);
+                const optsStr = opts.length > 0 ? ` [${opts.join('/')}]` : '';
+                const lvl = n.combatLevel > 0 ? ` (lvl ${n.combatLevel})` : '';
+                return `- ${n.name}${lvl} ${Math.round(n.distance)} tiles away${optsStr}`;
+            });
+        lines.push(...npcs);
+    } else {
+        lines.push('(none nearby)');
+    }
+
+    // Nearby players
+    if (state.nearbyPlayers && state.nearbyPlayers.length > 0) {
+        lines.push('');
+        lines.push('=== Nearby Players ===');
+        const players = state.nearbyPlayers
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 8)
+            .map(p => `- ${p.name} (lvl ${p.combatLevel}) ${Math.round(p.distance)} tiles away`);
+        lines.push(...players);
     }
 
     // Nearby objects (sorted by distance)
+    lines.push('');
+    lines.push('=== Nearby Objects ===');
     if (state.nearbyLocs.length > 0) {
         const locs = state.nearbyLocs
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, 8)
+            .slice(0, 12)
             .map(l => {
                 const opts = l.options.filter(o => o && o !== 'hidden');
-                const optsStr = opts.length > 0 ? `: ${opts.join('/')}` : '';
-                return `${l.name}@${Math.round(l.distance)}${optsStr}`;
-            }).join(', ');
-        lines.push(`Locs: ${locs}`);
+                const optsStr = opts.length > 0 ? ` [${opts.join('/')}]` : '';
+                return `- ${l.name} ${Math.round(l.distance)} tiles away${optsStr}`;
+            });
+        lines.push(...locs);
+    } else {
+        lines.push('(none nearby)');
     }
 
     // Ground items (sorted by distance)
     if (state.groundItems.length > 0) {
+        lines.push('');
+        lines.push('=== Ground Items ===');
         const items = state.groundItems
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, 8)
+            .slice(0, 10)
             .map(i => {
                 const countStr = i.count > 1 ? ` x${i.count}` : '';
-                return `${i.name}${countStr}@${Math.round(i.distance)}`;
-            }).join(', ');
-        lines.push(`Ground: ${items}`);
+                return `- ${i.name}${countStr} ${Math.round(i.distance)} tiles away`;
+            });
+        lines.push(...items);
     }
+
+    // Dialog state if open
+    if (state.dialog.isOpen) {
+        lines.push('');
+        lines.push('=== Active Dialog ===');
+        if (state.dialog.isWaiting) {
+            lines.push('(Waiting for click to continue)');
+        } else if (state.dialog.options.length > 0) {
+            lines.push('Options:');
+            for (const opt of state.dialog.options) {
+                lines.push(`  ${opt.index}: ${opt.text}`);
+            }
+        }
+    }
+
+    // Shop state if open
+    if (state.shop.isOpen) {
+        lines.push('');
+        lines.push(`=== Shop Open: ${state.shop.title} ===`);
+        const shopItems = state.shop.shopItems
+            .filter(i => i.name)
+            .slice(0, 10)
+            .map(i => i.count > 1 ? `${i.name} x${i.count}` : i.name);
+        if (shopItems.length > 0) {
+            lines.push(`For sale: ${shopItems.join(', ')}`);
+        }
+    }
+
+    lines.push('');
+    lines.push('---');
 
     return lines.join('\n');
 }
@@ -440,7 +534,8 @@ state.player.level                // Floor: 0=ground, 1=upstairs, 2=2nd floor, 3
 - Buildings often have shops/NPCs on upper floors
 
 ## Smart Actions (wait for completion)
-These handle dialogs, wait for XP/items, and return \`{success, message}\`.
+These handle dialogs, wait for XP/items, and return \`{success, message, reason?}\`.
+**ALWAYS check result.success** - actions can fail due to obstacles, distance, etc.
 Accept either a pattern (\`/sword/i\`) OR an object from \`sdk.find*()\`:
 \`\`\`typescript
 await bot.chopTree()              // Chops tree, waits for logs
@@ -452,7 +547,7 @@ await bot.talkTo(/guide/i)        // Talk to NPC, wait for dialog
 await bot.pickupItem(/coins/i)    // Pick up item, wait for inventory
 await bot.equipItem(/sword/i)     // Equip item from inventory
 await bot.eatFood(/bread/i)       // Eat food item
-await bot.attackNpc(/chicken/i)   // Attack NPC (doesn't wait for kill)
+await bot.attackNpc(/chicken/i)   // Attack NPC, waits for combat to start
 await bot.openDoor()              // Open nearest closed door/gate
 await bot.openDoor(/gate/i)       // Open door/gate matching pattern
 await bot.openShop()              // Open shop (finds shopkeeper)
@@ -465,22 +560,15 @@ await bot.navigateDialog([0, 1])  // Click dialog options in sequence
 await bot.dismissBlockingUI()     // Close level-up dialogs etc.
 \`\`\`
 
-## Low-Level Actions (acknowledge only)
-Use these for custom sequences or when porcelain doesn't fit:
+## Low-Level Actions (for special cases only)
+These send packets without waiting for completion. Prefer bot.* methods when available:
 \`\`\`typescript
-await sdk.sendInteractLoc(x, z, locId, 1)   // Interact with location (option 1-5)
-await sdk.sendInteractNpc(npcIndex, 1)      // Interact with NPC
-await sdk.sendTalkToNpc(npcIndex)           // Talk to NPC
 await sdk.sendClickDialog(0)                // Click dialog (0=continue, 1-5=choice)
-await sdk.sendUseItem(slot, 1)              // Use inventory item
+await sdk.sendUseItem(slot, 1)              // Use inventory item (option 1-5)
 await sdk.sendUseItemOnItem(srcSlot, tgtSlot)  // Item on item (e.g., tinderbox on logs)
 await sdk.sendUseItemOnLoc(slot, x, z, locId)  // Item on location
-await sdk.sendPickup(x, z, itemId)          // Pick up ground item
 await sdk.sendDropItem(slot)                // Drop inventory item
-await sdk.sendShopBuy(slot, amount)         // Buy from shop
-await sdk.sendShopSell(slot, amount)        // Sell to shop
-await sdk.sendCloseShop()                   // Close shop
-await sdk.sendSetCombatStyle(0-3)           // Set combat style
+await sdk.sendSetCombatStyle(0-3)           // Set combat style (0=accurate, 1=aggressive, 2=defensive, 3=controlled)
 \`\`\`
 
 ## Waiting for Conditions
@@ -492,6 +580,50 @@ await sdk.waitForCondition(state => {
 
 // Wait for next state update
 await sdk.waitForStateChange(5000);
+\`\`\`
+
+## Example: Combat Loop with Error Handling
+\`\`\`typescript
+// Kill cows, handling gates/fences that block the path
+let kills = 0;
+const targetKills = 10;
+
+while (kills < targetKills) {
+    const cow = sdk.findNearbyNpc(/cow/i);
+    if (!cow) {
+        return { error: 'No cows found', kills };
+    }
+
+    // Attack and check for errors
+    const attackResult = await bot.attackNpc(cow);
+    if (!attackResult.success) {
+        if (attackResult.reason === 'out_of_reach') {
+            // Gate/fence blocking - open it and retry
+            const doorResult = await bot.openDoor(/gate/i);
+            if (!doorResult.success) {
+                return { error: 'Blocked by obstacle, cannot open gate', kills };
+            }
+            continue;  // Retry the attack
+        }
+        return { error: attackResult.message, kills };
+    }
+
+    // Wait for the kill by polling until we're no longer in combat
+    // (interactingEntity becomes null when target dies or runs away)
+    await sdk.waitForCondition(state => {
+        return state.player.interactingEntity === null;
+    }, 60000);
+
+    kills++;
+
+    // Pick up any loot (bones, hides, etc.)
+    const loot = sdk.findGroundItem(/bones|hide|coins/i);
+    if (loot) {
+        await bot.pickupItem(loot);
+    }
+}
+
+return { success: true, kills };
 \`\`\`
 
 ## Example: Train Woodcutting
@@ -518,37 +650,33 @@ const logs = sdk.findInventoryItem(/logs/i);
 if (!logs) {
     return { error: 'No logs in inventory' };
 }
-const result = await bot.burnLogs(logs);  // Can pass object or pattern
+const result = await bot.burnLogs(logs);
 if (!result.success) {
     return { error: result.message };
 }
 return { success: true, xpGained: result.xpGained };
 \`\`\`
 
-## Example: Equip Gear
-\`\`\`typescript
-const sword = sdk.findInventoryItem(/bronze sword/i);
-if (sword) {
-    const result = await bot.equipItem(sword);  // Can pass object or pattern
-    if (!result.success) {
-        return { error: result.message };
-    }
-}
-return { success: true, message: 'Gear equipped' };
-\`\`\`
-
 ## Rules
-1. Always check state before acting: \`sdk.getState()\` or specific queries
-2. Use \`bot.*\` methods when available - they handle edge cases
-3. Use \`sdk.*\` for queries or when you need low-level control
+1. **ALWAYS check result.success** on bot.* methods - they return errors, not exceptions
+2. Use \`bot.*\` methods for all actions - they wait for completion and detect failures
+3. Use \`sdk.*\` only for queries (getState, findNearbyNpc, etc.) or special low-level needs
 4. Always return results from your code so you know what happened
-5. Handle errors gracefully - check result.success on porcelain methods
-6. If a dialog is open, handle it before doing other actions
-7. **NEVER ask for clarification** - you are in full autonomous mode. Make your best judgment and act. If something fails, try a different approach. The user cannot respond to questions.
+5. If a dialog is open, handle it before doing other actions
+6. **NEVER ask for clarification** - you are in full autonomous mode. Make your best judgment and act. If something fails, try a different approach. The user cannot respond to questions.
 
-## Troubleshooting
-- When you see msg **"I can't reach that!"** - A door/gate is usually blocking the path. Use \`await bot.openDoor()\` to open it, then retry. The method handles walking to the door and opening it.
-- **Understanding door state**: A door with "Open" option is CLOSED (you can open it). A door with "Close" option is already OPEN. Check \`door.options\` to see current state.
+## Handling Blocked Paths
+When \`bot.attackNpc()\` or \`bot.pickupItem()\` returns \`reason: 'out_of_reach'\`, there's an obstacle (gate, door, fence) blocking the path:
+\`\`\`typescript
+const result = await bot.attackNpc(target);
+if (!result.success && result.reason === 'out_of_reach') {
+    // Open the blocking gate/door
+    await bot.openDoor(/gate/i);
+    // Retry the original action
+    const retry = await bot.attackNpc(target);
+}
+\`\`\`
+**Door state**: A door with "Open" option is CLOSED. A door with "Close" option is already OPEN.
 
 ## Be Opportunistic
 Don't just blindly follow the main goal - notice opportunities as they arise:
@@ -603,6 +731,15 @@ function createExecuteCodeTool(session: BotSession) {
                 const resultStr = result === undefined
                     ? 'undefined (no return value)'
                     : JSON.stringify(result, null, 2);
+
+                // Broadcast the return value to UI
+                console.log();
+                console.log(`${colors.cyan}${colors.bold}▸ Returned${colors.reset}`);
+                console.log(`${colors.cyan}  ${resultStr.split('\n').join('\n  ')}${colors.reset}`);
+                broadcastToController(session.username, {
+                    type: 'result',
+                    content: resultStr
+                });
 
                 // Compute and format delta
                 let deltaStr = '';
@@ -1070,11 +1207,8 @@ function processAgentMessage(session: BotSession, message: SDKMessage) {
                                 narrateMsg = isError ? content.substring(0, 60) : '';
                             }
 
-                            // Send to UI
-                            broadcastToController(session.username, {
-                                type: 'result',
-                                content: content
-                            });
+                            // Note: execute_code broadcasts its own results, so we skip here
+                            // to avoid duplicates. The result + delta are already sent.
 
                             // Narrate significant results to chat
                             if (narrateMsg && narrateMsg.length > 3) {

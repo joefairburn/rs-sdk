@@ -985,23 +985,21 @@ export class BotActions {
     }
 
     /**
-     * Attacks an NPC.
+     * Attacks an NPC and waits for combat to start or failure to be detected.
      *
      * @param target - NPC to attack (can be NearbyNpc object, name string, or RegExp pattern)
-     * @param options - Optional settings:
-     *   - waitForCombat: If true, waits to confirm combat started or detect failure (default: false)
-     *   - timeout: How long to wait for combat confirmation in ms (default: 5000)
+     * @param timeout - How long to wait for combat confirmation in ms (default: 5000)
      *
-     * When waitForCombat is true, detects these failure modes:
-     * - "I can't reach that!" - obstacle between player and NPC (e.g., fence, wall)
+     * Detects these failure modes:
+     * - "I can't reach that!" - obstacle between player and NPC (e.g., fence, gate, wall)
      * - "Someone else is fighting that" - NPC already in combat with another player
+     *
+     * When blocked by an obstacle, use bot.openDoor() to open the gate/door, then retry.
      */
     async attackNpc(
         target: NearbyNpc | string | RegExp,
-        options?: { waitForCombat?: boolean; timeout?: number }
+        timeout: number = 5000
     ): Promise<AttackResult> {
-        const waitForCombat = options?.waitForCombat ?? false;
-        const timeout = options?.timeout ?? 5000;
 
         const npc = this.resolveNpc(target);
         if (!npc) {
@@ -1018,11 +1016,6 @@ export class BotActions {
         const result = await this.sdk.sendInteractNpc(npc.index, attackOpt.opIndex);
         if (!result.success) {
             return { success: false, message: result.message };
-        }
-
-        // If not waiting for combat, return immediately (original behavior)
-        if (!waitForCombat) {
-            return { success: true, message: `Attacking ${npc.name}` };
         }
 
         // Wait for combat to start or failure message
