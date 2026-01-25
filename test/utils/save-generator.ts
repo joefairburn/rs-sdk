@@ -554,6 +554,17 @@ export const TestPresets = {
         ],
     } as SaveConfig,
 
+    // Fisher+Cook at Draynor with net, tinderbox, and axe for infinite fires
+    FISHER_COOK_AT_DRAYNOR: {
+        position: Locations.DRAYNOR_FISHING,
+        skills: { Fishing: 1, Cooking: 1, Woodcutting: 1 },
+        inventory: [
+            { id: Items.SMALL_FISHING_NET, count: 1 },
+            { id: Items.TINDERBOX, count: 1 },
+            { id: Items.BRONZE_AXE, count: 1 },  // Chop trees for infinite logs
+        ],
+    } as SaveConfig,
+
     // Woodcutter at Lumbridge with axe and tinderbox
     WOODCUTTER_AT_LUMBRIDGE: {
         position: Locations.LUMBRIDGE_CASTLE,

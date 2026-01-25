@@ -3,15 +3,17 @@
  *
  * Goal: Maximize coins earned through thieving in 5 minutes.
  *
- * Strategy v8:
+ * Strategy v11:
  * - Level 1-9: Pickpocket Men at Lumbridge (3 GP each)
- * - Level 10+: Sell shortbow (20gp) → Pay Al-Kharid toll (10gp) → Buy kebabs (1gp each)
- * - With unlimited kebab food, sustain pickpocketing without HP issues
- * - Pickpocket in Al-Kharid (Men available, Warriors at level 25+)
- * - Kebab seller uses DIALOG, not shop interface!
+ * - Level 10+: Walk to Farmers (9 GP each) - proven strategy from v7
+ * - Larger zone radius (40 tiles) to avoid constant zone re-entry
+ * - Walk TO Farmer spawn when no target found (not random)
  *
- * v7: 339 GP (Farmers with door handling)
- * v8 Target: 400+ GP with Al-Kharid kebabs for unlimited food
+ * v7: 339 GP (Farmers with door handling) - BASELINE
+ * v8: 206 GP (REGRESSION - Men in Al-Kharid)
+ * v9: 36 GP (FAILURE - Warriors not found)
+ * v10: 195 GP (REGRESSION - constant zone re-walking)
+ * v11 Target: 350+ GP with Farmers only, optimized zone handling
  */
 
 import { runScript, TestPresets } from '../script-runner';
@@ -34,11 +36,11 @@ interface ThievingStats {
 const STUN_TICKS = 8;
 const STUN_MS = 4800;
 
-// v8: Zone switching with Al-Kharid access
+// v10: Simple zone switching - Men then Farmers (proven reliable)
 const ZONES = {
     lumbridge: { x: 3222, z: 3218, targetPattern: /^(man|woman)$/i, levelReq: 1, coins: 3 },
-    // Al-Kharid - has Men and Warriors (level 25+), plus kebab shop for food
-    alKharid: { x: 3293, z: 3180, targetPattern: /^(man|woman|warrior)$/i, levelReq: 10, coins: 3 },
+    // Farmer area near crop patches (proven in v7: 339 GP)
+    farmers: { x: 3167, z: 3283, targetPattern: /^farmer$/i, levelReq: 10, coins: 9 },
 };
 
 // Key locations
@@ -310,24 +312,28 @@ async function buyKebabs(ctx: ScriptContext, quantity: number = 5): Promise<bool
 }
 
 /**
- * Get the best zone for current thieving level and setup state
+ * Get the best zone for current thieving level
+ * v10: Simple - Men then Farmers (proven reliable from v7)
  */
-function getBestZone(thievingLevel: number, setupDone: boolean) {
-    if (thievingLevel >= ZONES.alKharid.levelReq && setupDone) {
-        return ZONES.alKharid;
+function getBestZone(thievingLevel: number) {
+    // Level 10+: Farmers (9 GP) - proven in v7 with 339 GP
+    if (thievingLevel >= ZONES.farmers.levelReq) {
+        return ZONES.farmers;
     }
+    // Level 1-9: Lumbridge Men (3 GP)
     return ZONES.lumbridge;
 }
 
 /**
  * Check if we're in a zone
+ * v11: Larger radius (40 tiles) to avoid constant zone re-entry
  */
 function isInZone(ctx: ScriptContext, zone: typeof ZONES.lumbridge): boolean {
     const state = ctx.state();
     if (!state?.player) return false;
     const dx = Math.abs(state.player.worldX - zone.x);
     const dz = Math.abs(state.player.worldZ - zone.z);
-    return dx <= 20 && dz <= 20;  // Increased radius for roaming NPCs
+    return dx <= 40 && dz <= 40;  // Large radius - stay in zone once entered
 }
 
 /**
@@ -497,7 +503,7 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
         tollAttempted: false,
     };
 
-    ctx.log('=== Thieving GP Maximizer v8 Started ===');
+    ctx.log('=== Thieving GP Maximizer v11 Started ===');
     ctx.log(`Starting coins: ${stats.startCoins}`);
     ctx.log(`Starting thieving XP: ${stats.startThievingXp}`);
 
@@ -541,88 +547,17 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
             // No food and can't buy - continue anyway
         }
 
-        // v8: Zone switching based on level, with Al-Kharid setup at level 10+
+        // v10: Simple zone switching based on level
+        // Level 1-9: Men (3 GP), Level 10+: Farmers (9 GP)
         const thievingLevel = currentState.skills.find(s => s.name === 'Thieving')?.baseLevel ?? 1;
 
-        // At level 10+, start the Al-Kharid setup process (only attempt once)
-        if (thievingLevel >= 10 && !setup.paidToll && !setup.tollAttempted) {
-            // Step 1: Sell shortbow if we have one and need money (20gp)
-            const coins = countCoins(ctx);
-            if (coins < 10 && !setup.soldShortbow) {
-                const hasShortbow = ctx.sdk.findInventoryItem(/^shortbow$/i) !== null;
-                if (hasShortbow) {
-                    ctx.log('Level 10+ reached - selling shortbow for toll (20gp)...');
-                    await sellShortbow(ctx);
-                    setup.soldShortbow = true;
-                    ctx.progress();
-                    continue;
-                }
-            }
-
-            // Step 2: Pay toll if we have enough money
-            const coinsAfterSell = countCoins(ctx);
-            if (coinsAfterSell >= 10) {
-                ctx.log('Level 10+ reached - entering Al-Kharid...');
-                setup.tollAttempted = true;  // Mark that we've tried
-                const entered = await payTollAndEnterAlKharid(ctx);
-                if (entered) {
-                    setup.paidToll = true;
-                    ctx.log('Successfully entered Al-Kharid!');
-                } else {
-                    ctx.warn('Failed to enter Al-Kharid, will stay at Lumbridge');
-                }
-                ctx.progress();
-                continue;
-            }
-        }
-
-        // Step 3: Buy kebabs once inside Al-Kharid
-        if (setup.paidToll && !setup.boughtKebabs && isInAlKharid(ctx)) {
-            const kebabs = ctx.sdk.findInventoryItem(/^kebab$/i);
-            if (!kebabs || kebabs.count < 3) {
-                const coins = countCoins(ctx);
-                if (coins >= 5) {  // Kebabs cost 1gp each
-                    await buyKebabs(ctx, 5);
-                    setup.boughtKebabs = true;
-                    ctx.progress();
-                    continue;
-                }
-            } else {
-                setup.boughtKebabs = true;
-            }
-        }
-
-        // Determine best zone based on setup state
-        const setupDone = setup.paidToll;
-        const bestZone = getBestZone(thievingLevel, setupDone);
-
-        // If toll attempted but failed, stay at Lumbridge (don't try to navigate)
-        if (setup.tollAttempted && !setup.paidToll) {
-            // Just pickpocket Men/Women wherever we are
-            const target = findPickpocketTarget(ctx, /^(man|woman)$/i);
-            if (target) {
-                await attemptPickpocket(ctx, target, stats);
-                ctx.progress();
-                if (stats.pickpocketAttempts % 10 === 0 && stats.pickpocketAttempts > 0) {
-                    logStats(ctx, stats);
-                }
-                continue;
-            }
-            // No targets nearby, walk around a bit
-            const state = ctx.state();
-            if (state?.player) {
-                const dx = Math.floor(Math.random() * 10) - 5;
-                const dz = Math.floor(Math.random() * 10) - 5;
-                await ctx.bot.walkTo(state.player.worldX + dx, state.player.worldZ + dz);
-            }
-            ctx.progress();
-            continue;
-        }
+        // Determine best zone based on level (no setup needed!)
+        const bestZone = getBestZone(thievingLevel);
 
         // Move to best zone if not there
         if (!isInZone(ctx, bestZone)) {
-            const zoneName = bestZone === ZONES.alKharid ? 'Al-Kharid' : 'Lumbridge';
-            ctx.log(`Level ${thievingLevel}: Moving to ${zoneName}...`);
+            const zoneName = bestZone === ZONES.farmers ? 'Farmers' : 'Lumbridge';
+            ctx.log(`Level ${thievingLevel}: Moving to ${zoneName} (${bestZone.coins} GP each)...`);
             const arrived = await walkToWithDoors(ctx, bestZone.x, bestZone.z);
             if (!arrived) {
                 ctx.warn('Failed to reach zone, trying again...');
@@ -635,11 +570,10 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
         const target = findPickpocketTarget(ctx, bestZone.targetPattern);
 
         if (!target) {
-            // No targets nearby - walk around zone
-            ctx.log(`No targets in zone - moving around...`);
-            const dx = Math.floor(Math.random() * 10) - 5;
-            const dz = Math.floor(Math.random() * 10) - 5;
-            await ctx.bot.walkTo(bestZone.x + dx, bestZone.z + dz);
+            // No targets nearby - walk TO the zone center (not random)
+            // This is where the target spawns, so walking there helps
+            ctx.log(`No targets nearby - walking to ${bestZone === ZONES.farmers ? 'Farmer spawn' : 'zone'}...`);
+            await ctx.bot.walkTo(bestZone.x, bestZone.z);
             ctx.progress();
             continue;
         }

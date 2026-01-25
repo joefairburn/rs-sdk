@@ -282,7 +282,11 @@ The improvement came from:
 | v4 | Optimized loop | 96 | 31 | Ran out of food |
 | v5 | Shop buying | 108 | - | Shop has no food |
 | v6 | Conservative eat | 180 | 42 | Good RNG, Men only |
-| **v7** | **Zone + doors** | **339** | **44** | **BEST - 183% of baseline!** |
+| v7 | Zone + doors | 339 | 44 | First big win - Farmers |
+| v8 | Al-Kharid kebabs | 206 | 43 | Regression - Men, not Warriors |
+| v9 | Warrior targeting | 36 | 26 | Failed - Warriors not found |
+| v10 | Farmers only | 195 | 38 | Regression - zone re-walking |
+| **v11** | **Optimized zones** | **393** | **45** | **NEW BEST - 327% of baseline!** |
 
 ---
 
@@ -380,4 +384,125 @@ The fundamental flaw: **We entered Al-Kharid but still pickpocketed Men (3 GP) i
 2. **Skip Al-Kharid unless targeting Warriors**: If Men-only, Farmers are 3x better
 3. **Walk TO Warriors specifically**: Warriors spawn near Al-Kharid palace guards
 4. **Or revert to v7 strategy**: Farmers gave 339 GP, Al-Kharid Men gave 206 GP
+
+---
+
+## Run 009 - Warrior Targeting (v9)
+
+**Date**: 2026-01-25
+**Strategy**:
+- Level 1-9: Men at Lumbridge (3 GP)
+- Level 10-24: Farmers (9 GP)
+- Level 25+: Enter Al-Kharid for Warriors (18 GP)
+
+### Results
+
+| Metric | v9 |
+|--------|-----|
+| Final GP | **36** |
+| Thieving Level | 26 |
+| Notes | FAILURE - Warriors not found |
+
+### Root Cause
+Warriors at (3301, 3175) don't exist or don't have Pickpocket option. The script spent the entire remaining time in "No targets in zone - moving around..." loop.
+
+---
+
+## Run 010 - Farmers Only (v10)
+
+**Date**: 2026-01-25
+**Strategy**: Remove Al-Kharid, just use Men→Farmers (same as v7)
+
+### Results
+
+| Metric | v10 |
+|--------|-----|
+| Final GP | **195** |
+| Thieving Level | ~38 |
+| Success Rate | 46% |
+| Notes | REGRESSION - constant zone re-walking |
+
+### Root Cause
+Zone radius (20 tiles) too small - player keeps leaving zone during pickpocketing, triggering unnecessary walks. Many "Level X: Moving to Farmers" messages.
+
+---
+
+## Run 011 - Optimized Zone Handling (v11) ⭐ NEW BEST
+
+**Date**: 2026-01-25
+**Strategy**:
+- Same as v10 (Men→Farmers)
+- Larger zone radius (40 tiles instead of 20)
+- Walk TO zone center when no targets (not random)
+
+### Results
+
+| Metric | v11 | v7 (baseline) | Improvement |
+|--------|-----|---------------|-------------|
+| **Final GP** | **393** | 339 | **+16%** |
+| Thieving Level | 45 | 44 | +1 |
+| Thieving XP | 65,400 | 56,700 | +15% |
+| Success Rate | 61% | 60% | +1% |
+| Attempts | ~73 | ~60 | +22% |
+| Food Eaten | 2 | 2 | Same |
+
+### Key Changes That Worked
+1. **Larger zone radius (40 vs 20)**: Eliminated constant zone re-walking
+2. **Directed walking**: Walk TO Farmer spawn point instead of random movement
+3. **No Al-Kharid overhead**: Stayed with proven Farmer strategy
+
+### Analysis
+v11 is the new best with **393 GP**, beating v7's 339 GP by 16%! The key insight was that zone radius and walking behavior were causing inefficiency in v10 - players would leave the small zone during pickpocketing and waste time walking back.
+
+---
+
+## Learnings (Updated after v11)
+
+### 1. Strategic Findings
+
+**What Works:**
+- **Farmers at 9 GP each** are the optimal target (3x Men, reliable)
+- **Large zone radius (40 tiles)** prevents wasteful re-walking
+- **Directed walking** (to spawn point, not random) finds targets faster
+- **Simple strategies beat complex ones**: v11 (393 GP) vs v8 (206 GP)
+
+**What Doesn't Work:**
+- **Al-Kharid Warriors** - Either don't exist at expected location or can't be pickpocketed
+- **Small zone radius (20 tiles)** - Players drift during pickpocketing, causing re-walks
+- **Random wandering** - Walk TO known spawn points instead
+- **Complex setup** (toll, kebabs) wastes time if target isn't better
+
+**Key Numbers:**
+| Target | GP/Success | Level Req | Reliability |
+|--------|------------|-----------|-------------|
+| Men | 3 GP | 1 | High |
+| Farmers | 9 GP | 10 | High |
+| Warriors | 18 GP | 25 | UNRELIABLE |
+
+### 2. Process & Tooling Reflections
+
+- **Iterative debugging works**: v8→v9→v10→v11 each identified a specific issue
+- **Version tracking essential**: Easy to compare and identify regressions
+- **"No targets in zone" log message** was key to diagnosing wandering issues
+- **Success rate + GP rate** together tell the full story
+
+### 3. SDK Issues & Gaps
+
+- **Browser stability**: Multiple "Bot not connected" crashes during runs
+- **NPC locations unclear**: Warriors expected at (3301, 3175) didn't exist
+- **Kebab seller dialog** requires manual handling (not shop API)
+- **Zone detection** needs larger radius for roaming NPCs
+
+### 4. Evolution Summary
+
+```
+v1 (120 GP) → Basic loop
+v7 (339 GP) → Farmers + doors = 183% improvement
+v11 (393 GP) → Optimized zones = 327% improvement over v1
+```
+
+The biggest wins came from:
+1. **Switching to Farmers** (3x GP per pickpocket)
+2. **Door handling** (enables zone transitions)
+3. **Zone optimization** (prevents wasteful re-walking)
 

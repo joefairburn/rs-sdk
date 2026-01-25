@@ -1,23 +1,39 @@
 # Lab Log: fishing-speedrun
 
-Goal: Maximize Fishing level in 5 minutes.
+Goal: Maximize combined Fishing+Cooking level in 10 minutes.
 
-## Strategy
+## Current Strategy (v2 - Fish + Cook)
 
-- Spawn at Draynor Village fishing spots with small fishing net
-- Net fish for shrimp/anchovies (no level requirement)
-- Drop fish to maintain inventory space
-- Aggressive stuckness detection to catch issues early
-- Continuous clicking - don't wait for fishing to complete, just keep clicking
+**Preset**: FISHER_COOK_AT_DRAYNOR
+- Small fishing net
+- Tinderbox
+- 5 logs
 
-## Stuckness Detection
+**Cycle**:
+1. Fish until ~20 raw fish (or inventory nearly full)
+2. Light fire with tinderbox + logs
+3. Use raw fish on fire to cook
+4. Drop cooked/burned fish
+5. Repeat
 
-Custom stuckness checks:
-1. **No fish timeout (15s)**: If no fish caught for 15 seconds, abort
-2. **No XP timeout (20s)**: If no fishing XP gained for 20 seconds, abort
-3. **Script runner stall timeout (20s)**: Built-in stall detection
+**Key Mechanics**:
+- Shrimp: 10 XP fishing, 30 XP cooking
+- Anchovies: 40 XP fishing, 34 XP cooking
+- Fire lasts ~1-2 minutes
+- Can cook all fish on one fire if fast enough
 
 ---
+
+## Run History
+
+### Run 003 - Initial Fish+Cook Test (Pending)
+
+**Date**: 2026-01-25
+**Outcome**: TBD
+
+---
+
+### Previous Runs (Fishing Only)
 
 ## Run 002 - Final Working Version (Draynor)
 
@@ -69,20 +85,22 @@ Custom stuckness checks:
 - Location: ~3087, 3230
 - Options: Net (shrimp/anchovies), Bait (sardine/herring)
 - No level requirement for Net fishing
-- Safe area, no enemies
-
-### Catherby Fishing Spots (Advanced)
-- Location: ~2836, 3431 (big game) / ~2844, 3429 (small game)
-- **Warning**: Spots near 2836 are "Net, Harpoon" requiring level 35+
-- Use eastern beach spots for level 1 fishing
+- Safe area, no enemies nearby
 
 ### XP Rates
-- Shrimp: 10 XP each
-- Anchovies: 40 XP each (level 15+ to catch)
+- Shrimp: 10 XP fishing, 30 XP cooking
+- Anchovies: 40 XP fishing, 34 XP cooking
 - At high levels, mostly anchovies = faster XP
+
+### Cooking Notes
+- Raw fish detected by "Raw " prefix in item name
+- Fire is a location (NearbyLoc) named "Fire"
+- Use fish on fire via `sendUseItemOnLoc`
+- May get cooking interface - click first option to cook all
+- Burned fish: "Burnt " prefix
 
 ### Best Practices
 1. Use "Net, Bait" spots for level 1 fishing
 2. Don't wait for fishing completion - continuous clicking works
 3. Dismiss level-up dialogs promptly
-4. Drop fish when inventory > 20 items
+4. Cook fish instead of dropping for extra XP

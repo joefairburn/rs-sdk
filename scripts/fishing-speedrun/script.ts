@@ -1,62 +1,74 @@
 /**
- * Fishing Speedrun Script
+ * Fishing + Cooking Speedrun Script
  *
- * Goal: Maximize Fishing level in 5 minutes starting in Catherby.
+ * Goal: Maximize combined Fishing+Cooking level in 10 minutes starting at Draynor.
  *
  * Strategy:
- * - Net fish at Catherby fishing spots (shrimp/anchovies)
- * - Drop fish to maintain inventory space
- * - Track XP/fish caught for progress
- * - Aggressive stuckness detection - abort early if stuck
+ * - Fish at Draynor fishing spots (shrimp/anchovies)
+ * - When inventory is nearly full, light a fire and cook all fish
+ * - Drop cooked fish to make space
+ * - Repeat the cycle: fish → fire → cook → drop
  */
 
-import { runScript, type ScriptContext, StallError } from '../script-runner';
-import type { SaveConfig } from '../../test/utils/save-generator';
-import { Items } from '../../test/utils/save-generator';
-import type { NearbyNpc } from '../../agent/types';
+import { runScript, type ScriptContext, StallError, TestPresets } from '../script-runner';
+import type { NearbyNpc, NearbyLoc, InventoryItem } from '../../agent/types';
 
-// Draynor Village fishing spots - definitely level 1 fishing
-// Located near the willow trees south of Draynor bank
+// Draynor Village fishing spots
 const DRAYNOR_FISHING = { x: 3087, z: 3230 };
 
-// Custom preset: Fisher at Draynor with net
-const DRAYNOR_FISHER: SaveConfig = {
-    position: DRAYNOR_FISHING,
-    skills: { Fishing: 1 },
-    inventory: [
-        { id: Items.SMALL_FISHING_NET, count: 1 },
-    ],
-};
+// How many fish before we cook
+const COOK_THRESHOLD = 18;  // Leave room for logs
 
 // Stuckness detection config
 const STUCK_CONFIG = {
-    // If no fish caught for this long, we're stuck
-    noFishTimeoutMs: 15_000,
-    // If no XP gained for this long, we're stuck
-    noXpTimeoutMs: 20_000,
-    // Check interval
+    noProgressTimeoutMs: 20_000,
     checkIntervalMs: 1000,
 };
 
-interface FishingStats {
+interface Stats {
     fishCaught: number;
-    fishDropped: number;
-    startXp: number;
+    fishCooked: number;
+    fishBurned: number;
+    firesLit: number;
+    startFishingXp: number;
+    startCookingXp: number;
     startTime: number;
-    lastFishTime: number;
-    lastXpTime: number;
-    lastXp: number;
+    lastProgressTime: number;
+}
+
+// ============ Helper Functions ============
+
+/**
+ * Helper to mark progress for both script runner and our stats
+ */
+function markProgress(ctx: ScriptContext, stats: Stats): void {
+    stats.lastProgressTime = Date.now();
+    ctx.progress();
+}
+
+function getFishingXp(ctx: ScriptContext): number {
+    return ctx.state()?.skills.find(s => s.name === 'Fishing')?.experience ?? 0;
+}
+
+function getFishingLevel(ctx: ScriptContext): number {
+    return ctx.state()?.skills.find(s => s.name === 'Fishing')?.baseLevel ?? 1;
+}
+
+function getCookingXp(ctx: ScriptContext): number {
+    return ctx.state()?.skills.find(s => s.name === 'Cooking')?.experience ?? 0;
+}
+
+function getCookingLevel(ctx: ScriptContext): number {
+    return ctx.state()?.skills.find(s => s.name === 'Cooking')?.baseLevel ?? 1;
+}
+
+function getCombinedLevel(ctx: ScriptContext): number {
+    return getFishingLevel(ctx) + getCookingLevel(ctx);
 }
 
 /**
  * Find the nearest fishing spot suitable for level 1 fishing
- * Note: Fishing spots are NPCs, not locations!
- *
- * Important: There are two types of "Net" fishing:
- * - "Net, Bait" spots = small net (shrimp/anchovies) - NO level requirement
- * - "Net, Harpoon" spots = big net (mackerel/cod/bass) - requires level 16+
- *
- * We must prefer "Net, Bait" spots for level 1 fishing!
+ * Prefer "Net, Bait" spots (small net fishing - no level req)
  */
 function findFishingSpot(ctx: ScriptContext): NearbyNpc | null {
     const state = ctx.state();
@@ -67,7 +79,6 @@ function findFishingSpot(ctx: ScriptContext): NearbyNpc | null {
         .filter(npc => npc.options.some(opt => /^net$/i.test(opt)));
 
     // Prefer "Net, Bait" spots (small net fishing - no level req)
-    // Avoid "Net, Harpoon" spots (big net fishing - level 16+ req)
     const smallNetSpots = allFishingSpots
         .filter(npc => npc.options.some(opt => /^bait$/i.test(opt)))
         .sort((a, b) => a.distance - b.distance);
@@ -76,148 +87,370 @@ function findFishingSpot(ctx: ScriptContext): NearbyNpc | null {
         return smallNetSpots[0];
     }
 
-    // Fallback to any Net spot if no small net spots found
-    // (but this may fail if player level is too low)
     return allFishingSpots.sort((a, b) => a.distance - b.distance)[0] ?? null;
 }
 
 /**
- * Get current fishing XP
+ * Count raw fish in inventory (shrimps, anchovies, etc.)
  */
-function getFishingXp(ctx: ScriptContext): number {
-    return ctx.state()?.skills.find(s => s.name === 'Fishing')?.experience ?? 0;
-}
-
-/**
- * Get current fishing level
- */
-function getFishingLevel(ctx: ScriptContext): number {
-    return ctx.state()?.skills.find(s => s.name === 'Fishing')?.baseLevel ?? 1;
-}
-
-/**
- * Count fish in inventory (shrimps, anchovies, etc.)
- */
-function countFish(ctx: ScriptContext): number {
+function countRawFish(ctx: ScriptContext): number {
     const state = ctx.state();
     if (!state) return 0;
 
     return state.inventory
-        .filter(item => /shrimp|anchov|sardine|herring|trout|salmon|tuna|lobster|swordfish/i.test(item.name))
+        .filter(item => /^raw\s/i.test(item.name))
         .reduce((sum, item) => sum + item.count, 0);
 }
 
 /**
- * Drop all fish from inventory to make space
+ * Get all raw fish items in inventory
  */
-async function dropAllFish(ctx: ScriptContext, stats: FishingStats): Promise<number> {
+function getRawFishItems(ctx: ScriptContext): InventoryItem[] {
+    const state = ctx.state();
+    if (!state) return [];
+
+    return state.inventory.filter(item => /^raw\s/i.test(item.name));
+}
+
+/**
+ * Count cooked fish in inventory
+ */
+function countCookedFish(ctx: ScriptContext): number {
+    const state = ctx.state();
+    if (!state) return 0;
+
+    // Cooked fish don't have "raw" prefix - shrimps, anchovies, etc.
+    return state.inventory
+        .filter(item =>
+            /shrimp|anchov/i.test(item.name) &&
+            !/^raw\s/i.test(item.name))
+        .reduce((sum, item) => sum + item.count, 0);
+}
+
+/**
+ * Count logs in inventory
+ */
+function countLogs(ctx: ScriptContext): number {
+    const state = ctx.state();
+    if (!state) return 0;
+
+    return state.inventory
+        .filter(item => /^logs$/i.test(item.name))
+        .reduce((sum, item) => sum + item.count, 0);
+}
+
+/**
+ * Find logs in inventory
+ */
+function findLogs(ctx: ScriptContext): InventoryItem | null {
+    const state = ctx.state();
+    if (!state) return null;
+
+    return state.inventory.find(item => /^logs$/i.test(item.name)) ?? null;
+}
+
+/**
+ * Find tinderbox in inventory
+ */
+function findTinderbox(ctx: ScriptContext): InventoryItem | null {
+    const state = ctx.state();
+    if (!state) return null;
+
+    return state.inventory.find(item => /tinderbox/i.test(item.name)) ?? null;
+}
+
+/**
+ * Find a fire nearby
+ */
+function findFire(ctx: ScriptContext): NearbyLoc | null {
+    const state = ctx.state();
+    if (!state) return null;
+
+    return state.nearbyLocs
+        .filter(loc => /^fire$/i.test(loc.name))
+        .sort((a, b) => a.distance - b.distance)[0] ?? null;
+}
+
+/**
+ * Drop all cooked/burned fish from inventory
+ */
+async function dropAllCookedFish(ctx: ScriptContext, stats: Stats): Promise<number> {
     const state = ctx.state();
     if (!state) return 0;
 
     let dropped = 0;
-    const fishItems = state.inventory
-        .filter(item => /shrimp|anchov|sardine|herring|trout|salmon|tuna|lobster|swordfish/i.test(item.name));
+    const cookedItems = state.inventory
+        .filter(item =>
+            (/shrimp|anchov/i.test(item.name) && !/^raw\s/i.test(item.name)) ||
+            /^burnt\s/i.test(item.name));
 
-    for (const fish of fishItems) {
-        ctx.log(`Dropping ${fish.name} x${fish.count}`);
-        await ctx.sdk.sendDropItem(fish.slot);
-        dropped += fish.count;
-        ctx.progress();
-
-        // Brief delay to let the drop process
+    for (const item of cookedItems) {
+        ctx.log(`Dropping ${item.name} x${item.count}`);
+        await ctx.sdk.sendDropItem(item.slot);
+        dropped += item.count;
+        markProgress(ctx, stats);
         await new Promise(r => setTimeout(r, 100));
     }
 
-    stats.fishDropped += dropped;
     return dropped;
 }
 
 /**
- * Check for stuckness based on time since last progress
+ * Chop a tree to get logs
  */
-function checkStuck(ctx: ScriptContext, stats: FishingStats): string | null {
-    const now = Date.now();
-    const currentXp = getFishingXp(ctx);
-
-    // Update XP tracking
-    if (currentXp > stats.lastXp) {
-        stats.lastXpTime = now;
-        stats.lastXp = currentXp;
+async function chopTreeForLogs(ctx: ScriptContext, stats: Stats): Promise<boolean> {
+    // Already have logs?
+    if (findLogs(ctx)) {
+        return true;
     }
 
-    // Check for no fish timeout
-    const timeSinceLastFish = now - stats.lastFishTime;
-    if (timeSinceLastFish > STUCK_CONFIG.noFishTimeoutMs) {
-        return `No fish caught for ${Math.round(timeSinceLastFish / 1000)}s`;
+    ctx.log('Chopping tree for logs...');
+    markProgress(ctx, stats);
+
+    // Try up to 3 times to get logs
+    for (let attempt = 0; attempt < 3; attempt++) {
+        // Use the high-level bot.chopTree
+        const result = await ctx.bot.chopTree(/^tree$/i);
+        markProgress(ctx, stats);
+
+        if (result.success && findLogs(ctx)) {
+            ctx.log(`Got logs! ${result.message}`);
+            return true;
+        }
+
+        // Wait a bit and check again
+        await new Promise(r => setTimeout(r, 500));
+        if (findLogs(ctx)) {
+            ctx.log('Logs appeared in inventory');
+            return true;
+        }
     }
 
-    // Check for no XP timeout
-    const timeSinceLastXp = now - stats.lastXpTime;
-    if (timeSinceLastXp > STUCK_CONFIG.noXpTimeoutMs) {
-        return `No fishing XP gained for ${Math.round(timeSinceLastXp / 1000)}s`;
-    }
-
-    return null;
+    ctx.warn('Could not get logs after 3 attempts');
+    return false;
 }
 
 /**
- * Main fishing loop
+ * Light a fire using tinderbox and logs
+ * Uses the high-level bot.burnLogs for reliability
  */
-async function fishingLoop(ctx: ScriptContext, stats: FishingStats): Promise<void> {
-    const state = ctx.state();
-    if (!state) throw new Error('No initial state');
+async function lightFire(ctx: ScriptContext, stats: Stats): Promise<boolean> {
+    const tinderbox = findTinderbox(ctx);
+    let logs = findLogs(ctx);
 
-    ctx.log('=== Fishing Speedrun Started ===');
-    ctx.log(`Starting at level ${getFishingLevel(ctx)} with ${stats.startXp} XP`);
-    ctx.log(`Position: (${state.player?.worldX}, ${state.player?.worldZ})`);
+    // If no logs, try to chop a tree
+    if (!logs) {
+        const chopped = await chopTreeForLogs(ctx, stats);
+        if (!chopped) {
+            ctx.warn('Could not get logs');
+            return false;
+        }
+        logs = findLogs(ctx);
+    }
 
-    // Dismiss any blocking dialogs before starting
-    await ctx.bot.dismissBlockingUI();
+    if (!tinderbox || !logs) {
+        ctx.warn(`Cannot light fire: tinderbox=${!!tinderbox}, logs=${!!logs}`);
+        return false;
+    }
 
-    // Main loop
-    let lastFishCount = countFish(ctx);
-    let consecutiveNoSpotCount = 0;
+    ctx.log('Lighting fire...');
+    markProgress(ctx, stats);
 
-    while (true) {
-        // Check for stuckness
-        const stuckReason = checkStuck(ctx, stats);
-        if (stuckReason) {
-            throw new StallError(`STUCK: ${stuckReason}`);
+    // Use the BotActions.burnLogs for reliable fire lighting
+    const result = await ctx.bot.burnLogs(logs);
+
+    if (result.success) {
+        stats.firesLit++;
+        ctx.log(`Fire lit! XP gained: ${result.xpGained} (${stats.firesLit} total fires)`);
+        markProgress(ctx, stats);
+        return true;
+    } else {
+        ctx.warn(`Fire failed: ${result.message}`);
+
+        // If fire failed, try walking a bit and retrying
+        const playerPos = ctx.state()?.player;
+        if (playerPos) {
+            ctx.log('Walking to new spot and retrying...');
+            // Walk a few tiles in a random direction
+            const dx = Math.random() > 0.5 ? 2 : -2;
+            const dz = Math.random() > 0.5 ? 2 : -2;
+            await ctx.bot.walkTo(playerPos.worldX + dx, playerPos.worldZ + dz, 1);
+            markProgress(ctx, stats);
+
+            // Chop another tree if needed
+            if (!findLogs(ctx)) {
+                await chopTreeForLogs(ctx, stats);
+            }
+
+            // Try again with logs
+            const logs2 = findLogs(ctx);
+            if (logs2) {
+                const result2 = await ctx.bot.burnLogs(logs2);
+                if (result2.success) {
+                    stats.firesLit++;
+                    ctx.log(`Fire lit on retry! (${stats.firesLit} total fires)`);
+                    markProgress(ctx, stats);
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Cook all raw fish on a fire
+ */
+async function cookAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
+    const fire = findFire(ctx);
+    if (!fire) {
+        ctx.warn('No fire found nearby');
+        return;
+    }
+
+    const rawFish = getRawFishItems(ctx);
+    if (rawFish.length === 0) {
+        ctx.log('No raw fish to cook');
+        return;
+    }
+
+    ctx.log(`Cooking ${rawFish.length} stacks of raw fish...`);
+    markProgress(ctx, stats);
+
+    for (const fish of rawFish) {
+        // Check if fire still exists
+        const currentFire = findFire(ctx);
+        if (!currentFire) {
+            ctx.log('Fire went out before cooking all fish');
+            break;
         }
 
+        const cookingXpBefore = getCookingXp(ctx);
+
+        // Use fish on fire
+        await ctx.sdk.sendUseItemOnLoc(fish.slot, currentFire.x, currentFire.z, currentFire.id);
+        markProgress(ctx, stats);
+
+        // Wait for cooking to start/complete
+        try {
+            await ctx.sdk.waitForCondition(state => {
+                // Check for cooking XP gain
+                const cookXp = state.skills.find(s => s.name === 'Cooking')?.experience ?? 0;
+                if (cookXp > cookingXpBefore) return true;
+
+                // Check for interface (cooking selection)
+                if (state.interface?.isOpen) return true;
+
+                // Dismiss any dialogs (level-up)
+                if (state.dialog.isOpen) {
+                    ctx.sdk.sendClickDialog(0).catch(() => {});
+                }
+
+                return false;
+            }, 5000);
+
+            // If cooking interface opened, click to cook all
+            const iface = ctx.state()?.interface;
+            if (iface?.isOpen && iface.options.length > 0) {
+                ctx.log(`Cooking interface opened with ${iface.options.length} options`);
+                // Click the first option (usually "Cook All" or just "Cook")
+                const option = iface.options[0];
+                await ctx.sdk.sendClickInterface(option.index);
+            }
+
+            // Wait for cooking to complete (all fish cooked or XP stops increasing)
+            let lastXp = getCookingXp(ctx);
+            let noChangeCount = 0;
+            while (noChangeCount < 8) {  // Wait a bit longer for cooking
+                await new Promise(r => setTimeout(r, 600));
+                markProgress(ctx, stats);
+
+                const currentXp = getCookingXp(ctx);
+                if (currentXp === lastXp) {
+                    noChangeCount++;
+                } else {
+                    lastXp = currentXp;
+                    noChangeCount = 0;
+                }
+
+                // Dismiss any dialogs (level-up, etc.)
+                if (ctx.state()?.dialog.isOpen) {
+                    await ctx.sdk.sendClickDialog(0);
+                }
+
+                // Check if fire went out
+                const fireStillThere = findFire(ctx);
+                if (!fireStillThere) {
+                    ctx.log('Fire went out');
+                    break;
+                }
+
+                // Check if no more raw fish
+                if (countRawFish(ctx) === 0) {
+                    ctx.log('All raw fish cooked');
+                    break;
+                }
+            }
+
+            // Count results
+            const cookingXpGained = getCookingXp(ctx) - cookingXpBefore;
+            const fishCooked = Math.floor(cookingXpGained / 30); // ~30 XP per shrimp
+            stats.fishCooked += Math.max(0, fishCooked);
+
+            ctx.log(`Cooked fish batch (XP gained: ${cookingXpGained})`);
+            markProgress(ctx, stats);
+
+        } catch (e) {
+            ctx.warn(`Cooking timeout or error: ${e}`);
+        }
+    }
+}
+
+/**
+ * Main fishing loop - fish until we have enough to cook
+ */
+async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
+    let lastFishCount = countRawFish(ctx);
+    let consecutiveNoSpotCount = 0;
+    let fishingAttempts = 0;
+
+    while (countRawFish(ctx) < COOK_THRESHOLD) {
+        fishingAttempts++;
         const currentState = ctx.state();
         if (!currentState) {
             ctx.warn('Lost game state');
             break;
         }
 
-        // Dismiss any blocking dialogs (level-up, etc.)
+        // Always mark progress in the loop to prevent stalls
+        if (fishingAttempts % 10 === 0) {
+            markProgress(ctx, stats);
+        }
+
+        // Dismiss any blocking dialogs
         if (currentState.dialog.isOpen) {
             ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
             await new Promise(r => setTimeout(r, 300));
-            ctx.progress();
+            markProgress(ctx, stats);
             continue;
         }
 
-        // Check if inventory is getting full (>20 items) - drop fish
-        if (currentState.inventory.length > 20) {
-            ctx.log('Inventory getting full - dropping fish...');
-            const dropped = await dropAllFish(ctx, stats);
-            if (dropped > 0) {
-                ctx.log(`Dropped ${dropped} fish`);
-                ctx.progress();
-            }
+        // Check for inventory nearly full (leave space for some fish)
+        const invSlots = currentState.inventory.length;
+        if (invSlots >= 27) {
+            ctx.log('Inventory nearly full');
+            break;
         }
 
         // Check if we caught more fish
-        const currentFishCount = countFish(ctx);
+        const currentFishCount = countRawFish(ctx);
         if (currentFishCount > lastFishCount) {
             const newFish = currentFishCount - lastFishCount;
             stats.fishCaught += newFish;
-            stats.lastFishTime = Date.now();
-            ctx.log(`Caught fish! Total: ${stats.fishCaught} (Level ${getFishingLevel(ctx)})`);
-            ctx.progress();
+            ctx.log(`Caught fish! Raw: ${currentFishCount}, Total caught: ${stats.fishCaught}`);
+            markProgress(ctx, stats);
         }
         lastFishCount = currentFishCount;
 
@@ -226,16 +459,28 @@ async function fishingLoop(ctx: ScriptContext, stats: FishingStats): Promise<voi
 
         if (!spot) {
             consecutiveNoSpotCount++;
+            markProgress(ctx, stats);  // Keep marking progress while waiting for spot
 
-            if (consecutiveNoSpotCount >= 5) {
-                // Try walking to the fishing area
-                ctx.log('Walking to Draynor fishing area...');
-                await ctx.bot.walkTo(DRAYNOR_FISHING.x, DRAYNOR_FISHING.z);
-                ctx.progress();
+            // If we've waited too long, walk back to fishing area
+            if (consecutiveNoSpotCount >= 100) {
+                const player = ctx.state()?.player;
+                if (player) {
+                    const dist = Math.sqrt(
+                        Math.pow(player.worldX - DRAYNOR_FISHING.x, 2) +
+                        Math.pow(player.worldZ - DRAYNOR_FISHING.z, 2)
+                    );
+                    if (dist > 5) {
+                        ctx.log(`Walking back to fishing area (dist: ${dist.toFixed(0)})...`);
+                        await ctx.bot.walkTo(DRAYNOR_FISHING.x, DRAYNOR_FISHING.z);
+                        markProgress(ctx, stats);
+                    }
+                }
                 consecutiveNoSpotCount = 0;
+            } else if (consecutiveNoSpotCount % 50 === 0) {
+                ctx.log(`Waiting for fishing spot... (${consecutiveNoSpotCount} attempts)`);
             }
 
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 100));
             continue;
         }
 
@@ -245,61 +490,132 @@ async function fishingLoop(ctx: ScriptContext, stats: FishingStats): Promise<voi
         const netOpt = spot.optionsWithIndex.find(o => /^net$/i.test(o.text));
         if (!netOpt) {
             ctx.warn(`Fishing spot has no Net option: ${spot.options.join(', ')}`);
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 300));
             continue;
         }
 
-        // Start fishing (fishing spots are NPCs)
+        // Start fishing
         await ctx.sdk.sendInteractNpc(spot.index, netOpt.opIndex);
-        ctx.progress();
-
-        // Just a small delay to let the action process
-        await new Promise(r => setTimeout(r, 300));
+        markProgress(ctx, stats);
+        await new Promise(r => setTimeout(r, 200));
     }
 }
 
 /**
  * Log final statistics
  */
-function logFinalStats(ctx: ScriptContext, stats: FishingStats) {
+function logFinalStats(ctx: ScriptContext, stats: Stats) {
     const state = ctx.state();
     const fishing = state?.skills.find(s => s.name === 'Fishing');
-    const endXp = fishing?.experience ?? 0;
-    const xpGained = endXp - stats.startXp;
+    const cooking = state?.skills.find(s => s.name === 'Cooking');
+
+    const fishingXpGained = (fishing?.experience ?? 0) - stats.startFishingXp;
+    const cookingXpGained = (cooking?.experience ?? 0) - stats.startCookingXp;
     const duration = (Date.now() - stats.startTime) / 1000;
-    const xpPerHour = Math.round((xpGained / duration) * 3600);
 
     ctx.log('');
     ctx.log('=== Final Results ===');
     ctx.log(`Duration: ${Math.round(duration)}s`);
-    ctx.log(`Final Level: ${fishing?.baseLevel ?? '?'}`);
-    ctx.log(`XP Gained: ${xpGained}`);
-    ctx.log(`XP/Hour: ${xpPerHour}`);
-    ctx.log(`Fish Caught: ${stats.fishCaught}`);
-    ctx.log(`Fish Dropped: ${stats.fishDropped}`);
+    ctx.log(`--- Fishing ---`);
+    ctx.log(`  Level: ${fishing?.baseLevel ?? '?'}`);
+    ctx.log(`  XP Gained: ${fishingXpGained}`);
+    ctx.log(`  Fish Caught: ${stats.fishCaught}`);
+    ctx.log(`--- Cooking ---`);
+    ctx.log(`  Level: ${cooking?.baseLevel ?? '?'}`);
+    ctx.log(`  XP Gained: ${cookingXpGained}`);
+    ctx.log(`  Fish Cooked: ${stats.fishCooked}`);
+    ctx.log(`  Fish Burned: ${stats.fishBurned}`);
+    ctx.log(`  Fires Lit: ${stats.firesLit}`);
+    ctx.log(`--- Combined ---`);
+    ctx.log(`  COMBINED LEVEL: ${(fishing?.baseLevel ?? 1) + (cooking?.baseLevel ?? 1)}`);
+}
+
+/**
+ * Main loop: fish → fire → cook → drop → repeat
+ */
+async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
+    ctx.log('=== Fishing + Cooking Speedrun Started ===');
+    ctx.log(`Starting levels: Fishing ${getFishingLevel(ctx)}, Cooking ${getCookingLevel(ctx)}`);
+    ctx.log(`Combined: ${getCombinedLevel(ctx)}`);
+    ctx.log(`Position: (${ctx.state()?.player?.worldX}, ${ctx.state()?.player?.worldZ})`);
+    ctx.log(`Has axe for chopping trees: ${ctx.state()?.inventory.some(i => /axe/i.test(i.name)) ? 'yes' : 'no'}`);
+
+    await ctx.bot.dismissBlockingUI();
+    markProgress(ctx, stats);
+
+    while (true) {
+        ctx.log(`\n--- Cycle Start ---`);
+        ctx.log(`Current levels: Fishing ${getFishingLevel(ctx)}, Cooking ${getCookingLevel(ctx)} = ${getCombinedLevel(ctx)}`);
+
+        // Phase 1: Fish until we have enough
+        ctx.log('Phase 1: Fishing...');
+        await fishUntilFull(ctx, stats);
+
+        const rawFishCount = countRawFish(ctx);
+        ctx.log(`Have ${rawFishCount} raw fish`);
+
+        // Phase 2: Chop tree for logs and light fire
+        if (rawFishCount > 0) {
+            ctx.log('Phase 2: Getting logs and lighting fire...');
+            const fireSuccess = await lightFire(ctx, stats);
+
+            if (fireSuccess) {
+                // Give time for character to move away from fire
+                await new Promise(r => setTimeout(r, 500));
+
+                // Phase 3: Cook all fish
+                ctx.log('Phase 3: Cooking...');
+                await cookAllFish(ctx, stats);
+            } else {
+                ctx.warn('Failed to light fire, will drop fish instead');
+            }
+        }
+
+        // Phase 4: Drop cooked/burned fish to make space
+        ctx.log('Phase 4: Clearing inventory...');
+        const dropped = await dropAllCookedFish(ctx, stats);
+        if (dropped > 0) {
+            ctx.log(`Dropped ${dropped} cooked/burned fish`);
+        }
+
+        // Also drop any remaining raw fish (if fire failed)
+        const state = ctx.state();
+        if (state) {
+            for (const item of state.inventory) {
+                if (/^raw\s/i.test(item.name)) {
+                    await ctx.sdk.sendDropItem(item.slot);
+                    markProgress(ctx, stats);
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+        }
+
+        markProgress(ctx, stats);
+    }
 }
 
 // Run the script
 runScript({
     name: 'fishing-speedrun',
-    goal: 'Maximize Fishing level in 5 minutes at Draynor',
-    saveConfig: DRAYNOR_FISHER,
-    timeLimit: 5 * 60 * 1000,      // 5 minutes
-    stallTimeout: 20_000,          // 20 seconds - aggressive stall detection
-    screenshotInterval: 15_000,    // Screenshot every 15s for analysis
+    goal: 'Maximize combined Fishing+Cooking level in 10 minutes at Draynor',
+    preset: TestPresets.FISHER_COOK_AT_DRAYNOR,
+    timeLimit: 10 * 60 * 1000,      // 10 minutes
+    stallTimeout: 25_000,           // 25 seconds
+    screenshotInterval: 15_000,
 }, async (ctx) => {
-    const stats: FishingStats = {
+    const stats: Stats = {
         fishCaught: 0,
-        fishDropped: 0,
-        startXp: getFishingXp(ctx),
+        fishCooked: 0,
+        fishBurned: 0,
+        firesLit: 0,
+        startFishingXp: getFishingXp(ctx),
+        startCookingXp: getCookingXp(ctx),
         startTime: Date.now(),
-        lastFishTime: Date.now(),
-        lastXpTime: Date.now(),
-        lastXp: getFishingXp(ctx),
+        lastProgressTime: Date.now(),
     };
 
     try {
-        await fishingLoop(ctx, stats);
+        await mainLoop(ctx, stats);
     } catch (e) {
         if (e instanceof StallError) {
             ctx.error(`Script aborted: ${e.message}`);

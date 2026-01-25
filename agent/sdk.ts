@@ -21,6 +21,11 @@ export interface SDKConfig {
     port?: number;           // Default: 7780 (gateway port)
     webPort?: number;        // Default: 8888 (game server web API port)
     actionTimeout?: number;  // Default: 30000ms
+    // Reconnection settings
+    autoReconnect?: boolean;       // Default: true
+    reconnectMaxRetries?: number;  // Default: Infinity (keep trying forever)
+    reconnectBaseDelay?: number;   // Default: 1000ms
+    reconnectMaxDelay?: number;    // Default: 30000ms
 }
 
 interface PendingAction {
@@ -29,14 +34,23 @@ interface PendingAction {
     timeout: ReturnType<typeof setTimeout>;
 }
 
+export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
+
 export class BotSDK {
     private config: Required<SDKConfig>;
     private ws: WebSocket | null = null;
     private state: BotWorldState | null = null;
     private pendingActions = new Map<string, PendingAction>();
     private stateListeners = new Set<(state: BotWorldState) => void>();
+    private connectionListeners = new Set<(state: ConnectionState, attempt?: number) => void>();
     private connectPromise: Promise<void> | null = null;
     private sdkClientId: string;
+
+    // Reconnection state
+    private connectionState: ConnectionState = 'disconnected';
+    private reconnectAttempt = 0;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    private intentionalDisconnect = false;
 
     constructor(config: SDKConfig) {
         this.config = {
@@ -44,7 +58,11 @@ export class BotSDK {
             host: config.host || 'localhost',
             port: config.port || 7780,
             webPort: config.webPort || 8888,  // Game server web API port
-            actionTimeout: config.actionTimeout || 30000
+            actionTimeout: config.actionTimeout || 30000,
+            autoReconnect: config.autoReconnect ?? true,
+            reconnectMaxRetries: config.reconnectMaxRetries ?? Infinity,
+            reconnectBaseDelay: config.reconnectBaseDelay ?? 1000,
+            reconnectMaxDelay: config.reconnectMaxDelay ?? 30000
         };
         this.sdkClientId = `sdk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
@@ -58,6 +76,14 @@ export class BotSDK {
 
         if (this.connectPromise) {
             return this.connectPromise;
+        }
+
+        // Reset intentional disconnect flag when explicitly connecting
+        this.intentionalDisconnect = false;
+
+        const isReconnect = this.connectionState === 'reconnecting';
+        if (!isReconnect) {
+            this.setConnectionState('connecting');
         }
 
         this.connectPromise = new Promise((resolve, reject) => {
@@ -85,12 +111,21 @@ export class BotSDK {
 
             this.ws.onclose = () => {
                 this.connectPromise = null;
+                this.ws = null;
+
                 // Reject any pending actions
                 for (const [actionId, pending] of this.pendingActions) {
                     clearTimeout(pending.timeout);
                     pending.reject(new Error('Connection closed'));
                 }
                 this.pendingActions.clear();
+
+                // Attempt reconnection if enabled and not intentionally disconnected
+                if (this.config.autoReconnect && !this.intentionalDisconnect) {
+                    this.scheduleReconnect();
+                } else {
+                    this.setConnectionState('disconnected');
+                }
             };
 
             this.ws.onerror = (error) => {
@@ -104,6 +139,9 @@ export class BotSDK {
                     const msg = JSON.parse(event.data);
                     if (msg.type === 'sdk_connected') {
                         this.ws?.removeEventListener('message', checkConnected);
+                        // Reset reconnection state on successful connect
+                        this.reconnectAttempt = 0;
+                        this.setConnectionState('connected');
                         resolve();
                     }
                 } catch {}
@@ -114,16 +152,118 @@ export class BotSDK {
         return this.connectPromise;
     }
 
+    private setConnectionState(state: ConnectionState, attempt?: number) {
+        this.connectionState = state;
+        for (const listener of this.connectionListeners) {
+            try {
+                listener(state, attempt);
+            } catch (e) {
+                console.error('Connection listener error:', e);
+            }
+        }
+    }
+
+    private scheduleReconnect() {
+        // Check if we've exceeded max retries
+        if (this.reconnectAttempt >= this.config.reconnectMaxRetries) {
+            console.log(`[BotSDK] Max reconnection attempts (${this.config.reconnectMaxRetries}) reached, giving up`);
+            this.setConnectionState('disconnected');
+            return;
+        }
+
+        this.reconnectAttempt++;
+        this.setConnectionState('reconnecting', this.reconnectAttempt);
+
+        // Calculate delay with exponential backoff
+        const delay = Math.min(
+            this.config.reconnectBaseDelay * Math.pow(2, this.reconnectAttempt - 1),
+            this.config.reconnectMaxDelay
+        );
+
+        console.log(`[BotSDK] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempt})`);
+
+        this.reconnectTimer = setTimeout(async () => {
+            this.reconnectTimer = null;
+            try {
+                await this.connect();
+                console.log(`[BotSDK] Reconnected successfully after ${this.reconnectAttempt} attempt(s)`);
+            } catch (e) {
+                // connect() failure will trigger onclose which will call scheduleReconnect again
+                console.log(`[BotSDK] Reconnection attempt ${this.reconnectAttempt} failed`);
+            }
+        }, delay);
+    }
+
     async disconnect(): Promise<void> {
+        // Mark as intentional so we don't auto-reconnect
+        this.intentionalDisconnect = true;
+
+        // Cancel any pending reconnect
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+
         if (this.ws) {
             this.ws.close();
             this.ws = null;
         }
         this.connectPromise = null;
+        this.reconnectAttempt = 0;
+        this.setConnectionState('disconnected');
     }
 
     isConnected(): boolean {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    }
+
+    getConnectionState(): ConnectionState {
+        return this.connectionState;
+    }
+
+    getReconnectAttempt(): number {
+        return this.reconnectAttempt;
+    }
+
+    /**
+     * Subscribe to connection state changes.
+     * Listener receives the new state and (for 'reconnecting') the attempt number.
+     * Returns an unsubscribe function.
+     */
+    onConnectionStateChange(listener: (state: ConnectionState, attempt?: number) => void): () => void {
+        this.connectionListeners.add(listener);
+        return () => this.connectionListeners.delete(listener);
+    }
+
+    /**
+     * Wait for the SDK to be connected.
+     * Resolves immediately if already connected, otherwise waits for reconnection.
+     * Rejects if connection fails after max retries or timeout.
+     */
+    async waitForConnection(timeout: number = 60000): Promise<void> {
+        if (this.isConnected()) {
+            return;
+        }
+
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                unsubscribe();
+                reject(new Error('waitForConnection timed out'));
+            }, timeout);
+
+            const unsubscribe = this.onConnectionStateChange((state) => {
+                if (state === 'connected') {
+                    clearTimeout(timeoutId);
+                    unsubscribe();
+                    resolve();
+                } else if (state === 'disconnected') {
+                    // Disconnected state means reconnection gave up
+                    clearTimeout(timeoutId);
+                    unsubscribe();
+                    reject(new Error('Connection failed'));
+                }
+            });
+        });
     }
 
     // ============ State Access (Synchronous) ============
@@ -247,8 +387,14 @@ export class BotSDK {
     // These resolve when the game ACKNOWLEDGES the action (fast)
 
     private async sendAction(action: BotAction): Promise<ActionResult> {
+        // If reconnecting, wait for connection to be restored
+        if (this.connectionState === 'reconnecting') {
+            console.log(`[BotSDK] Waiting for reconnection before sending action: ${action.type}`);
+            await this.waitForConnection();
+        }
+
         if (!this.isConnected()) {
-            throw new Error('Not connected');
+            throw new Error(`Not connected (state: ${this.connectionState})`);
         }
 
         const actionId = `act-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

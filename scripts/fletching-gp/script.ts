@@ -1,37 +1,31 @@
 /**
  * Fletching GP Maximizer
  *
- * Goal: Maximize GP earned in 5 minutes via fletching and selling unstrung bows
- *
- * Strategy:
- * - Chop normal trees for logs
- * - Fletch logs into best available product:
- *   - Level 1-4: Arrow shafts (sell for ~1gp each, get 15 per log)
- *   - Level 5-9: Shortbow (u) (sell for ~5gp each)
- *   - Level 10+: Longbow (u) (sell for ~10gp each)
- * - Sell products at Lumbridge general store
- * - Track total GP earned as reward signal
- *
- * Plain save: Just bronze axe + knife, no skill boosts
+ * Strategy: Normal logs until level 20, then oaks
+ * - Chop normal trees -> fletch longbows -> sell
+ * - At level 20+, switch to oak trees -> oak shortbows/longbows
  */
 
 import { runScript, type ScriptContext } from '../script-runner';
 import { Items, Locations } from '../../test/utils/save-generator';
 
 // Locations
-const TREES_AREA = { x: 3200, z: 3230 }; // Trees between castle and general store
-const GENERAL_STORE = Locations.LUMBRIDGE_SHOP; // (3212, 3246)
+const NORMAL_TREES_AREA = { x: 3200, z: 3230 };
+const OAK_TREES_AREA = { x: 3203, z: 3243 };
+const GENERAL_STORE = Locations.LUMBRIDGE_SHOP;
 
-// Inventory management - balanced batch size for good GP
-const LOGS_BEFORE_FLETCH = 6; // Fletch after 6 logs
-const MIN_LOGS_TO_FLETCH = 4;  // Minimum logs before fletching
+const LOGS_BEFORE_FLETCH = 6;
+const MIN_LOGS_TO_FLETCH = 4;
 
-// Products and their requirements
-type FletchProduct = 'arrow shafts' | 'short bow' | 'long bow';
+type FletchProduct = 'arrow shafts' | 'short bow' | 'long bow' | 'oak short bow' | 'oak long bow';
 
-function getBestProduct(fletchingLevel: number): FletchProduct {
-    // Note: Normal logs can only make arrow shafts and shortbows
-    // Longbows require oak logs or better
+function getBestProduct(fletchingLevel: number, logType: 'normal' | 'oak'): FletchProduct | null {
+    if (logType === 'oak') {
+        if (fletchingLevel >= 25) return 'oak long bow';
+        if (fletchingLevel >= 20) return 'oak short bow';
+        return null; // Can't fletch oaks below 20
+    }
+    if (fletchingLevel >= 10) return 'long bow';
     if (fletchingLevel >= 5) return 'short bow';
     return 'arrow shafts';
 }
@@ -43,10 +37,16 @@ interface GPTracker {
     itemsSold: number;
     logsChopped: number;
     productsFletched: number;
+    sellCycles: number;
+    gpPerCycle: number[];  // Track GP earned each sell cycle
 }
 
 function getFletchingLevel(ctx: ScriptContext): number {
     return ctx.state()?.skills.find(s => s.name === 'Fletching')?.baseLevel ?? 1;
+}
+
+function getWoodcuttingLevel(ctx: ScriptContext): number {
+    return ctx.state()?.skills.find(s => s.name === 'Woodcutting')?.baseLevel ?? 1;
 }
 
 function getGP(ctx: ScriptContext): number {
@@ -54,15 +54,18 @@ function getGP(ctx: ScriptContext): number {
     return coins?.count ?? 0;
 }
 
-function countLogs(ctx: ScriptContext): number {
+function countLogs(ctx: ScriptContext): { normal: number; oak: number; total: number } {
     // Logs don't stack - count all log items in inventory
     const inv = ctx.state()?.inventory ?? [];
-    return inv.filter(i => /^logs$/i.test(i.name)).length;
+    const normal = inv.filter(i => /^logs$/i.test(i.name)).length;
+    const oak = inv.filter(i => /^oak logs$/i.test(i.name)).length;
+    return { normal, oak, total: normal + oak };
 }
 
 function countSellableItems(ctx: ScriptContext): number {
     const inv = ctx.state()?.inventory ?? [];
     // Count arrow shafts (15 per log) and unstrung bows (1 per log)
+    // Include oak shortbow and oak longbow
     return inv.filter(i =>
         /arrow shaft|shortbow|longbow/i.test(i.name)
     ).reduce((sum, i) => sum + i.count, 0);
@@ -76,22 +79,23 @@ function getInventoryFreeSlots(ctx: ScriptContext): number {
 function logStats(ctx: ScriptContext, tracker: GPTracker, label: string): void {
     const level = getFletchingLevel(ctx);
     const gpEarned = tracker.currentGP - tracker.startingGP;
-    ctx.log(`[${label}] GP earned: ${gpEarned} | Fletching: ${level} | Logs: ${tracker.logsChopped} | Fletched: ${tracker.productsFletched} | Sold: ${tracker.itemsSold}`);
+    const cyclesStr = tracker.gpPerCycle.length > 0
+        ? ` | Cycles: [${tracker.gpPerCycle.join(', ')}]`
+        : '';
+    ctx.log(`[${label}] GP: ${gpEarned} | Fletch: ${level} | Logs: ${tracker.logsChopped} | Fletched: ${tracker.productsFletched} | Sold: ${tracker.itemsSold}${cyclesStr}`);
 }
 
 runScript({
     name: 'fletching-gp',
-    goal: 'Maximize GP from fletching and selling unstrung bows in 5 minutes',
-    saveConfig: {
-        position: TREES_AREA,
+    goal: 'Maximize GP from fletching and selling longbows in 10 minutes',
+    preset: {
+        position: { x: 3224, z: 3205 },  // Near knife spawn SE of castle
         inventory: [
             { id: Items.BRONZE_AXE, count: 1 },
-            { id: Items.KNIFE, count: 1 },
         ],
-        skills: { Fletching: 5 }, // Start at level 5 to make shortbows immediately
     },
-    timeLimit: 5 * 60 * 1000, // 5 minutes
-    stallTimeout: 45_000,     // 45 seconds (some operations take time)
+    timeLimit: 10 * 60 * 1000,
+    stallTimeout: 45_000,
 }, async (ctx) => {
     const { bot, sdk, log, progress } = ctx;
 
@@ -102,9 +106,41 @@ runScript({
         itemsSold: 0,
         logsChopped: 0,
         productsFletched: 0,
+        sellCycles: 0,
+        gpPerCycle: [],
     };
 
     logStats(ctx, tracker, 'START');
+
+    // First: Find and pick up a knife from the ground
+    const hasKnife = () => !!sdk.findInventoryItem(/knife/i);
+    if (!hasKnife()) {
+        log('Looking for knife on ground...');
+
+        // Try to find and pickup knife
+        for (let attempt = 0; attempt < 5 && !hasKnife(); attempt++) {
+            const knife = sdk.findGroundItem(/knife/i);
+            if (knife) {
+                log(`Found knife at (${knife.x}, ${knife.z}), picking up...`);
+                const result = await bot.pickupItem(knife);
+                if (result.success) {
+                    log('Got knife!');
+                    progress();
+                    break;
+                } else {
+                    log(`Pickup failed: ${result.message}`);
+                }
+            } else {
+                log(`No knife visible (attempt ${attempt + 1})`);
+            }
+            await sleep(1000);
+            progress();
+        }
+
+        if (!hasKnife()) {
+            log('WARNING: No knife found - will try to continue anyway');
+        }
+    }
 
     // Main loop: Chop -> Fletch -> Sell
     while (true) {
@@ -112,6 +148,16 @@ runScript({
         if (!state?.player) {
             await sleep(500);
             continue;
+        }
+
+        // Eat if HP is low (survive random events)
+        if (state.player.hp < state.player.maxHp - 3) {
+            const food = sdk.findInventoryItem(/bread|shrimp|fish/i);
+            if (food) {
+                log(`HP low (${state.player.hp}/${state.player.maxHp}), eating ${food.name}...`);
+                await bot.eat(food);
+                progress();
+            }
         }
 
         // Close shop first if open (before checking dialogs)
@@ -134,7 +180,7 @@ runScript({
             // If STILL open after 5 attempts, walk away to force close
             if (ctx.state()?.shop.isOpen) {
                 log('Shop stuck, walking away to force close...');
-                await bot.walkTo(TREES_AREA.x, TREES_AREA.z);
+                await bot.walkTo(NORMAL_TREES_AREA.x, NORMAL_TREES_AREA.z);
             }
             progress();
             continue;
@@ -149,13 +195,13 @@ runScript({
         }
 
         const freeSlots = getInventoryFreeSlots(ctx);
-        const logCount = countLogs(ctx);
+        const logs = countLogs(ctx);
         const sellableCount = countSellableItems(ctx);
         const fletchLevel = getFletchingLevel(ctx);
 
         // Log state every time we have logs (for debugging)
-        if (logCount >= MIN_LOGS_TO_FLETCH) {
-            log(`Decision: ${logCount} logs, ${sellableCount} sellable, ${freeSlots} free slots`);
+        if (logs.total >= MIN_LOGS_TO_FLETCH) {
+            log(`Decision: ${logs.oak} oak + ${logs.normal} normal logs, ${sellableCount} sellable, ${freeSlots} free slots`);
         }
 
         // Decision tree:
@@ -180,8 +226,8 @@ runScript({
             }
             progress();
 
-            // Sell all fletched products - shortbows first (more valuable)
-            const sellPatterns = [/shortbow/i, /longbow/i, /arrow shaft/i];
+            // Sell all fletched products - oak longbows first (most valuable)
+            const sellPatterns = [/oak longbow/i, /oak shortbow/i, /longbow/i, /shortbow/i, /arrow shaft/i];
             const gpBefore = getGP(ctx);
             let totalItemsSold = 0;
 
@@ -219,7 +265,18 @@ runScript({
             }
 
             const gpAfter = getGP(ctx);
-            log(`Sell cycle complete: +${gpAfter - gpBefore} GP, ${totalItemsSold} items`);
+            const cycleGP = gpAfter - gpBefore;
+            tracker.sellCycles++;
+            tracker.gpPerCycle.push(cycleGP);
+            log(`Sell cycle #${tracker.sellCycles} complete: +${cycleGP} GP, ${totalItemsSold} items`);
+
+            // Log saturation warning if GP per cycle is dropping significantly
+            if (tracker.gpPerCycle.length >= 2) {
+                const lastCycleGP = tracker.gpPerCycle[tracker.gpPerCycle.length - 2];
+                if (cycleGP < lastCycleGP * 0.6) {
+                    log(`⚠️ Shop saturation detected: GP dropped from ${lastCycleGP} to ${cycleGP}`);
+                }
+            }
 
             // Dismiss any level-up dialogs that appeared during selling
             for (let i = 0; i < 5; i++) {
@@ -251,7 +308,7 @@ runScript({
             logStats(ctx, tracker, 'AFTER SELL');
             progress();
 
-        } else if (logCount >= MIN_LOGS_TO_FLETCH && (logCount >= LOGS_BEFORE_FLETCH || freeSlots <= 3)) {
+        } else if (logs.total >= MIN_LOGS_TO_FLETCH && (logs.total >= LOGS_BEFORE_FLETCH || freeSlots <= 3)) {
             // === FLETCHING PHASE ===
             // First dismiss any dialogs
             for (let i = 0; i < 3; i++) {
@@ -263,8 +320,19 @@ runScript({
                 }
             }
 
-            const product = getBestProduct(fletchLevel);
-            log(`Fletching ${logCount} logs into ${product} (level ${fletchLevel})...`);
+            // Use oak logs only if we can fletch them (level 20+)
+            const useOakLogs = fletchLevel >= 20 && logs.oak > 0;
+            const logType = useOakLogs ? 'oak' : 'normal';
+
+            // Skip if we only have oak logs but can't fletch them
+            if (logs.normal === 0 && !useOakLogs) {
+                log(`Can't fletch oak logs at level ${fletchLevel}, need 20+`);
+                await sleep(500);
+                continue;
+            }
+
+            const product = getBestProduct(fletchLevel, logType)!;
+            log(`Fletching ${logType} logs into ${product} (level ${fletchLevel})...`);
 
             // Fletch all logs with timeout protection
             let fletchedThisBatch = 0;
@@ -272,7 +340,7 @@ runScript({
             const fletchStart = Date.now();
             const maxFletchTime = 60_000; // 60 seconds max for fletching
 
-            while (countLogs(ctx) > 0 && Date.now() - fletchStart < maxFletchTime) {
+            while (countLogs(ctx).total > 0 && Date.now() - fletchStart < maxFletchTime) {
                 // Dismiss any dialogs first
                 if (ctx.state()?.dialog.isOpen) {
                     await sdk.sendClickDialog(0);
@@ -280,7 +348,15 @@ runScript({
                     continue;
                 }
 
-                const currentProduct = getBestProduct(getFletchingLevel(ctx));
+                const currentLogs = countLogs(ctx);
+                const currentLevel = getFletchingLevel(ctx);
+                const currentUseOak = currentLevel >= 20 && currentLogs.oak > 0;
+                const currentLogType = currentUseOak ? 'oak' : 'normal';
+
+                // Stop if we only have oaks but can't fletch them
+                if (currentLogs.normal === 0 && !currentUseOak) break;
+
+                const currentProduct = getBestProduct(currentLevel, currentLogType)!;
                 const fletchResult = await bot.fletchLogs(currentProduct);
                 if (fletchResult.success) {
                     fletchedThisBatch++;
@@ -312,13 +388,16 @@ runScript({
 
         } else {
             // === CHOPPING PHASE ===
-            // Find and chop a tree
-            const tree = sdk.findNearbyLoc(/^tree$/i);
+            // Normal trees until level 20, then oaks
+            const useOaks = fletchLevel >= 20;
+            const tree = useOaks
+                ? sdk.findNearbyLoc(/^oak$/i) ?? sdk.findNearbyLoc(/^tree$/i)
+                : sdk.findNearbyLoc(/^tree$/i);
 
             if (!tree) {
-                // Walk to trees area
-                log('No trees nearby, walking to trees area...');
-                await bot.walkTo(TREES_AREA.x, TREES_AREA.z);
+                const targetArea = useOaks ? OAK_TREES_AREA : NORMAL_TREES_AREA;
+                log(`No trees nearby, walking to ${useOaks ? 'oak' : 'normal'} trees...`);
+                await bot.walkTo(targetArea.x, targetArea.z);
                 progress();
                 await sleep(500);
                 continue;

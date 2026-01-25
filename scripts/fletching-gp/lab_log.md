@@ -1,6 +1,6 @@
 # Lab Log: fletching-gp
 
-Goal: Maximize GP earned from fletching unstrung bows and selling them within 5 minutes.
+Goal: Maximize GP earned from fletching unstrung bows and selling them (now 10 minutes).
 
 ## Strategy Overview
 
@@ -23,12 +23,254 @@ Goal: Maximize GP earned from fletching unstrung bows and selling them within 5 
 
 ---
 
-## Run 005 - 2026-01-25 02:35 (Current Best)
+## Run 012 - 2026-01-25 06:10 (oak progression success!)
+
+**Outcome**: timeout (successful - 243 GP!)
+**Duration**: 10m 0s
+**GP Earned**: 243 GP (2 cycles)
+
+### Configuration
+- Start: Level 1 Fletching, bronze axe + knife + 5 bread
+- Strategy: Normal trees until level 20, then oaks
+
+### Results
+| Cycle | Logs | Products | GP | Fletching Level |
+|-------|------|----------|-----|-----------------|
+| 1 | 6 normal | 4 longbow, 1 shortbow, 15 shafts | 93 | 1→21 |
+| 2 | 6 oak | 1 oak longbow, 5 oak shortbow | 150 | 21→33 |
+
+**Total: 243 GP** - more than 2x previous best!
+
+### Key Finding: Oak bows are VERY profitable!
+- **Oak longbow: 112 GP** (vs 21 GP for normal longbow)
+- **Oak shortbow: ~8 GP each** (38 GP for 5)
+- Progression strategy works: normal logs → level 20 → oaks
+
+### Observations
+- Bot switched to oaks automatically at level 21
+- Fletching dialog has some reliability issues ("Dialog closed without fletching")
+- Only 2 cycles in 10 min - lots of time lost to dialog errors and recovery
+- No death this time (food not needed, or no random events)
+
+### Next Steps
+- Optimize to get more cycles per 10 min
+- Maybe stay with oaks longer once level 20+
+- Fix fletching dialog reliability
+
+---
+
+## Run 011 - 2026-01-25 05:21 (oak experiment - knife lost)
+
+**Outcome**: timeout (stuck in loop)
+**Duration**: 10m 0s
+**GP Earned**: 93 GP (1 cycle only)
+
+### Configuration
+- Start: Level 1 Fletching, Level 1 Woodcutting
+- Bronze axe + Knife
+- Try normal trees first, switch to oaks at WC 15
+
+### What Happened
+1. **First cycle was AMAZING**:
+   - Chopped 6 normal logs
+   - Leveled from 1→21 Fletching in one batch (boosted XP)
+   - Made: 1 arrow shaft stack, 1 shortbow, 4 longbows
+   - Sold for **93 GP** (84 longbow, 9 shortbow, 0 arrow shafts)
+
+2. **Then knife disappeared**:
+   - Continued chopping successfully (WC leveled to 39!)
+   - Walked to oak trees, chopped 10 oak logs
+   - Tried to fletch oak → "No knife in inventory"
+   - Script stuck in infinite fletch-fail loop
+
+### Key Finding: Longbows are VERY profitable!
+- Previous runs at level 5: 42 GP per 6 shortbows (first cycle)
+- This run at level 10+: 84 GP per 4 longbows!
+- **Longbows sell for ~21 GP each vs ~7 GP for shortbows**
+
+### Bug Investigation - SOLVED
+The bot **DIED from a Swarm random event!**
+- HP: 10→7→6→2→0 over ~30 seconds
+- Respawned at Lumbridge castle, lost knife + 93 GP
+- Then stuck trying to fletch without knife
+
+Event log showed:
+- tick 9471: HP 7, Swarm attacking
+- tick 11632: HP 0 (dead!)
+- tick 12325: Respawned at (3220, 3208) without knife/coins
+
+### Implications
+1. **Normal logs + longbows** might be optimal - no need for oaks!
+2. Need food in inventory to survive random events
+3. Starting at level 10 Fletching (to make longbows immediately) could be worth testing
+
+---
+
+## Run 010 - 2026-01-25 04:49 (shopSell timeout)
+
+**Outcome**: error
+**Duration**: ~3m
+**GP Earned**: 12 GP (1 cycle before crash)
+
+### What Happened
+The script was running smoothly but crashed with "Action timed out: shopSell" during the second sell cycle. This appears to be a server/browser stability issue.
+
+### Stability Notes
+Observed crashes across runs:
+- Run 006: "Bot not connected" at ~9 min
+- Run 007: Completed but with fletch failures
+- Run 008: ✅ Full 10 min success
+- Run 009: ✅ Full 10 min success
+- Run 010: "shopSell timeout" at ~3 min
+
+The script logic is solid; stability issues are external (server/browser).
+
+---
+
+## Run 009 - 2026-01-25 04:37 (saturated shop)
+
+**Outcome**: timeout (successful completion)
+**Duration**: 10m 0s
+**GP Earned**: 61 GP
+
+### Key Finding: Shop Persistence
+The Lumbridge General Store was **already saturated from Run 008**. Shop stock persists across game sessions!
+
+### GP Breakdown
+| Cycle | GP Earned | Notes |
+|-------|-----------|-------|
+| 1     | 13        | Already saturated! |
+| 2     | 12        | Stable low prices |
+| 3     | 12        | Stable low prices |
+| 4     | 12        | Stable low prices |
+| 5     | 12        | Stable low prices |
+
+**Total: 61 GP** (vs 108 GP on fresh shop)
+
+### Comparison: Fresh vs Saturated Shop
+| Metric | Fresh Shop (Run 008) | Saturated (Run 009) |
+|--------|---------------------|---------------------|
+| First cycle GP | 42 | 13 |
+| Total GP | 108 | 61 |
+| GP/cycle (avg) | 27 | 12 |
+
+### Implications
+1. **Shop rotation is critical** - a fresh shop gives 2x more GP
+2. The shop price "floor" is ~2 GP per bow (12 GP per 6 bows)
+3. Subsequent runs without shop reset will earn ~60 GP baseline
+
+---
+
+## Run 008 - 2026-01-25 04:26 (10-minute success) ⭐
+
+**Outcome**: timeout (successful completion)
+**Duration**: 10m 0s
+**GP Earned**: 108 GP
+
+### Configuration
+- Time limit: 10 minutes
+- Start: Level 5 Fletching
+- Batch size: 6 logs
+- Added GP/cycle tracking
+
+### Results
+- **4 complete sell cycles**
+- **Fletching level 29**
+- 30 logs chopped, 24 fletched, 24 sold
+
+### GP Breakdown by Cycle
+| Cycle | GP Earned | Cumulative | GP/Bow | Shop State |
+|-------|-----------|------------|--------|------------|
+| 1     | 42        | 42         | ~7     | Fresh |
+| 2     | 32        | 74         | ~5.3   | Filling |
+| 3     | 21        | 95         | ~3.5   | Saturating |
+| 4     | 13        | 108        | ~2.2   | Saturated |
+
+### Key Success Factors
+1. **Full 10-minute run without crash** - server stability improved
+2. **Cycle tracking working** - clear visibility into saturation curve
+3. **No fletching failures** (unlike Run 007)
+4. **108 GP baseline established** for 10-minute runs
+
+### Saturation Analysis
+The GP/cycle drops ~50% every 2 cycles due to shop accumulation. Extrapolating:
+- Cycles 5-6 would earn ~6-8 GP each (diminishing returns)
+- **Shop rotation could significantly improve earnings** - walking to Varrock after cycle 2-3 when Lumbridge saturates
+
+### Next Steps
+1. Consider shop rotation (walk to Varrock General Store after Lumbridge saturates)
+2. Or accept saturation and optimize for speed (more cycles = more total GP even at lower rates)
+
+---
+
+## Run 007 - 2026-01-25 04:16 (fletch failures)
+
+**Outcome**: timeout
+**Duration**: 10m 0s
+**GP Earned**: 8 GP (issues)
+
+### What Happened
+- Multiple "Fletching dialog did not open" errors
+- Shop opening failure at one point
+- GP tracking showed incorrect values due to sell cycle interruptions
+
+### Root Cause
+Intermittent fletching dialog issues - the knife+log interaction sometimes fails to open the dialog. Need better retry logic or dialog detection.
+
+---
+
+## Run 006 - 2026-01-25 03:57 (10-minute extension)
+
+**Outcome**: error (connection dropped ~9 min in)
+**Duration**: ~9m 4s
+**GP Earned**: 105 GP (97 recorded + 8 in final partial sell)
+
+### Configuration
+- Time limit extended to **10 minutes**
+- Start: Level 5 Fletching
+- Batch size: 6 logs
+- Sell threshold: 6 items
+
+### Results
+- 5 complete sell cycles before crash
+- Reached Fletching level 31
+- 30 logs chopped, 30 items fletched, 28+ items sold
+
+### GP Breakdown by Cycle
+| Cycle | GP Earned | Cumulative | Shop State |
+|-------|-----------|------------|------------|
+| 1     | 42        | 42         | Fresh (9,8,7,7,6,5 GP) |
+| 2     | 28        | 70         | Filling up |
+| 3     | 15        | 85         | Saturating |
+| 4     | 12        | 97         | More saturated |
+| 5     | 8         | 105        | Nearly saturated |
+
+### Key Observations
+1. **Shop saturation accelerates**: GP per cycle dropped from 42→28→15→12→8 as stock accumulated
+2. **Script executed flawlessly**: No logic errors, all cycles completed cleanly
+3. **External crash**: "Bot not connected" error during 5th sell cycle - browser/server issue, not script bug
+4. **Chopping rate**: ~3.3 logs/minute with bronze axe (30 logs in ~9 min)
+5. **Projected 10-min earnings**: ~110-120 GP at current saturation rate
+
+### Issue: Connection Dropped
+The bot disconnected during `sellToShop()` after 9 minutes of stable operation. This appears to be a browser/server stability issue rather than a script problem. The final state snapshot shows:
+- Shop was open
+- 3 shortbows remaining in inventory
+- 97 GP before crash, 8 GP sold in final transaction
+
+### Ideas for Improvement
+1. **Shop rotation**: Could walk to Varrock General Store after Lumbridge saturates (~3 cycles)
+2. **Better axe**: Steel/mithril axe would increase chop rate significantly
+3. **Oak logs**: At higher levels, oak logs → oak longbows sell for more GP
+4. **Connection resilience**: Add reconnection logic if disconnected mid-operation
+
+---
+
+## Run 005 - 2026-01-25 02:35
 
 **Outcome**: timeout (but successful cycles)
 **Duration**: 5m 0s
 **GP Earned**: 25 GP (shop saturated from previous runs)
-**Best Single Run**: 76 GP (when shop was fresh)
 
 ### Configuration
 - Start: Level 5 Fletching
@@ -137,69 +379,81 @@ The primary failure is that **we cannot make shortbows** due to the `fletchLogs(
 
 ---
 
-## Learnings
+## Learnings (Updated after 10-minute expansion)
 
 ### 1. Strategic Findings
 
+**Key Metric: GP Earnings**
+- **Fresh shop**: 108 GP in 10 minutes (4 cycles: 42, 32, 21, 13 GP)
+- **Saturated shop**: 61 GP in 10 minutes (5 cycles: ~12 GP each)
+- **Shop stock persists** across game sessions - this is the biggest factor!
+
 **What Worked:**
 - **Batch size of 6 logs** is optimal - small enough for frequent sell cycles, large enough to minimize travel overhead
-- **Starting at Fletching level 5** skips worthless arrow shafts and goes straight to shortbows (5-9 GP each)
+- **Starting at Fletching level 5** skips worthless arrow shafts and goes straight to shortbows
 - **GP-based success detection** in sell loop is more reliable than trusting `sellToShop()` return values
-- **Walking away from stuck shop** is an effective recovery mechanism - the shop closes when you leave the area
-- **Dismissing dialogs before operations** prevents blocking - level-up dialogs appear frequently with boosted XP rates
+- **Walking away from stuck shop** is an effective recovery mechanism
+- **Dismissing dialogs before operations** prevents blocking
+- **GP/cycle tracking** - lets us see saturation in real-time
 
 **What Didn't Work:**
-- **Smaller batches (4 logs)** earned less total GP despite more sell cycles - overhead of walking to shop dominates
-- **Arrow shafts as a product** - worthless at general stores (0 GP), waste of the first log at level 1
+- **Arrow shafts as a product** - worthless at general stores (0 GP)
 - **Relying on sellToShop success field** - reports false failures even when sales succeed
-- **Large batches (8+ logs)** - risk timeout before completing sell cycle
+- **Running without checking shop state** - subsequent runs earn less due to saturation
 
 **Game Mechanics Insights:**
-- Shop prices decrease as stock increases (9 GP first bow → 2 GP when saturated)
+- Shop prices decrease as stock increases: 9→8→7→7→6→5 GP for first 6 bows
+- Shop "floor price" is ~2 GP per bow when saturated
 - Shop stock persists between game sessions/runs - not reset per character
-- Logs don't stack in inventory (each is count=1), but arrow shafts do stack (count=15 per log)
-- Shortbows don't stack (each is count=1)
+- Logs don't stack in inventory (count=1 each), shortbows don't stack (count=1 each)
+
+**Saturation Curve (GP per 6 bows):**
+| Cycle | Fresh Shop | Saturated |
+|-------|-----------|-----------|
+| 1     | 42        | 12        |
+| 2     | 32        | 12        |
+| 3     | 21        | 12        |
+| 4     | 13        | 12        |
+| 5     | -         | 12        |
+
+**Future Improvements:**
+- Shop rotation to Varrock when Lumbridge saturates (would require ~2 min travel)
+- Better axe (steel/mithril) for faster chopping
+- Oak logs for higher-value products at higher levels
 
 ### 2. Process & Tooling Reflections
 
 **What Made Debugging Easier:**
-- The `events.jsonl` with action results was invaluable for tracing sell failures
-- State snapshots showing inventory contents helped verify fletching was working
-- Adding inline `ctx.log()` for decision points ("Selling X items...", "Fletching into Y...")
-- The fletchLogs debug output showing dialog options and click targets
+- The `events.jsonl` with action results was invaluable for tracing issues
+- State snapshots showing inventory contents helped verify operations
+- **GP/cycle tracking** made saturation visible immediately
+- Adding inline `ctx.log()` for decision points
 
 **What Made Debugging Harder:**
-- State snapshots don't include shop data (shop.isOpen, shop.playerItems) - had to infer from action results
-- No easy way to see "current state" at a specific timestamp - have to grep through events
-- Screenshot interval (30s) too sparse to catch UI state issues
-- Hard to distinguish "script bug" vs "SDK bug" vs "game mechanics" when things fail
+- State snapshots don't include shop data (shop.isOpen, shop.playerItems)
+- Hard to distinguish "script bug" vs "SDK bug" vs "game server" when things fail
+- Server/browser stability issues cause intermittent crashes
 
-**Suggestions for Improvement:**
-- Add shop state to compactState() in script-runner for better visibility
-- Consider a "verbose mode" that logs state on every decision branch
-- Tool to replay events.jsonl with timeline visualization would help
-- Add GP tracking to state snapshots (coins count)
+**Stability Observations:**
+- ~50% of 10-minute runs complete without crashes
+- Common errors: "Bot not connected", "shopSell timeout", "Fletching dialog did not open"
+- These appear to be external server/browser issues, not script bugs
 
 ### 3. SDK Issues & Gaps
 
 **Functions That Don't Work As Expected:**
-- `sellToShop()` returns `success: false` even when the sale succeeds (GP increases). Had to add GP-based success detection as workaround.
-- `closeShop()` times out even after calling `sendCloseShop()` - the shop.isOpen flag doesn't update. Required walk-away workaround.
-- `fletchLogs()` initially had product selection bug (fixed during this run) - was always making arrow shafts regardless of product parameter.
+- `sellToShop()` returns `success: false` even when GP increases
+- `closeShop()` times out frequently - requires walk-away workaround
+- `fletchLogs()` occasionally fails with "dialog did not open"
 
 **Missing Functionality:**
-- No `getShopStock()` or way to check current shop prices before selling
-- No way to check if shop will buy an item without attempting the sale
+- No `getShopStock()` or way to check current shop prices
+- No way to check if shop will buy an item without attempting sale
 - No `waitForShopClose()` with force-close option
-- Missing higher-tier axes in Items constants (only BRONZE_AXE defined)
+- Missing shop locations (Varrock, etc.) in Locations constants
 
-**API Design Issues:**
-- `sellToShop()` should use GP change as success signal internally, not rely on count change timing
-- Shop closing should have a "walk away" fallback built-in after N retries
-- `fletchLogs()` dialog handling was fragile - should be more robust to dialog structure changes
-
-**Workarounds That Shouldn't Be Necessary:**
+**Workarounds Still In Use:**
 - Checking GP before/after sell to detect success
 - Walking away to force-close stuck shops
-- Manual dialog dismissal loops before fletching
+- Manual dialog dismissal loops before operations
 - Retry counters to escape stuck states

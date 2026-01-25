@@ -288,7 +288,7 @@ async function walkWithWaypoints(
 runScript({
     name: 'mining-trainer',
     goal: 'Maximize Mining level in 5 minutes',
-    preset: TestPresets.TUTORIAL_COMPLETE,  // Honest start at Lumbridge
+    preset: TestPresets.LUMBRIDGE_SPAWN,  // Standard post-tutorial start
     timeLimit: 5 * 60 * 1000,  // 5 minutes
     stallTimeout: 45_000,      // 45 seconds (mining can be slow)
 }, async (ctx) => {

@@ -28,6 +28,18 @@ Hypothesize → Implement → Run → Observe → Record in lab_log → Improve 
 6. **Improve** - Fix issues, optimize approach
 7. **Repeat**
 
+## Autonomous Testing
+
+**Scripts must be run and tested, not just written.** The agent should:
+
+1. **Run the script** after writing it using `bun scripts/<name>/script.ts`
+2. **Observe the output** - watch for errors, stalls, timeouts, or unexpected behavior
+3. **Analyze what happened** - read the run logs, check events.jsonl if needed
+4. **Fix issues immediately** - don't wait for user feedback on obvious problems
+5. **Re-run until stable** - a script isn't "done" until it runs successfully
+
+This is a closed-loop process. Writing code without running it is incomplete work. The goal is working automation, not just code that compiles.
+
 ## Directory Structure
 
 ```

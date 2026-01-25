@@ -373,3 +373,78 @@ The puppeteer connection keeps closing unexpectedly:
 - "ConnectionClosedError: Connection closed"
 - Happens after variable time (5-10 minutes)
 - Not related to script logic - infrastructure issue
+
+---
+
+## Run 005 - 2026-01-25 (Al Kharid Journey!)
+
+**Goal**: Train at Lumbridge until Combat Level 15, then travel to Al Kharid for better training.
+
+### New Strategy
+
+1. **Balanced training** - Cycle combat styles every 2 kills (Attack → Strength → Defence)
+2. **Combat level trigger** - Travel to Al Kharid at Combat Level 15
+3. **Gate handling** - Sell bones for 10gp toll if needed
+4. **Al Kharid training** - Buy kebabs for food, train on warriors/men
+
+### Results
+
+**Outcome**: TIMEOUT (ran full 10 minutes) - Successfully reached Al Kharid!
+
+| Metric | Run 004 | Run 005 | Notes |
+|--------|---------|---------|-------|
+| Time limit | 5 min | 10 min | Extended |
+| Combat Level | 16 | 17 | Similar |
+| Kills counted | 4 | 8 | Includes Al Kharid training |
+| Location | Lumbridge | **Al Kharid** | **Made it!** |
+| Training style | Defence only | Balanced | All 3 melee stats |
+| Gate passed | N/A | **Yes** | Toll paid successfully |
+| Scimitar bought | N/A | No | Not enough coins (5/112) |
+| Kebabs bought | N/A | No | Wrong NPC found (Zeke) |
+
+### What Worked
+
+1. **Gate passage** - Successfully navigated Al Kharid toll gate on attempt 4-5
+2. **Combat style cycling** - XP distributed across Attack, Strength, and Defence
+3. **Phase transitions** - Lumbridge → Upgrading → Al Kharid worked correctly
+4. **Fallback targeting** - When warriors too strong, switched to Men
+
+### Issues Found
+
+1. **Kebab shop location** - Script found Zeke (scimitar shop) instead of Karim
+   - Fixed: Updated coordinates to (3273, 3181)
+
+2. **Not enough coins for scimitar** - Only had 5gp after toll (needed 112)
+   - Goblins/bones don't provide enough gold for purchases
+   - Consider: Start with coins in preset, or raise combat level trigger
+
+3. **Warriors hit hard** - Ran out of food quickly, had to fight Men instead
+   - Without kebabs, survival is difficult against level 9 warriors
+
+### XP Distribution Example
+
+From one run:
+- Attack: Level 22-26 (6000-8800 XP)
+- Strength: Level 1-19 (0-4400 XP)
+- Defence: Level 1-13 (0-2000 XP)
+- Hitpoints: Level 19-21 (4000-5200 XP)
+
+### Combat Style Rotation
+
+Working correctly:
+```
+Kill 0-1: Stab (Attack)
+Kill 2-3: Lunge (Strength)
+Kill 4-5: Block (Defence)
+Kill 6-7: Stab (Attack)
+...
+```
+
+### Next Steps
+
+- [ ] Fix kebab shop NPC detection
+- [ ] Consider raising combat level trigger to 20 (more coins/bones)
+- [ ] Add coin collection priority over bones
+- [ ] Test with preset that includes starting coins
+
+---

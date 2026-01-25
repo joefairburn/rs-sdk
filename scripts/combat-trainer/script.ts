@@ -4,12 +4,11 @@
  * Goal: Maximize Attack + Strength + Defence + Hitpoints levels over 10 minutes.
  *
  * Strategy:
- * - Phase 1: Train at Lumbridge goblins until Combat Level 20 (Defensive style)
- * - Phase 2: Walk through Al Kharid gate (10gp toll), buy iron scimitar + kebabs
- * - Phase 3: Train at Al Kharid warriors (better XP, better drops)
- * - Pick up bones/coins as loot
- * - Eat food (kebabs) if HP drops low
- * - Track XP gains and combat events
+ * - Phase 1: Kill cows at Lumbridge cow field, collect hides (~50 needed)
+ * - Phase 2: Sell hides at Lumbridge general store for ~130gp
+ * - Phase 3: Pass through Al Kharid gate (10gp toll), buy iron scimitar (112gp)
+ * - Phase 4: Return to cow field and train with iron scimitar
+ * - Cycle combat styles for balanced Attack/Strength/Defence training
  */
 
 import { runScript, TestPresets } from '../script-runner';
@@ -27,19 +26,17 @@ const COMBAT_STYLES = {
 
 // Training locations
 const LOCATIONS = {
-    LUMBRIDGE_GOBLINS: { x: 3245, z: 3235 },  // Goblin spawn east of Lumbridge
-    ALKHARID_GATE: { x: 3268, z: 3227 },       // Gate to Al Kharid
+    COW_FIELD: { x: 3253, z: 3269 },           // Lumbridge cow field (east of castle)
+    LUMBRIDGE_GENERAL_STORE: { x: 3211, z: 3247 },  // To sell hides
+    ALKHARID_GATE: { x: 3268, z: 3228 },       // Gate to Al Kharid
     ALKHARID_SCIMITAR_SHOP: { x: 3287, z: 3186 },  // Zeke's shop
-    ALKHARID_KEBAB_SHOP: { x: 3273, z: 3180 },     // Karim's kebab shop
-    ALKHARID_WARRIORS: { x: 3293, z: 3174 },       // Al Kharid warriors (combat level 9)
 };
 
 // Upgrade config
-const COMBAT_LEVEL_TRIGGER = 15;  // Combat level to trigger Al Kharid trip
 const IRON_SCIMITAR_PRICE = 112;
-const KEBAB_PRICE = 1;
 const GATE_TOLL = 10;
-const KEBABS_TO_BUY = 10;  // Buy 10 kebabs for food
+const COINS_NEEDED = IRON_SCIMITAR_PRICE + GATE_TOLL + 10;  // 132gp buffer
+const HIDES_NEEDED = 50;  // ~2-3gp each = 100-150gp
 
 // Track combat statistics
 interface CombatStats {
@@ -49,30 +46,23 @@ interface CombatStats {
     startXp: { atk: number; str: number; def: number; hp: number };
     foodEaten: number;
     looted: number;
+    hidesCollected: number;
     coinsCollected: number;
     weaponUpgraded: boolean;
-    phase: 'lumbridge' | 'upgrading' | 'alkharid';
-    lastStatsLog: number;  // Last kills count when we logged stats
+    phase: 'farming' | 'selling' | 'buying' | 'training';  // Cow-based phases
+    lastStatsLog: number;
 }
 
 /**
- * Find the best target to attack based on current phase:
- * - Lumbridge phase: Kill goblins
- * - Al Kharid phase: Kill warriors (or men if no warriors)
- *
- * Filters out NPCs already in combat with someone else.
+ * Find the best cow to attack.
+ * Cows are level 2, easy targets that drop valuable hides.
  */
-function findBestTarget(ctx: ScriptContext, phase: 'lumbridge' | 'alkharid'): NearbyNpc | null {
+function findBestTarget(ctx: ScriptContext): NearbyNpc | null {
     const state = ctx.state();
     if (!state) return null;
 
-    // Target pattern based on phase
-    const targetPattern = phase === 'lumbridge'
-        ? /goblin/i
-        : /al.?kharid warrior|warrior|man/i;
-
     const targets = state.nearbyNpcs
-        .filter(npc => targetPattern.test(npc.name))
+        .filter(npc => /^cow$/i.test(npc.name))  // Only cows (not "cow calf")
         .filter(npc => npc.options.some(o => /attack/i.test(o)))
         // Filter out NPCs already fighting someone else
         .filter(npc => {
@@ -83,12 +73,6 @@ function findBestTarget(ctx: ScriptContext, phase: 'lumbridge' | 'alkharid'): Ne
             // Prefer NPCs not in combat
             if (a.inCombat !== b.inCombat) {
                 return a.inCombat ? 1 : -1;
-            }
-            // Prefer warriors over men in Al Kharid
-            if (phase === 'alkharid') {
-                const aIsWarrior = /warrior/i.test(a.name) ? 0 : 1;
-                const bIsWarrior = /warrior/i.test(b.name) ? 0 : 1;
-                if (aIsWarrior !== bIsWarrior) return aIsWarrior - bIsWarrior;
             }
             // Then by distance
             return a.distance - b.distance;
@@ -111,27 +95,43 @@ function shouldEat(ctx: ScriptContext): boolean {
     return hp.level < hp.baseLevel * 0.5;
 }
 
-// Style rotation for balanced training
+// Style rotation for 2:3:2 ratio (Attack:Strength:Defence)
+// Strength-focused training for faster kills
 const STYLE_ROTATION = [
     { style: COMBAT_STYLES.ACCURATE, name: 'Stab (Attack)' },
+    { style: COMBAT_STYLES.ACCURATE, name: 'Stab (Attack)' },
     { style: COMBAT_STYLES.AGGRESSIVE, name: 'Lunge (Strength)' },
+    { style: COMBAT_STYLES.AGGRESSIVE, name: 'Lunge (Strength)' },
+    { style: COMBAT_STYLES.AGGRESSIVE, name: 'Lunge (Strength)' },
+    { style: COMBAT_STYLES.DEFENSIVE, name: 'Block (Defence)' },
     { style: COMBAT_STYLES.DEFENSIVE, name: 'Block (Defence)' },
 ];
 
+// Track style cycling
+let lastStyleChange = Date.now();
+let currentStyleIndex = 0;
+const STYLE_CYCLE_MS = 20_000;  // Change every 20 seconds (full rotation = 140s)
+
 /**
- * Cycle combat style every few kills for balanced Attack/Strength/Defence training.
+ * Cycle combat style for 2:3:2 Attack:Strength:Defence ratio.
+ * Time-based cycling since kill counting is unreliable.
  */
-async function cycleCombatStyle(ctx: ScriptContext, stats: CombatStats): Promise<void> {
+async function cycleCombatStyle(ctx: ScriptContext): Promise<void> {
     const state = ctx.state();
     const combatStyle = state?.combatStyle;
     if (!combatStyle) return;
 
-    // Cycle style every 2 kills for balanced training
-    const styleIndex = Math.floor(stats.kills / 2) % STYLE_ROTATION.length;
-    const target = STYLE_ROTATION[styleIndex]!;
+    // Check if it's time to switch styles
+    const now = Date.now();
+    if (now - lastStyleChange >= STYLE_CYCLE_MS) {
+        currentStyleIndex = (currentStyleIndex + 1) % STYLE_ROTATION.length;
+        lastStyleChange = now;
+    }
+
+    const target = STYLE_ROTATION[currentStyleIndex]!;
 
     if (combatStyle.currentStyle !== target.style) {
-        ctx.log(`Switching to ${target.name} style (kill #${stats.kills})`);
+        ctx.log(`Switching to ${target.name} style`);
         await ctx.sdk.sendSetCombatStyle(target.style);
         ctx.progress();
     }
@@ -246,75 +246,77 @@ async function waitForCombatEnd(
 }
 
 /**
- * Travel to Al Kharid, buy iron scimitar + kebabs, and stay for training.
- *
- * Steps:
- * 1. Sell bronze sword at Lumbridge general store (gets 10gp for toll)
- * 2. Walk to Al Kharid gate and pay toll
- * 3. Buy iron scimitar from Zeke's shop
- * 4. Buy kebabs from Karim's shop
- * 5. Walk to warrior area (stay there)
+ * Sell cow hides at Lumbridge general store.
  */
-async function travelToAlKharid(ctx: ScriptContext, stats: CombatStats): Promise<boolean> {
-    ctx.log('=== Starting Al Kharid Journey ===');
-    stats.phase = 'upgrading';
+async function sellHides(ctx: ScriptContext, stats: CombatStats): Promise<boolean> {
+    ctx.log('=== Selling Cow Hides ===');
+    stats.phase = 'selling';
 
-    // Step 1: Get 10gp for gate toll
-    // First check if we have enough coins from looting
-    let coins = ctx.sdk.findInventoryItem(/^coins$/i);
-    let coinCount = coins?.count ?? 0;
-    ctx.log(`Current coins: ${coinCount}`);
-
-    if (coinCount < GATE_TOLL) {
-        // Sell bones at general store to get coins
-        const bones = ctx.sdk.findInventoryItem(/^bones$/i);
-        if (!bones) {
-            ctx.warn('No coins or bones to sell for gate toll!');
-            stats.phase = 'lumbridge';
-            return false;
-        }
-
-        ctx.log(`Selling ${bones.count} bones at general store for gate toll...`);
-        await ctx.bot.walkTo(3211, 3247);  // Lumbridge general store
-        ctx.progress();
-
-        const shopResult = await ctx.bot.openShop(/shop.?keeper/i);
-        if (!shopResult.success) {
-            ctx.warn('Failed to open general store');
-            stats.phase = 'lumbridge';
-            return false;
-        }
-
-        // Sell all bones (each sells for ~1gp, need 10+)
-        const sellResult = await ctx.bot.sellToShop(/^bones$/i, bones.count);
-        if (!sellResult.success) {
-            ctx.warn(`Failed to sell bones: ${sellResult.message}`);
-            await ctx.bot.closeShop();
-            stats.phase = 'lumbridge';
-            return false;
-        }
-        ctx.log('Bones sold!');
-        await ctx.bot.closeShop();
-        ctx.progress();
-
-        // Re-check coins
-        coins = ctx.sdk.findInventoryItem(/^coins$/i);
-        coinCount = coins?.count ?? 0;
-        ctx.log(`Coins after selling: ${coinCount}`);
-
-        if (coinCount < GATE_TOLL) {
-            ctx.warn(`Still not enough coins (${coinCount}/${GATE_TOLL}), need more bones`);
-            stats.phase = 'lumbridge';
-            return false;
-        }
+    const hides = ctx.sdk.findInventoryItem(/^cowhide$/i);
+    if (!hides || hides.count === 0) {
+        ctx.warn('No cow hides to sell!');
+        stats.phase = 'farming';
+        return false;
     }
 
-    // Step 2: Walk to Al Kharid gate
-    ctx.log('Walking to Al Kharid gate...');
-    await ctx.bot.walkTo(3268, 3228);
+    ctx.log(`Walking to Lumbridge general store with ${hides.count} hides...`);
+    await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_GENERAL_STORE.x, LOCATIONS.LUMBRIDGE_GENERAL_STORE.z);
     ctx.progress();
 
-    // Step 3: Handle toll gate (from best practices - openDoor doesn't work)
+    const shopResult = await ctx.bot.openShop(/shop.?keeper/i);
+    if (!shopResult.success) {
+        ctx.warn('Failed to open general store');
+        stats.phase = 'farming';
+        return false;
+    }
+
+    // Sell all hides
+    const sellResult = await ctx.bot.sellToShop(/^cowhide$/i, hides.count);
+    if (!sellResult.success) {
+        ctx.warn(`Failed to sell hides: ${sellResult.message}`);
+        await ctx.bot.closeShop();
+        stats.phase = 'farming';
+        return false;
+    }
+
+    ctx.log(`Sold ${hides.count} cow hides!`);
+    await ctx.bot.closeShop();
+    ctx.progress();
+
+    // Check coins
+    const coins = ctx.sdk.findInventoryItem(/^coins$/i);
+    const coinCount = coins?.count ?? 0;
+    ctx.log(`Total coins: ${coinCount}`);
+
+    return true;
+}
+
+/**
+ * Buy iron scimitar from Al Kharid.
+ * 1. Pass through toll gate (10gp)
+ * 2. Buy iron scimitar from Zeke (112gp)
+ * 3. Return to cow field
+ */
+async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<boolean> {
+    ctx.log('=== Buying Iron Scimitar ===');
+    stats.phase = 'buying';
+
+    // Check we have enough coins
+    let coins = ctx.sdk.findInventoryItem(/^coins$/i);
+    let coinCount = coins?.count ?? 0;
+
+    if (coinCount < COINS_NEEDED) {
+        ctx.warn(`Not enough coins (${coinCount}/${COINS_NEEDED})`);
+        stats.phase = 'farming';
+        return false;
+    }
+
+    // Walk to Al Kharid gate
+    ctx.log('Walking to Al Kharid gate...');
+    await ctx.bot.walkTo(LOCATIONS.ALKHARID_GATE.x, LOCATIONS.ALKHARID_GATE.z);
+    ctx.progress();
+
+    // Handle toll gate
     ctx.log('Opening toll gate...');
     const gate = ctx.state()?.nearbyLocs.find(l => /gate/i.test(l.name));
     if (gate) {
@@ -325,7 +327,7 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CombatStats): Promise
         }
     }
 
-    // Handle gate dialog - click through until "Yes" option appears
+    // Handle gate dialog
     for (let i = 0; i < 20; i++) {
         const s = ctx.state();
         if (!s?.dialog.isOpen) {
@@ -338,69 +340,60 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CombatStats): Promise
             await ctx.sdk.sendClickDialog(yesOpt.index);
             break;
         }
-        await ctx.sdk.sendClickDialog(0);  // Click to continue
+        await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
     }
     ctx.progress();
 
-    // Wait for dialog to process then walk through gate
+    // Walk through gate
     await new Promise(r => setTimeout(r, 1000));
-
-    // Keep trying to walk through the gate
     for (let i = 0; i < 10; i++) {
         const state = ctx.state();
-        const currentX = state?.player?.worldX ?? 0;
-
-        // Already inside Al Kharid?
-        if (currentX >= 3270) {
-            ctx.log('Successfully entered Al Kharid!');
+        if ((state?.player?.worldX ?? 0) >= 3270) {
+            ctx.log('Entered Al Kharid!');
             break;
         }
-
-        // Dismiss any lingering dialogs
         if (state?.dialog.isOpen) {
             await ctx.sdk.sendClickDialog(0);
             await new Promise(r => setTimeout(r, 200));
             continue;
         }
-
-        // Try walking through
-        ctx.log(`Attempting to walk through gate (attempt ${i + 1}/10)...`);
-        await ctx.bot.walkTo(3277, 3227);  // Inside Al Kharid
+        await ctx.bot.walkTo(3277, 3227);
         await new Promise(r => setTimeout(r, 800));
         ctx.progress();
     }
 
-    // Verify we're in Al Kharid
-    const inAlKharid = (ctx.state()?.player?.worldX ?? 0) >= 3270;
-    if (!inAlKharid) {
-        ctx.warn(`Failed to enter Al Kharid (position: ${ctx.state()?.player?.worldX}, ${ctx.state()?.player?.worldZ})`);
-        stats.phase = 'lumbridge';
+    // Verify in Al Kharid
+    if ((ctx.state()?.player?.worldX ?? 0) < 3270) {
+        ctx.warn('Failed to enter Al Kharid');
+        stats.phase = 'farming';
         return false;
     }
-    ctx.progress();
 
-    // Step 4: Buy iron scimitar from Zeke's shop
+    // Walk to Zeke's shop
     ctx.log('Walking to Zeke\'s Scimitar Shop...');
     await ctx.bot.walkTo(LOCATIONS.ALKHARID_SCIMITAR_SHOP.x, LOCATIONS.ALKHARID_SCIMITAR_SHOP.z);
     ctx.progress();
 
+    // Buy iron scimitar
     const scimitarShop = await ctx.bot.openShop(/zeke/i);
     if (!scimitarShop.success) {
         ctx.warn('Failed to open scimitar shop');
-    } else {
-        const buyScim = await ctx.bot.buyFromShop(/iron scimitar/i, 1);
-        if (buyScim.success) {
-            ctx.log('Iron scimitar purchased!');
-            stats.weaponUpgraded = true;
-        } else {
-            ctx.warn(`Failed to buy scimitar: ${buyScim.message}`);
-        }
-        await ctx.bot.closeShop();
+        stats.phase = 'training';
+        return false;
     }
+
+    const buyScim = await ctx.bot.buyFromShop(/iron scimitar/i, 1);
+    if (buyScim.success) {
+        ctx.log('*** IRON SCIMITAR PURCHASED! ***');
+        stats.weaponUpgraded = true;
+    } else {
+        ctx.warn(`Failed to buy scimitar: ${buyScim.message}`);
+    }
+    await ctx.bot.closeShop();
     ctx.progress();
 
-    // Equip the scimitar if we got it
+    // Equip the scimitar
     const scimitar = ctx.sdk.findInventoryItem(/iron scimitar/i);
     if (scimitar) {
         ctx.log('Equipping iron scimitar...');
@@ -408,37 +401,21 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CombatStats): Promise
         ctx.progress();
     }
 
-    // Step 5: Buy kebabs from Karim's shop
-    ctx.log('Walking to Karim\'s Kebab Shop...');
-    await ctx.bot.walkTo(LOCATIONS.ALKHARID_KEBAB_SHOP.x, LOCATIONS.ALKHARID_KEBAB_SHOP.z);
+    // Return to cow field
+    ctx.log('Returning to cow field...');
+    // Walk back through gate (no toll to exit)
+    await ctx.bot.walkTo(3267, 3227);  // Outside gate
+    await new Promise(r => setTimeout(r, 500));
+    await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
     ctx.progress();
 
-    const kebabShop = await ctx.bot.openShop(/karim/i);
-    if (!kebabShop.success) {
-        ctx.warn('Failed to open kebab shop');
-    } else {
-        const buyKebabs = await ctx.bot.buyFromShop(/kebab/i, KEBABS_TO_BUY);
-        if (buyKebabs.success) {
-            ctx.log(`Bought ${KEBABS_TO_BUY} kebabs!`);
-        } else {
-            ctx.warn(`Failed to buy kebabs: ${buyKebabs.message}`);
-        }
-        await ctx.bot.closeShop();
-    }
-    ctx.progress();
-
-    // Step 6: Walk to warrior training area
-    ctx.log('Walking to Al Kharid warrior training area...');
-    await ctx.bot.walkTo(LOCATIONS.ALKHARID_WARRIORS.x, LOCATIONS.ALKHARID_WARRIORS.z);
-    ctx.progress();
-
-    stats.phase = 'alkharid';
-    ctx.log('=== Now training at Al Kharid! ===');
+    stats.phase = 'training';
+    ctx.log('=== Ready to train with Iron Scimitar! ===');
     return true;
 }
 
 /**
- * Main combat training loop
+ * Main combat training loop - Cow Hide Strategy
  */
 async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
     const state = ctx.state();
@@ -457,17 +434,18 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         },
         foodEaten: 0,
         looted: 0,
+        hidesCollected: 0,
         coinsCollected: 0,
         weaponUpgraded: false,
-        phase: 'lumbridge',
+        phase: 'farming',  // Start farming cow hides
         lastStatsLog: 0,
     };
 
-    ctx.log('=== Combat Trainer Started ===');
+    ctx.log('=== Combat Trainer - Cow Hide Strategy ===');
+    ctx.log(`Goal: Collect ${HIDES_NEEDED} cow hides → Sell → Buy Iron Scimitar → Train`);
     ctx.log(`Starting XP - Atk: ${stats.startXp.atk}, Str: ${stats.startXp.str}, Def: ${stats.startXp.def}, HP: ${stats.startXp.hp}`);
-    ctx.log(`Combat Level: ${state.player?.combatLevel ?? '?'} (will travel to Al Kharid at level ${COMBAT_LEVEL_TRIGGER})`);
 
-    // Equip gear from standard tutorial loadout
+    // Equip starting gear
     const sword = ctx.sdk.findInventoryItem(/bronze sword/i);
     if (sword) {
         ctx.log(`Equipping ${sword.name}...`);
@@ -482,6 +460,11 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         ctx.progress();
     }
 
+    // Walk to cow field
+    ctx.log('Walking to cow field...');
+    await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
+    ctx.progress();
+
     // Main training loop
     while (true) {
         const currentState = ctx.state();
@@ -490,125 +473,111 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
             break;
         }
 
-        // Dismiss any blocking dialogs (level-up messages, etc.)
+        // Dismiss any blocking dialogs
         if (currentState.dialog.isOpen) {
-            ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
             ctx.progress();
             continue;
         }
 
-        // Log periodic stats (every 5 kills, but only once per milestone)
+        // Log periodic stats
         if (stats.kills > 0 && stats.kills % 5 === 0 && stats.kills !== stats.lastStatsLog) {
             stats.lastStatsLog = stats.kills;
             logStats(ctx, stats);
         }
 
-        // Check if we need to eat
-        if (shouldEat(ctx)) {
-            // Find food items (including kebabs!)
-            const food = ctx.sdk.findInventoryItem(/^(bread|shrimps?|cooked? meat|anchovies|trout|salmon|lobster|swordfish|kebab)$/i);
-            if (food) {
-                ctx.log(`HP low - eating ${food.name}`);
-                await ctx.bot.eatFood(food);
-                stats.foodEaten++;
-                ctx.progress();
+        // Cycle combat style for balanced training (time-based)
+        await cycleCombatStyle(ctx);
+
+        // Check current resources
+        const hides = ctx.sdk.findInventoryItem(/^cowhide$/i);
+        const coins = ctx.sdk.findInventoryItem(/^coins$/i);
+        const hideCount = hides?.count ?? 0;
+        const coinCount = coins?.count ?? 0;
+
+        // Phase logic: farming → selling → buying → training
+        if (stats.phase === 'farming' && !stats.weaponUpgraded) {
+            // Check if we have enough hides to sell
+            if (hideCount >= HIDES_NEEDED) {
+                ctx.log(`Collected ${hideCount} hides! Time to sell and buy scimitar!`);
+                await sellHides(ctx, stats);
                 continue;
-            } else {
-                ctx.warn('HP low but no food! Continuing anyway...');
+            }
+
+            // Also check if we already have enough coins (from previous attempts or loot)
+            if (coinCount >= COINS_NEEDED) {
+                ctx.log(`Already have ${coinCount} coins! Skipping to buy scimitar!`);
+                await buyIronScimitar(ctx, stats);
+                continue;
             }
         }
 
-        // Cycle combat style based on current phase
-        await cycleCombatStyle(ctx, stats);
-
-        // Check if we should travel to Al Kharid (combat level >= trigger)
-        const combatLevel = currentState.player?.combatLevel ?? 3;
-        if (stats.phase === 'lumbridge' && combatLevel >= COMBAT_LEVEL_TRIGGER) {
-            // Check if we have resources for the journey (10 coins OR 10+ bones to sell)
-            const coins = ctx.sdk.findInventoryItem(/^coins$/i);
-            const bones = ctx.sdk.findInventoryItem(/^bones$/i);
-            const coinCount = coins?.count ?? 0;
-            const boneCount = bones?.count ?? 0;
-            const hasResources = coinCount >= GATE_TOLL || boneCount >= GATE_TOLL;
-
-            if (hasResources) {
-                ctx.log(`Combat Level ${combatLevel} reached! Coins: ${coinCount}, Bones: ${boneCount} - heading to Al Kharid!`);
-                const success = await travelToAlKharid(ctx, stats);
-                if (!success) {
-                    ctx.log('Al Kharid journey failed, collecting more resources...');
-                }
-                continue;
+        if (stats.phase === 'selling') {
+            // After selling, try to buy
+            const newCoins = ctx.sdk.findInventoryItem(/^coins$/i);
+            if ((newCoins?.count ?? 0) >= COINS_NEEDED) {
+                await buyIronScimitar(ctx, stats);
             } else {
-                // Need more resources - keep training and looting
-                if (stats.kills % 10 === 0) {
-                    ctx.log(`Combat Level ${combatLevel} but need more resources (coins: ${coinCount}, bones: ${boneCount}). Collecting...`);
-                }
+                ctx.log(`Only ${newCoins?.count ?? 0} coins, need ${COINS_NEEDED}. Collecting more hides...`);
+                stats.phase = 'farming';
             }
+            continue;
         }
 
-        // Pick up loot - prioritize coins, then bones
+        // Pick up loot - prioritize cowhides!
         const loot = ctx.sdk.getGroundItems()
-            .filter(i => /bones|coins/i.test(i.name))
+            .filter(i => /cowhide|bones|coins/i.test(i.name))
             .filter(i => i.distance <= 5)
             .sort((a, b) => {
-                const aIsCoins = /coins/i.test(a.name) ? 0 : 1;
-                const bIsCoins = /coins/i.test(b.name) ? 0 : 1;
-                if (aIsCoins !== bIsCoins) return aIsCoins - bIsCoins;
-                return a.distance - b.distance;
+                // Priority: hides > coins > bones
+                const priority = (name: string) => {
+                    if (/cowhide/i.test(name)) return 0;
+                    if (/coins/i.test(name)) return 1;
+                    return 2;
+                };
+                return priority(a.name) - priority(b.name) || a.distance - b.distance;
             });
 
         if (loot.length > 0) {
             const item = loot[0]!;
-            ctx.log(`Picking up ${item.name}...`);
             const result = await ctx.bot.pickupItem(item);
             if (result.success) {
                 stats.looted++;
-                if (/coins/i.test(item.name)) {
+                if (/cowhide/i.test(item.name)) {
+                    stats.hidesCollected += item.count ?? 1;
+                    const totalHides = (ctx.sdk.findInventoryItem(/^cowhide$/i)?.count ?? 0);
+                    ctx.log(`Picked up cowhide (${totalHides}/${HIDES_NEEDED})`);
+                } else if (/coins/i.test(item.name)) {
                     stats.coinsCollected += item.count ?? 1;
                 }
             }
             ctx.progress();
         }
 
-        // Find target based on phase (goblins in Lumbridge, warriors in Al Kharid)
-        const targetPhase = stats.phase === 'alkharid' ? 'alkharid' : 'lumbridge';
-        const target = findBestTarget(ctx, targetPhase);
+        // Find a cow to attack
+        const target = findBestTarget(ctx);
         if (!target) {
-            // Walk to appropriate training area
-            const walkTarget = stats.phase === 'alkharid'
-                ? LOCATIONS.ALKHARID_WARRIORS
-                : LOCATIONS.LUMBRIDGE_GOBLINS;
-            ctx.log(`No targets nearby - walking to training area...`);
-            await ctx.bot.walkTo(walkTarget.x, walkTarget.z);
+            ctx.log('No cows nearby - walking to cow field...');
+            await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
             ctx.progress();
             continue;
         }
 
-        // Check if we're already fighting this target
+        // Check if already fighting
         const playerCombat = currentState.player?.combat;
         if (playerCombat?.inCombat && playerCombat.targetIndex === target.index) {
-            // Already fighting - wait for combat to end
             const result = await waitForCombatEnd(ctx, target, stats);
-            ctx.log(`Combat ended: ${result}`);
             ctx.progress();
             continue;
         }
 
-        // Attack the target
-        ctx.log(`Attacking ${target.name} (HP: ${target.hp}/${target.maxHp}, dist: ${target.distance})`);
+        // Attack the cow
         const attackResult = await ctx.bot.attackNpc(target);
-
         if (!attackResult.success) {
             ctx.warn(`Attack failed: ${attackResult.message}`);
-
-            // If blocked by obstacle, try to open nearby door/gate
+            // Try opening gate if blocked
             if (attackResult.reason === 'out_of_reach') {
-                ctx.log('Trying to open nearby gate...');
-                const gateResult = await ctx.bot.openDoor(/gate/i);
-                if (gateResult.success) {
-                    ctx.log('Gate opened!');
-                }
+                await ctx.bot.openDoor(/gate/i);
             }
             ctx.progress();
             continue;
@@ -616,12 +585,9 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
 
         // Wait for combat to complete
         const combatResult = await waitForCombatEnd(ctx, target, stats);
-        ctx.log(`Combat ended: ${combatResult}`);
-
         if (combatResult === 'kill') {
-            ctx.log(`Kill #${stats.kills}!`);
+            ctx.log(`Kill #${stats.kills}! (Hides: ${hideCount}/${HIDES_NEEDED})`);
         }
-
         ctx.progress();
     }
 }
@@ -648,19 +614,18 @@ function logStats(ctx: ScriptContext, stats: CombatStats): void {
     };
 
     const totalXp = xpGained.atk + xpGained.str + xpGained.def + xpGained.hp;
+    const hides = ctx.sdk.findInventoryItem(/^cowhide$/i)?.count ?? 0;
 
     ctx.log(`--- Stats after ${stats.kills} kills (Phase: ${stats.phase}) ---`);
-    ctx.log(`XP Gained: Atk +${xpGained.atk}, Str +${xpGained.str}, Def +${xpGained.def}, HP +${xpGained.hp} (Total: +${totalXp})`);
-    ctx.log(`Damage dealt: ${stats.damageDealt}, taken: ${stats.damageTaken}`);
-    ctx.log(`Food eaten: ${stats.foodEaten}, Looted: ${stats.looted}, Coins: ${stats.coinsCollected}`);
-    ctx.log(`Weapon upgraded: ${stats.weaponUpgraded ? 'YES (Iron Scimitar)' : 'No (Bronze Sword)'}`);
+    ctx.log(`XP: Atk +${xpGained.atk}, Str +${xpGained.str}, Def +${xpGained.def}, HP +${xpGained.hp} (Total: +${totalXp})`);
+    ctx.log(`Hides: ${hides}/${HIDES_NEEDED}, Coins: ${stats.coinsCollected}`);
+    ctx.log(`Weapon: ${stats.weaponUpgraded ? 'IRON SCIMITAR!' : 'Bronze Sword'}`);
 }
 
 // Run the script with standard tutorial-complete items
 runScript({
     name: 'combat-trainer',
-    goal: 'Train combat to level 20 at Lumbridge goblins, then travel to Al Kharid for better training',
-    // Standard post-tutorial loadout (bronze gear, basic supplies)
+    goal: 'Kill cows for hides, sell for coins, buy iron scimitar, train combat',
     preset: TestPresets.LUMBRIDGE_SPAWN,
     timeLimit: 10 * 60 * 1000,  // 10 minutes
     stallTimeout: 90_000,       // 90 seconds (for shop/gate interactions)
@@ -676,6 +641,8 @@ runScript({
             const str = skills.find(s => s.name === 'Strength');
             const def = skills.find(s => s.name === 'Defence');
             const hp = skills.find(s => s.name === 'Hitpoints');
+            const scimitar = ctx.sdk.findInventoryItem(/iron scimitar/i) ||
+                            state.equipment?.find(e => /iron scimitar/i.test(e.name));
 
             ctx.log('=== Final Results ===');
             ctx.log(`Combat Level: ${state.player?.combatLevel ?? '?'}`);
@@ -683,6 +650,7 @@ runScript({
             ctx.log(`Strength: Level ${str?.baseLevel} (${str?.experience} XP)`);
             ctx.log(`Defence: Level ${def?.baseLevel} (${def?.experience} XP)`);
             ctx.log(`Hitpoints: Level ${hp?.baseLevel} (${hp?.experience} XP)`);
+            ctx.log(`Iron Scimitar: ${scimitar ? 'YES!' : 'No'}`);
             ctx.log(`Position: (${state.player?.worldX}, ${state.player?.worldZ})`);
         }
     }
