@@ -15,6 +15,10 @@ export const MIME_TYPES = new Map<string, string>([
     ['.html', 'text/html'],
     ['.wasm', 'application/wasm'],
     ['.sf2', 'application/octet-stream'],
+    ['.jpg', 'image/jpeg'],
+    ['.jpeg', 'image/jpeg'],
+    ['.gif', 'image/gif'],
+    ['.png', 'image/png'],
 ]);
 
 export function escapeHtml(text: string): string {

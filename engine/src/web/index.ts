@@ -1,10 +1,10 @@
 import { register } from 'prom-client';
 import Environment from '#/util/Environment.js';
 import { handleClientPage, handleCacheEndpoints } from './pages/client.js';
-import { handleHiscoresPage } from './pages/hiscores.js';
+import { handleHiscoresPage, handleHiscoresPlayerPage } from './pages/hiscores.js';
 import { handleScriptRunsListPage, handleScriptRunsForScriptPage, handleScriptRunViewerPage, handleScriptRunFilesPage } from './pages/scriptRuns.js';
 import { handleScreenshotsListPage, handleScreenshotFilePage } from './pages/screenshots.js';
-import { handleScreenshotUpload, handleFindPathApi } from './pages/api.js';
+import { handleScreenshotUpload, handleExportCollisionApi } from './pages/api.js';
 import { handleDisclaimerPage, handlePublicFiles } from './pages/static.js';
 import { WebSocketData, handleWebSocketUpgrade, handleAgentEndpointGet, websocketHandlers } from './websocket.js';
 
@@ -46,12 +46,15 @@ export async function startWeb() {
             const screenshotUploadResponse = await handleScreenshotUpload(req, url);
             if (screenshotUploadResponse) return screenshotUploadResponse;
 
-            const findPathResponse = handleFindPathApi(url);
-            if (findPathResponse) return findPathResponse;
+            const exportCollisionResponse = handleExportCollisionApi(url);
+            if (exportCollisionResponse) return exportCollisionResponse;
 
             // Hiscores
             const hiscoresResponse = await handleHiscoresPage(url);
             if (hiscoresResponse) return hiscoresResponse;
+
+            const hiscoresPlayerResponse = await handleHiscoresPlayerPage(url);
+            if (hiscoresPlayerResponse) return hiscoresPlayerResponse;
 
             // Screenshots
             const screenshotsListResponse = handleScreenshotsListPage(url);

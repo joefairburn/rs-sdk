@@ -523,17 +523,53 @@ class ProgressTracker {
     private lastProgressTime = Date.now();
     private stallTimeout: number;
     private checkInterval: ReturnType<typeof setInterval> | null = null;
+    private lastPlayerX = 0;
+    private lastPlayerZ = 0;
+    private getState: (() => BotWorldState | null) | null = null;
 
     constructor(stallTimeoutMs: number) {
         this.stallTimeout = stallTimeoutMs;
+    }
+
+    /** Set state getter to enable position-based progress detection */
+    setStateGetter(getter: () => BotWorldState | null): void {
+        this.getState = getter;
+        // Initialize position
+        const state = getter();
+        if (state?.player) {
+            this.lastPlayerX = state.player.worldX;
+            this.lastPlayerZ = state.player.worldZ;
+        }
     }
 
     markProgress(): void {
         this.lastProgressTime = Date.now();
     }
 
+    /** Check if player has moved - counts as progress (walking is not stalling) */
+    private checkPositionProgress(): boolean {
+        if (!this.getState) return false;
+        const state = this.getState();
+        if (!state?.player) return false;
+
+        const x = state.player.worldX;
+        const z = state.player.worldZ;
+        const moved = x !== this.lastPlayerX || z !== this.lastPlayerZ;
+
+        if (moved) {
+            this.lastPlayerX = x;
+            this.lastPlayerZ = z;
+            this.lastProgressTime = Date.now(); // Movement counts as progress
+        }
+
+        return moved;
+    }
+
     startChecking(onStall: () => void): void {
         this.checkInterval = setInterval(() => {
+            // Check position-based progress first
+            this.checkPositionProgress();
+
             if (Date.now() - this.lastProgressTime > this.stallTimeout) {
                 onStall();
             }
@@ -710,8 +746,9 @@ export function runScript(config: ScriptConfig, scriptFn: ScriptFn): void {
             // Capture console
             consoleCapture = captureConsole(recorder);
 
-            // Setup progress tracker
+            // Setup progress tracker with position-aware stall detection
             progressTracker = new ProgressTracker(stallTimeout);
+            progressTracker.setStateGetter(() => sdk.getState());
             progressTracker.startChecking(() => {
                 stallDetected = true;
             });

@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { findPath, findLongPath, isZoneAllocated } from '#/engine/GameMap.js';
-import { tryParseInt } from '#/util/TryParse.js';
+import * as rsmod from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
 
 export async function handleScreenshotUpload(req: Request, url: URL): Promise<Response | null> {
     if (url.pathname !== '/api/screenshot' || req.method !== 'POST') {
@@ -24,68 +24,78 @@ export async function handleScreenshotUpload(req: Request, url: URL): Promise<Re
     }
 }
 
-export function handleFindPathApi(url: URL): Response | null {
-    if (url.pathname !== '/api/findPath') {
+// Export collision data for SDK bundling
+export function handleExportCollisionApi(url: URL): Response | null {
+    if (url.pathname !== '/api/exportCollision') {
         return null;
     }
 
     try {
-        const srcX = tryParseInt(url.searchParams.get('srcX'), -1);
-        const srcZ = tryParseInt(url.searchParams.get('srcZ'), -1);
-        const destX = tryParseInt(url.searchParams.get('destX'), -1);
-        const destZ = tryParseInt(url.searchParams.get('destZ'), -1);
-        const level = tryParseInt(url.searchParams.get('level'), 0);
-        const maxWaypoints = tryParseInt(url.searchParams.get('maxWaypoints'), 500);
-        const useLongPath = url.searchParams.get('useLongPath') !== 'false';
+        console.log('Exporting collision data...');
 
-        if (srcX < 0 || srcZ < 0 || destX < 0 || destZ < 0) {
-            return new Response(JSON.stringify({
-                success: false,
-                error: 'Missing required parameters: srcX, srcZ, destX, destZ'
-            }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
+        // Flag bits to check
+        const FLAG_BITS = [
+            CollisionFlag.WALL_NORTH_WEST,
+            CollisionFlag.WALL_NORTH,
+            CollisionFlag.WALL_NORTH_EAST,
+            CollisionFlag.WALL_EAST,
+            CollisionFlag.WALL_SOUTH_EAST,
+            CollisionFlag.WALL_SOUTH,
+            CollisionFlag.WALL_SOUTH_WEST,
+            CollisionFlag.WALL_WEST,
+            CollisionFlag.LOC,
+            CollisionFlag.FLOOR,
+            CollisionFlag.ROOF,
+        ];
+
+        // World bounds (mapsquare coordinates)
+        const MIN_MX = 29, MAX_MX = 54;
+        const MIN_MZ = 44, MAX_MZ = 64;
+        const LEVELS = 4;
+
+        const tiles: Array<[number, number, number, number]> = [];
+
+        for (let level = 0; level < LEVELS; level++) {
+            for (let mx = MIN_MX; mx <= MAX_MX; mx++) {
+                for (let mz = MIN_MZ; mz <= MAX_MZ; mz++) {
+                    const baseX = mx << 6;
+                    const baseZ = mz << 6;
+
+                    for (let zx = 0; zx < 8; zx++) {
+                        for (let zz = 0; zz < 8; zz++) {
+                            const zoneBaseX = baseX + (zx << 3);
+                            const zoneBaseZ = baseZ + (zz << 3);
+
+                            if (!rsmod.isZoneAllocated(zoneBaseX, zoneBaseZ, level)) {
+                                continue;
+                            }
+
+                            for (let dx = 0; dx < 8; dx++) {
+                                for (let dz = 0; dz < 8; dz++) {
+                                    const x = zoneBaseX + dx;
+                                    const z = zoneBaseZ + dz;
+
+                                    let flags = 0;
+                                    for (const bit of FLAG_BITS) {
+                                        if (rsmod.isFlagged(x, z, level, bit)) {
+                                            flags |= bit;
+                                        }
+                                    }
+
+                                    if (flags !== 0) {
+                                        tiles.push([level, x, z, flags]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        const srcZoneAllocated = isZoneAllocated(level, srcX, srcZ);
-        const destZoneAllocated = isZoneAllocated(level, destX, destZ);
+        console.log(`Exported ${tiles.length} tiles with collision`);
 
-        if (!srcZoneAllocated || !destZoneAllocated) {
-            return new Response(JSON.stringify({
-                success: false,
-                error: 'Zone not allocated (collision data not loaded)',
-                srcZoneAllocated,
-                destZoneAllocated
-            }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        const waypointsRaw = useLongPath
-            ? findLongPath(level, srcX, srcZ, destX, destZ, maxWaypoints)
-            : findPath(level, srcX, srcZ, destX, destZ);
-
-        const waypoints: Array<{ x: number; z: number; level: number }> = [];
-        for (let i = 0; i < waypointsRaw.length; i++) {
-            const packed = waypointsRaw[i];
-            waypoints.push({
-                z: packed & 0x3FFF,
-                x: (packed >> 14) & 0x3FFF,
-                level: (packed >> 28) & 0x3
-            });
-        }
-
-        return new Response(JSON.stringify({
-            success: true,
-            waypoints,
-            waypointCount: waypoints.length,
-            reachedDestination: waypoints.length > 0 &&
-                waypoints[waypoints.length - 1].x === destX &&
-                waypoints[waypoints.length - 1].z === destZ,
-            usedLongPath: useLongPath
-        }), {
+        return new Response(JSON.stringify({ version: 1, tiles }), {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (e: any) {
