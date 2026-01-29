@@ -210,6 +210,14 @@
                     await new Promise(r => setTimeout(r, 100));
                 }
 
+                // Wait for client to be fully loaded (100%) before attempting login
+                while (!client.lastProgressPercent || client.lastProgressPercent < 100) {
+                    await new Promise(r => setTimeout(r, 100));
+                }
+
+                // Brief delay for final initialization after 100%
+                await new Promise(r => setTimeout(r, 500));
+
                 await client.autoLogin(username, params.password);
 
                 // Wait for ingame state

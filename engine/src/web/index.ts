@@ -30,6 +30,77 @@ export async function startWeb() {
             const gatewayResponse = handleGatewayEndpointGet(url);
             if (gatewayResponse) return gatewayResponse;
 
+            // Engine status endpoint
+            if (url.pathname === '/engine-status' || url.pathname === '/engine-status/') {
+                return new Response(JSON.stringify({
+                    status: 'running',
+                    server: 'rs-agent-engine',
+                    timestamp: new Date().toISOString(),
+                    uptime: process.uptime(),
+                    version: '1.0.0'
+                }, null, 2), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+
+            // Gateway status endpoint (proxy all bot statuses)
+            if (url.pathname === '/status' || url.pathname === '/status/') {
+                try {
+                    const gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:7780';
+                    const response = await fetch(`${gatewayUrl}/status`);
+                    const data = await response.json();
+                    return new Response(JSON.stringify(data, null, 2), {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                } catch (error) {
+                    return new Response(JSON.stringify({
+                        error: 'Failed to fetch gateway status',
+                        message: error instanceof Error ? error.message : 'Unknown error'
+                    }, null, 2), {
+                        status: 503,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                }
+            }
+
+            // Bot status endpoint (proxy to gateway)
+            const botStatusMatch = url.pathname.match(/^\/status\/([^\/]+)\/?$/);
+            if (botStatusMatch) {
+                const username = botStatusMatch[1];
+                try {
+                    const gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:7780';
+                    const response = await fetch(`${gatewayUrl}/status/${username}`);
+                    const data = await response.json();
+                    return new Response(JSON.stringify(data, null, 2), {
+                        status: response.status,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                } catch (error) {
+                    return new Response(JSON.stringify({
+                        error: 'Failed to fetch bot status from gateway',
+                        message: error instanceof Error ? error.message : 'Unknown error'
+                    }, null, 2), {
+                        status: 503,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    });
+                }
+            }
+
             // Client pages (/, /bot, /rs2.cgi)
             const clientResponse = await handleClientPage(url);
             if (clientResponse) return clientResponse;

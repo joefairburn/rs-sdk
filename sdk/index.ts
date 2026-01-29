@@ -72,7 +72,7 @@ export class BotSDK {
             autoLaunchBrowser: config.autoLaunchBrowser ?? 'auto',
             freshDataThreshold: config.freshDataThreshold ?? 3000,
             browserLaunchUrl: config.browserLaunchUrl || '',
-            browserLaunchTimeout: config.browserLaunchTimeout || 30000,
+            browserLaunchTimeout: config.browserLaunchTimeout || 10000,
             actionTimeout: config.actionTimeout || 30000,
             autoReconnect: config.autoReconnect ?? true,
             reconnectMaxRetries: config.reconnectMaxRetries ?? Infinity,
@@ -170,7 +170,18 @@ export class BotSDK {
                         this.ws?.removeEventListener('message', checkConnected);
                         this.reconnectAttempt = 0;
                         this.setConnectionState('connected');
-                        resolve();
+
+                        // Automatically wait for game state to be ready
+                        this.waitForReady(15000)
+                            .then(() => {
+                                console.log('[BotSDK] Connected and game state ready');
+                                resolve();
+                            })
+                            .catch((error) => {
+                                console.warn('[BotSDK] Connected but game state not ready:', error.message);
+                                console.warn('[BotSDK] Continuing anyway - state may load later');
+                                resolve(); // Still resolve - allow usage even if state isn't fully ready
+                            });
                     }
                 } catch {}
             };
@@ -266,13 +277,18 @@ export class BotSDK {
     async checkBotStatus(): Promise<BotStatus> {
         const statusUrl = this.getStatusUrl();
         try {
+            console.log(`[BotSDK] Checking bot status via URL: ${statusUrl}`);
             const response = await fetch(statusUrl);
             if (!response.ok) {
+                console.log(`[BotSDK] Status check HTTP error: ${response.status} ${response.statusText} (URL: ${statusUrl})`);
                 throw new Error(`Status check failed: ${response.status}`);
             }
-            return await response.json();
+            const data = await response.json();
+            return data;
         } catch (error) {
             // If endpoint doesn't exist or bot not found, return disconnected status
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.log(`[BotSDK] Status check failed: ${errorMsg} (URL: ${statusUrl})`);
             return {
                 status: 'dead',
                 inGame: false,
@@ -363,11 +379,17 @@ export class BotSDK {
         const timeoutMs = timeout || this.config.browserLaunchTimeout;
         const startTime = Date.now();
         const pollInterval = 500;
+        let attemptCount = 0;
 
         console.log(`[BotSDK] Waiting for bot to connect and load game (timeout: ${timeoutMs}ms)...`);
 
         while (Date.now() - startTime < timeoutMs) {
+            attemptCount++;
+            const elapsed = Date.now() - startTime;
             const status = await this.checkBotStatus();
+
+            console.log(`[BotSDK] Poll attempt ${attemptCount} (${elapsed}ms): status="${status.status}", inGame=${status.inGame}, controllers=${status.controllers.length}, observers=${status.observers.length}`);
+
             if (status.status !== 'dead' && status.inGame) {
                 console.log(`[BotSDK] Bot connected and in-game!`);
                 return;
@@ -854,6 +876,49 @@ export class BotSDK {
     }
 
     // ============ Plumbing: State Waiting ============
+
+    /**
+     * Wait for game state to be fully loaded and ready.
+     * Ensures player position is valid (not 0,0), bot is in-game, and state is recent.
+     *
+     * @param timeout - Maximum time to wait in milliseconds (default: 15000)
+     * @returns Promise that resolves when state is ready
+     * @throws Error if timeout is reached
+     *
+     * @example
+     * ```ts
+     * await sdk.waitForReady();
+     * // Now safe to access player position, NPCs, etc.
+     * ```
+     */
+    async waitForReady(timeout: number = 15000): Promise<BotWorldState> {
+        console.log('[BotSDK] Waiting for game state to be ready...');
+
+        try {
+            const state = await this.waitForCondition(s => {
+                const validPosition = s.player && s.player.worldX !== 0 && s.player.worldZ !== 0;
+                const inGame = s.inGame;
+                const hasEntities = s.nearbyNpcs.length > 0 || s.nearbyLocs.length > 0 || s.groundItems.length > 0;
+
+                // Log progress for debugging
+                if (!validPosition) {
+                    console.log(`[BotSDK] Waiting - invalid position: (${s.player?.worldX}, ${s.player?.worldZ})`);
+                } else if (!inGame) {
+                    console.log('[BotSDK] Waiting - not in game');
+                } else if (!hasEntities) {
+                    console.log('[BotSDK] Waiting - no entities loaded yet');
+                }
+
+                return inGame && validPosition && hasEntities;
+            }, timeout);
+
+            console.log('[BotSDK] Game state ready!');
+            return state;
+        } catch (error) {
+            console.error('[BotSDK] Timeout waiting for game state to be ready');
+            throw new Error('Game state not ready within timeout');
+        }
+    }
 
     async waitForCondition(
         predicate: (state: BotWorldState) => boolean,

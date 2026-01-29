@@ -124,33 +124,96 @@ export class BotActions {
             return { success: false, message: 'Not in game' };
         }
 
-        // If dialog open, navigate it
+        // If dialog open, navigate through it (may take multiple clicks)
         if (state.dialog.isOpen) {
-            if (state.dialog.isWaiting) {
-                return { success: false, message: 'Waiting for dialog' };
+            let clickCount = 0;
+            const MAX_CLICKS = 10;
+
+            while (clickCount < MAX_CLICKS) {
+                const currentState = this.sdk.getState();
+                if (!currentState?.dialog.isOpen) {
+                    return { success: true, message: `Dialog completed after ${clickCount} clicks` };
+                }
+
+                if (currentState.dialog.isWaiting) {
+                    await new Promise(r => setTimeout(r, 300));
+                    continue;
+                }
+
+                const options = currentState.dialog.options;
+                if (options.length > 0) {
+                    // Smart option selection: skip > yes > confirm > first option
+                    const skipOption = options.find(o => /skip|complete|finish/i.test(o.text));
+                    const yesOption = options.find(o => /yes|continue|proceed/i.test(o.text));
+                    const confirmOption = options.find(o => /confirm|accept|agree|ok/i.test(o.text));
+
+                    const selectedOption = skipOption || yesOption || confirmOption || options[0];
+                    await this.sdk.sendClickDialog(selectedOption!.index);
+                } else {
+                    await this.sdk.sendClickDialog(0);
+                }
+
+                clickCount++;
+                await new Promise(r => setTimeout(r, 500));
             }
 
-            const options = state.dialog.options;
-            if (options.length > 0) {
-                // Look for affirmative option
-                const yesOption = options.find(o =>
-                    o.text.toLowerCase().includes('yes')
-                );
-                const idx = yesOption ? yesOption.index : 0;
-                await this.sdk.sendClickDialog(idx);
-                return { success: true, message: `Selected option ${idx}` };
-            }
-
-            // Click continue
-            await this.sdk.sendClickDialog(0);
-            return { success: true, message: 'Clicked continue' };
+            return { success: true, message: `Clicked through ${clickCount} dialogs` };
         }
 
         // Find tutorial NPC
         const guide = this.sdk.findNearbyNpc(/runescape guide|guide|tutorial/i);
         if (guide) {
-            await this.sdk.sendInteractNpc(guide.index, 0); // Talk
-            return { success: true, message: `Talking to ${guide.name}` };
+            const talkOpt = guide.optionsWithIndex.find(o => /talk/i.test(o.text));
+            if (!talkOpt) {
+                return { success: false, message: 'No Talk option on tutorial NPC' };
+            }
+
+            const result = await this.sdk.sendInteractNpc(guide.index, talkOpt.opIndex);
+            if (!result.success) {
+                return { success: false, message: result.message };
+            }
+
+            // Wait for dialog to open
+            try {
+                await this.sdk.waitForCondition(s => s.dialog.isOpen, 5000);
+                await new Promise(r => setTimeout(r, 300));
+
+                // Loop through all dialog pages until closed
+                let clickCount = 0;
+                const MAX_CLICKS = 10;
+
+                while (clickCount < MAX_CLICKS) {
+                    const currentState = this.sdk.getState();
+                    if (!currentState?.dialog.isOpen) {
+                        return { success: true, message: `Tutorial skipped after ${clickCount} dialog clicks` };
+                    }
+
+                    if (currentState.dialog.isWaiting) {
+                        await new Promise(r => setTimeout(r, 300));
+                        continue;
+                    }
+
+                    const options = currentState.dialog.options;
+                    if (options.length > 0) {
+                        // Smart option selection: skip > yes > confirm > first option
+                        const skipOption = options.find(o => /skip|complete|finish/i.test(o.text));
+                        const yesOption = options.find(o => /yes|continue|proceed/i.test(o.text));
+                        const confirmOption = options.find(o => /confirm|accept|agree|ok/i.test(o.text));
+
+                        const selectedOption = skipOption || yesOption || confirmOption || options[0];
+                        await this.sdk.sendClickDialog(selectedOption!.index);
+                    } else {
+                        await this.sdk.sendClickDialog(0);
+                    }
+
+                    clickCount++;
+                    await new Promise(r => setTimeout(r, 500));
+                }
+
+                return { success: true, message: `Clicked through ${clickCount} dialogs` };
+            } catch {
+                return { success: false, message: 'Timed out waiting for dialog to open' };
+            }
         }
 
         return { success: false, message: 'No tutorial NPC found' };
