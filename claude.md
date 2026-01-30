@@ -123,6 +123,8 @@ A failed 5-minute run wastes more time than five 30 second diagnostic runs. **Fa
 Be extremely cognizant of pathing issues. It's very common to have issues because of closed doors and gates.
 Look out for "I can't reach" messages - the solution is often to open closed gates. 
 
+Read and grep in the learnings folder for.
+
 
 ## API Reference
 
@@ -467,7 +469,12 @@ sdk/
 ├── cli.ts             # CLI for checking state
 └── types.ts           # Type definitions
 
-
+learnings/
+├── banking.md
+├── combat.md
+├── shops.md
+├── fletching.md
+└── ...etc
 
 ```
 
