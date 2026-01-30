@@ -75,3 +75,23 @@ There was some very similar patterns to what I saw at shorter cycles of self imp
 I only ran three at a time which felt like enough feedback for me. It was cool seeing them cohabitate in the same game server running around.
 
 
+(writing Several days later:)
+Stage 10:
+There were certain issues that came up in many bots which were hard to solve, and I had to focus in more specifically on thrme through certain dedicated shorter running scripts. From this, I identified some good solutions for improving pathfinding (in the engine) etc.
+I also started to ask scripts write down learnings into a learning markdown directory, like a mini wiki containing tips for different strategies and and gotchas.
+
+
+Stage 11: I wanted to short circuit this open ended improvement feedbackloop and focus in on shipping a playable version for other people- after all - i was have so much fun but I wanted to provide that experience for other people. My new focus was stability and usability against a demo server.
+
+I did a LOT of refactoring to clean up connection handling, server<->remote network architecture, and pruning many errant limbs the system had spawned during the exploration process (the whole agent-sdk layer, weird mixing of the sdk layers, extra endpoints for pathfinding, etc). it was helpful to laser-focus on converging for a release, but I did make the mistake of multi-tasking between multiple refactors at once, leading to regressions and confusion and backtracking. I would have had better luck in this stage if I had slowed down and also used worktrees.
+
+Stage 12: 
+Because I was optimizing for a new user being able to clone the repo and launch claude code to play the game, I have a new form of code execution (raw scripts) that I've been having some issues with - there was a loss of context and feedback compared to what we were doing before, it seems to be underperforming. I also brought back the MCP server approach in an attempt to reduce latency and bring back interactivitiy and immediacy which has been a good experiment, but the next step is optimization of "repo as prompt" (make sure the right stuff is in context) and ergonomic script-runner that solves the problems of:
+- low boilerplate (Fast to run)
+- good opinions on session management (long running issue!!)
+- opinionated good feedback (agents work best when they get pushed state updates instead of needing to think about what to go check)
+- time management - a huge issue is running ambitious long running scripts too soon and then having slow feedback loops. We want to emphasize building confidence through increasing complexity in terms of task length, and look into the ability to do smart pre-emptions
+- code-reuse
+- idea re-use
+ 
+
