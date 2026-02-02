@@ -149,7 +149,6 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
     // Walk to chicken coop
     ctx.log('Walking to chicken coop...');
     await ctx.bot.walkTo(CHICKEN_COOP.x, CHICKEN_COOP.z);
-    ctx.progress();
 
     // Open the gate to get inside the coop
     ctx.log('Opening gate...');
@@ -158,8 +157,7 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
         ctx.log(`Gate opened: ${gateResult.message}`);
         // Walk inside the coop
         await ctx.bot.walkTo(CHICKEN_COOP.x - 3, CHICKEN_COOP.z);
-        ctx.progress();
-    } else {
+        } else {
         ctx.log(`Gate: ${gateResult.message}`);
     }
 
@@ -177,8 +175,7 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
         if (currentState.dialog.isOpen) {
             ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
-            continue;
+                    continue;
         }
 
         // Check if we've reached level 10
@@ -207,8 +204,7 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
                     CHICKEN_COOP.x + Math.floor(Math.random() * 6) - 3,
                     CHICKEN_COOP.z + Math.floor(Math.random() * 6) - 3
                 );
-                ctx.progress();
-            }
+                        }
             await new Promise(r => setTimeout(r, 500));
             continue;
         }
@@ -226,8 +222,7 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
             ctx.log(`Walking toward ${target.name} at (${target.x}, ${target.z}), dist: ${target.distance}`);
             // Walk to within ~3 tiles of the target
             await ctx.bot.walkTo(target.x, target.z);
-            ctx.progress();
-            await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 500));
             continue;
         }
 
@@ -260,8 +255,7 @@ async function magicTrainingLoop(ctx: ScriptContext): Promise<void> {
             break;
         }
 
-        ctx.progress();
-        await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 500));
     }
 
     // Final report

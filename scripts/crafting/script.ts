@@ -85,16 +85,13 @@ function hasThread(ctx: ScriptContext): boolean {
     return ctx.sdk.findInventoryItem(/thread/i) !== null;
 }
 
-function markProgress(ctx: ScriptContext, stats: CraftingStats): void {
-    stats.lastProgressTime = Date.now();
-    ctx.progress();
-}
+// Note: ctx.progress() removed - bot actions and movement auto-reset stall timer
 
 async function dismissDialogs(ctx: ScriptContext, stats: CraftingStats): Promise<void> {
     while (ctx.state()?.dialog.isOpen) {
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 }
 
@@ -110,7 +107,7 @@ async function getInitialCoins(ctx: ScriptContext, stats: CraftingStats): Promis
 
     // Walk to general store
     await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_GENERAL_STORE.x, LOCATIONS.LUMBRIDGE_GENERAL_STORE.z);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Open shop
     const openResult = await ctx.bot.openShop(/shop keeper/i);
@@ -119,14 +116,14 @@ async function getInitialCoins(ctx: ScriptContext, stats: CraftingStats): Promis
         return;
     }
     ctx.log('Shop opened');
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Sell shortbow (worth ~20gp)
     const sellResult = await ctx.bot.sellToShop(/shortbow/i, 'all');
     if (sellResult.success) {
         ctx.log(sellResult.message);
     }
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Close shop
     await ctx.bot.closeShop();
@@ -173,7 +170,7 @@ async function waitForCombatEnd(
         if (state.dialog.isOpen) {
             ctx.log('Dismissing dialog during combat...');
             await ctx.sdk.sendClickDialog(0);
-            markProgress(ctx, stats);
+            // progress auto-tracked
             continue;
         }
 
@@ -207,7 +204,7 @@ async function waitForCombatEnd(
             return 'lost_target';
         }
 
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     return 'lost_target';
@@ -220,18 +217,18 @@ async function collectCowhides(ctx: ScriptContext, stats: CraftingStats, targetH
     const sword = ctx.sdk.findInventoryItem(/bronze sword/i);
     if (sword) {
         await ctx.bot.equipItem(sword);
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     const shield = ctx.sdk.findInventoryItem(/wooden shield/i);
     if (shield) {
         await ctx.bot.equipItem(shield);
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     // Walk to cow field
     await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     while (getHideCount(ctx) < targetHides) {
         const state = ctx.state();
@@ -259,7 +256,7 @@ async function collectCowhides(ctx: ScriptContext, stats: CraftingStats, targetH
                 stats.hidesCollected++;
                 ctx.log(`Picked up hide (total: ${getHideCount(ctx)})`);
             }
-            markProgress(ctx, stats);
+            // progress auto-tracked
         }
 
         // Find cow to kill
@@ -270,7 +267,7 @@ async function collectCowhides(ctx: ScriptContext, stats: CraftingStats, targetH
                 LOCATIONS.COW_FIELD.x + (Math.random() - 0.5) * 20,
                 LOCATIONS.COW_FIELD.z + (Math.random() - 0.5) * 20
             );
-            markProgress(ctx, stats);
+            // progress auto-tracked
             continue;
         }
 
@@ -290,7 +287,7 @@ async function collectCowhides(ctx: ScriptContext, stats: CraftingStats, targetH
                     ctx.log('Opened gate');
                 }
             }
-            markProgress(ctx, stats);
+            // progress auto-tracked
             continue;
         }
 
@@ -300,7 +297,7 @@ async function collectCowhides(ctx: ScriptContext, stats: CraftingStats, targetH
             ctx.log(`Kill! Hides: ${getHideCount(ctx)}`);
             await new Promise(r => setTimeout(r, 600));
         }
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     ctx.log(`Collected ${getHideCount(ctx)} hides`);
@@ -333,7 +330,7 @@ async function exitCowField(ctx: ScriptContext, stats: CraftingStats): Promise<b
                 ctx.log(`Opening cow field gate at (${gate.x}, ${gate.z})`);
                 await ctx.sdk.sendInteractLoc(gate.x, gate.z, gate.id, openOpt.opIndex);
                 await new Promise(r => setTimeout(r, 800));
-                markProgress(ctx, stats);
+                // progress auto-tracked
             }
         }
 
@@ -352,7 +349,7 @@ async function exitCowField(ctx: ScriptContext, stats: CraftingStats): Promise<b
             }
         }
 
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     return !isInCowField(ctx);
@@ -384,7 +381,7 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CraftingStats): Promi
     ctx.log(`Walking to toll gate from (${ctx.state()?.player?.worldX}, ${ctx.state()?.player?.worldZ})`);
     await ctx.bot.walkTo(LOCATIONS.TOLL_GATE.x, LOCATIONS.TOLL_GATE.z);
     await new Promise(r => setTimeout(r, 1000));  // Wait for pathfinding
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Find and interact with gate
     let gate = ctx.state()?.nearbyLocs.find(l => /gate/i.test(l.name) && l.distance < 15);
@@ -394,7 +391,7 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CraftingStats): Promi
         ctx.log('Gate not found, walking to exact toll gate position...');
         await ctx.bot.walkTo(3267, 3228);  // Exact toll gate position
         await new Promise(r => setTimeout(r, 1000));
-        markProgress(ctx, stats);
+        // progress auto-tracked
         gate = ctx.state()?.nearbyLocs.find(l => /gate/i.test(l.name) && l.distance < 15);
     }
     if (!gate) {
@@ -430,7 +427,7 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CraftingStats): Promi
             await ctx.sdk.sendClickDialog(0);
         }
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     // Wait and dismiss remaining dialogs
@@ -446,7 +443,7 @@ async function travelToAlKharid(ctx: ScriptContext, stats: CraftingStats): Promi
 
     const success = isInsideAlKharid(ctx);
     ctx.log(success ? 'Arrived in Al Kharid!' : 'Failed to enter Al Kharid');
-    markProgress(ctx, stats);
+    // progress auto-tracked
     return success;
 }
 
@@ -462,7 +459,7 @@ async function buyCraftingSupplies(ctx: ScriptContext, stats: CraftingStats): Pr
 
     // Walk to craft shop
     await ctx.bot.walkTo(LOCATIONS.AL_KHARID_CRAFT_SHOP.x, LOCATIONS.AL_KHARID_CRAFT_SHOP.z);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Log player position for debugging
     const pos = ctx.state()?.player;
@@ -493,7 +490,7 @@ async function buyCraftingSupplies(ctx: ScriptContext, stats: CraftingStats): Pr
         for (const spot of searchSpots) {
             await ctx.bot.walkTo(spot.x, spot.z);
             await new Promise(r => setTimeout(r, 500));
-            markProgress(ctx, stats);
+            // progress auto-tracked
 
             shopkeeper = ctx.sdk.findNearbyNpc(/^dommik$/i);
             if (shopkeeper) {
@@ -526,7 +523,7 @@ async function buyCraftingSupplies(ctx: ScriptContext, stats: CraftingStats): Pr
     // Wait for shop to open (longer wait - interaction will walk us closer)
     for (let i = 0; i < 50; i++) {
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         // Check for shop opening
         if (ctx.state()?.shop.isOpen) break;
@@ -571,7 +568,7 @@ async function buyCraftingSupplies(ctx: ScriptContext, stats: CraftingStats): Pr
     }
 
     ctx.log(`Shop opened: ${ctx.state()?.shop.title}`);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Buy needle if needed
     if (!hasNeedle(ctx)) {
@@ -586,7 +583,7 @@ async function buyCraftingSupplies(ctx: ScriptContext, stats: CraftingStats): Pr
     }
 
     await ctx.bot.closeShop();
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     return hasNeedle(ctx) && hasThread(ctx);
 }
@@ -604,7 +601,7 @@ async function tanHides(ctx: ScriptContext, stats: CraftingStats): Promise<void>
 
     // Walk to tanner
     await ctx.bot.walkTo(LOCATIONS.AL_KHARID_TANNER.x, LOCATIONS.AL_KHARID_TANNER.z);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Find the tanner
     const tanner = ctx.sdk.findNearbyNpc(/^tanner$/i);
@@ -629,7 +626,7 @@ async function tanHides(ctx: ScriptContext, stats: CraftingStats): Promise<void>
     // Wait for dialog - game will auto-walk if needed
     for (let i = 0; i < 50; i++) {
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
         if (ctx.state()?.dialog?.isOpen) break;
     }
 
@@ -649,7 +646,7 @@ async function tanHides(ctx: ScriptContext, stats: CraftingStats): Promise<void>
     // 3. Select "Soft leather" option
     for (let i = 0; i < 50; i++) {
         await new Promise(r => setTimeout(r, 400));
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         const s = ctx.state();
         if (!s?.dialog?.isOpen) {
@@ -698,7 +695,7 @@ async function tanHides(ctx: ScriptContext, stats: CraftingStats): Promise<void>
     const hidesLeft = getHideCount(ctx);
     stats.hidesTanned += leather;
     ctx.log(`Tanning complete. Leather: ${leather}, Hides remaining: ${hidesLeft}`);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 }
 
 // ============ Phase 6: Craft Leather Items ============
@@ -722,7 +719,7 @@ async function craftLeatherItems(ctx: ScriptContext, stats: CraftingStats): Prom
             ctx.log(`${result.message}`);
             stats.itemsCrafted += result.itemsCrafted ?? 1;
             stats.xpGained += result.xpGained ?? 0;
-            markProgress(ctx, stats);
+            // progress auto-tracked
         } else {
             ctx.warn(`Craft failed: ${result.message} (reason: ${result.reason})`);
 
@@ -754,7 +751,7 @@ async function craftLeatherItems(ctx: ScriptContext, stats: CraftingStats): Prom
                 ctx.log(`Retry succeeded: ${retry.message}`);
                 stats.itemsCrafted += retry.itemsCrafted ?? 1;
                 stats.xpGained += retry.xpGained ?? 0;
-                markProgress(ctx, stats);
+                // progress auto-tracked
             }
         }
 
@@ -764,7 +761,7 @@ async function craftLeatherItems(ctx: ScriptContext, stats: CraftingStats): Prom
 
     const totalXpGained = getCraftingXp(ctx) - xpBefore;
     ctx.log(`Crafting complete. Total: +${totalXpGained} XP. Level: ${getCraftingLevel(ctx)}`);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 }
 
 // ============ Phase 7: Bank and Repeat ============
@@ -773,7 +770,7 @@ async function bankItems(ctx: ScriptContext, stats: CraftingStats): Promise<void
     ctx.log('Banking items...');
 
     await ctx.bot.walkTo(LOCATIONS.AL_KHARID_BANK.x, LOCATIONS.AL_KHARID_BANK.z);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     const openResult = await ctx.bot.openBank();
     if (!openResult.success) {
@@ -792,7 +789,7 @@ async function bankItems(ctx: ScriptContext, stats: CraftingStats): Promise<void
     }
 
     await ctx.bot.closeBank();
-    markProgress(ctx, stats);
+    // progress auto-tracked
 }
 
 // ============ Main Loop ============
@@ -867,7 +864,7 @@ async function craftingLoop(ctx: ScriptContext): Promise<void> {
             await ctx.bot.walkTo(LOCATIONS.TOLL_GATE.x, LOCATIONS.TOLL_GATE.z);
             // Walk to Lumbridge side
             await ctx.bot.walkTo(3260, 3228);
-            markProgress(ctx, stats);
+            // progress auto-tracked
         }
     }
 

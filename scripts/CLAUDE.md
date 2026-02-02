@@ -81,7 +81,6 @@ runScript({
     if (goblin) {
       ctx.log(`Attacking ${goblin.name}`);    // → console + events.jsonl
       await ctx.bot.attackNpc(goblin);         // Auto-logged with result
-      ctx.progress();                          // Reset stall timer
     }
   }
 
@@ -96,7 +95,6 @@ runScript({
 | `ctx.bot.*` | Instrumented BotActions - all calls auto-logged |
 | `ctx.sdk.*` | Raw SDK - not logged |
 | `ctx.log(msg)` | Log to console AND events.jsonl |
-| `ctx.progress()` | Reset stall timer (call after meaningful progress) |
 | `ctx.screenshot(label?)` | Take manual screenshot |
 | `ctx.state()` | Get current world state |
 
@@ -219,13 +217,12 @@ See **[script_best_practices.md](./script_best_practices.md)** for detailed patt
 
 2. **Dismiss blocking dialogs** - Level-up congratulations and other dialogs block all actions. Check `state.dialog.isOpen` in your main loop and call `ctx.sdk.sendClickDialog(0)` to dismiss.
 
-3. **Call `ctx.progress()`** after meaningful actions to reset stall timer
-4. **Use `ctx.log()`** for key decisions - it goes to events.jsonl for later analysis
-5. **Watch the `[delta]` output** - It tells you what actually changed after each action
-6. **Review events.jsonl** to understand what happened
-7. **Document insights** in lab_log.md - patterns that work, issues that fail
-8. **One change at a time** - easier to attribute improvements/regressions
-9. **Commit working versions** before major changes
+3. **Use `ctx.log()`** for key decisions - it goes to events.jsonl for later analysis
+4. **Watch the `[delta]` output** - It tells you what actually changed after each action
+5. **Review events.jsonl** to understand what happened
+6. **Document insights** in lab_log.md - patterns that work, issues that fail
+7. **One change at a time** - easier to attribute improvements/regressions
+8. **Commit working versions** before major changes
 
 ## Learnings Section
 

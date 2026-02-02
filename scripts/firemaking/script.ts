@@ -32,10 +32,7 @@ interface Stats {
 
 // ============ Helper Functions ============
 
-function markProgress(ctx: ScriptContext, stats: Stats): void {
-    stats.lastProgressTime = Date.now();
-    ctx.progress();
-}
+// Note: ctx.progress() removed - bot actions and movement auto-reset stall timer
 
 function getFiremakingXp(ctx: ScriptContext): number {
     return ctx.state()?.skills.find(s => s.name === 'Firemaking')?.experience ?? 0;
@@ -106,7 +103,7 @@ async function dismissDialogs(ctx: ScriptContext, stats: Stats, maxCount: number
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
         dismissed++;
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
     return dismissed;
 }
@@ -123,7 +120,7 @@ async function chopTrees(ctx: ScriptContext, stats: Stats, targetLogs: number = 
 
     while (countLogs(ctx) < targetLogs && getInventoryCount(ctx) < 28) {
         attempts++;
-        if (attempts % 10 === 0) markProgress(ctx, stats);
+        if (attempts % 10 === 0) // progress auto-tracked
 
         // Dismiss any dialogs (level-up, etc.)
         if (await dismissDialogs(ctx, stats) > 0) continue;
@@ -151,7 +148,7 @@ async function chopTrees(ctx: ScriptContext, stats: Stats, targetLogs: number = 
         // Chop the tree
         const logsBefore = countLogs(ctx);
         const result = await ctx.bot.chopTree(tree);
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         if (result.success) {
             const logsAfter = countLogs(ctx);
@@ -181,7 +178,7 @@ async function burnLogs(ctx: ScriptContext, stats: Stats): Promise<void> {
         const fmXpBefore = getFiremakingXp(ctx);
 
         const result = await ctx.bot.burnLogs();
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         if (result.success) {
             stats.logsBurned++;
@@ -252,7 +249,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
     ctx.log('Tinderbox and axe confirmed.');
 
     await ctx.bot.dismissBlockingUI();
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     let cycle = 0;
     while (getFiremakingLevel(ctx) < 10) {
@@ -266,7 +263,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
         // Phase 2: Burn all logs
         await burnLogs(ctx, stats);
 
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     ctx.log('\n*** GOAL ACHIEVED: Firemaking Level 10+ ***');

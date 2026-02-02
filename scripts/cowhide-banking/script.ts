@@ -97,7 +97,6 @@ async function waitForCombatEnd(
         if (state.dialog.isOpen) {
             ctx.log('Dismissing dialog during combat...');
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
             continue;
         }
 
@@ -138,7 +137,6 @@ async function waitForCombatEnd(
             return 'lost_target';
         }
 
-        ctx.progress();
     }
 
     return 'lost_target';
@@ -170,7 +168,6 @@ async function pickupHides(ctx: ScriptContext, stats: HideStats): Promise<number
         if (result.success) {
             pickedUp++;
             stats.hidesCollected++;
-            ctx.progress();
         }
         await new Promise(r => setTimeout(r, 300));
     }
@@ -195,11 +192,9 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
     if (currentLevel === 0) {
         ctx.log('Walking to castle entrance...');
         await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_CASTLE_ENTRANCE.x, LOCATIONS.LUMBRIDGE_CASTLE_ENTRANCE.z);
-        ctx.progress();
 
         ctx.log('Walking to castle stairs...');
         await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_STAIRS_GROUND.x, LOCATIONS.LUMBRIDGE_STAIRS_GROUND.z);
-        ctx.progress();
 
         // Climb up stairs to level 1
         ctx.log('Climbing to first floor...');
@@ -215,8 +210,7 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
                 ctx.log(`Using climb option: ${climbOpt.text}`);
                 await ctx.sdk.sendInteractLoc(stairs1.x, stairs1.z, stairs1.id, climbOpt.opIndex);
                 await new Promise(r => setTimeout(r, 2000));
-                ctx.progress();
-            } else {
+                } else {
                 ctx.warn('No climb-up option found on stairs');
             }
         } else {
@@ -238,15 +232,13 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
             if (climbOpt) {
                 await ctx.sdk.sendInteractLoc(stairs2.x, stairs2.z, stairs2.id, climbOpt.opIndex);
                 await new Promise(r => setTimeout(r, 1500));
-                ctx.progress();
-            }
+                }
         }
     }
 
     // Now we should be at level 2, walk to bank area
     ctx.log('Walking to bank...');
     await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_BANK.x, LOCATIONS.LUMBRIDGE_BANK.z);
-    ctx.progress();
 
     // Open bank - find bank booth or banker
     ctx.log('Opening bank...');
@@ -309,12 +301,10 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
         ctx.warn('Failed to open bank interface - aborting banking trip');
         // Return to cow field without depositing
         await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-        ctx.progress();
         ctx.log('=== Banking failed, back at cow field ===');
         return false;
     }
 
-    ctx.progress();
 
     // Count hides before depositing
     const hidesBefore = ctx.state()?.inventory.filter(i => /cow\s*hide/i.test(i.name)).length ?? 0;
@@ -341,7 +331,6 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
     } else {
         ctx.warn(`Deposit failed - hides still in inventory (${hidesAfter})`);
     }
-    ctx.progress();
 
     // Close bank interface by pressing escape or clicking close
     // The interface will close when we walk away anyway
@@ -354,7 +343,6 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
         if (downOpt) {
             await ctx.sdk.sendInteractLoc(stairs.x, stairs.z, stairs.id, downOpt.opIndex);
             await new Promise(r => setTimeout(r, 1500));
-            ctx.progress();
         }
     }
 
@@ -365,13 +353,11 @@ async function bankHides(ctx: ScriptContext, stats: HideStats): Promise<boolean>
         if (downOpt) {
             await ctx.sdk.sendInteractLoc(stairs2.x, stairs2.z, stairs2.id, downOpt.opIndex);
             await new Promise(r => setTimeout(r, 1500));
-            ctx.progress();
         }
     }
 
     // Walk back to cow field
     await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-    ctx.progress();
 
     ctx.log('=== Back at cow field ===');
     return true;
@@ -420,7 +406,6 @@ async function dropHides(ctx: ScriptContext, stats: HideStats): Promise<void> {
     }
 
     ctx.log(`Dropped ${hides.length} hides. Continuing training...`);
-    ctx.progress();
 }
 
 /**
@@ -447,25 +432,21 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
     if (sword) {
         ctx.log('Equipping bronze sword...');
         await ctx.bot.equipItem(sword);
-        ctx.progress();
     }
 
     const shield = ctx.sdk.findInventoryItem(/wooden shield/i);
     if (shield) {
         ctx.log('Equipping wooden shield...');
         await ctx.bot.equipItem(shield);
-        ctx.progress();
     }
 
     // Set combat style to Aggressive for Strength XP
     ctx.log('Setting combat style to Aggressive (Strength training)...');
     await ctx.sdk.sendSetCombatStyle(1);  // 0=accurate, 1=aggressive, 2=defensive, 3=controlled
-    ctx.progress();
 
     // Walk to cow field
     ctx.log('Walking to cow field...');
     await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-    ctx.progress();
 
     let lastStatsLog = 0;
 
@@ -481,7 +462,6 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
         if (currentState.dialog.isOpen) {
             ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
             continue;
         }
 
@@ -493,8 +473,7 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
             if (food) {
                 ctx.log(`HP low (${hp.level}/${hp.baseLevel}) - eating ${food.name}`);
                 await ctx.bot.eatFood(food);
-                ctx.progress();
-                continue;
+                    continue;
             } else {
                 ctx.warn(`HP low (${hp.level}/${hp.baseLevel}) but no food!`);
             }
@@ -521,7 +500,6 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
             // No cows nearby, walk to cow field center
             ctx.log('No cows nearby, walking to cow field...');
             await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-            ctx.progress();
             continue;
         }
 
@@ -530,7 +508,6 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
         if (playerCombat?.inCombat && playerCombat.targetIndex === cow.index) {
             const result = await waitForCombatEnd(ctx, cow, stats);
             ctx.log(`Combat ended: ${result}`);
-            ctx.progress();
             continue;
         }
 
@@ -549,7 +526,6 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
                     ctx.log('Gate opened!');
                 }
             }
-            ctx.progress();
             continue;
         }
 
@@ -563,7 +539,6 @@ async function cowhideLoop(ctx: ScriptContext): Promise<void> {
             await pickupHides(ctx, stats);
         }
 
-        ctx.progress();
     }
 }
 

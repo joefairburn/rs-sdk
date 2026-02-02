@@ -48,7 +48,6 @@ runScript({
     // 1. Walk to general store
     ctx.log('Walking to general store...');
     await rawWalkTo(ctx, 3212, 3246);
-    ctx.progress();
 
     // Find and open shop
     const npcs = ctx.state()?.nearbyNpcs;
@@ -58,13 +57,11 @@ runScript({
     if (!openResult.success) {
         throw new Error(`Shop failed: ${openResult.message}`);
     }
-    ctx.progress();
 
     // Sell bow
     const sellResult = await ctx.bot.sellToShop(/shortbow/i, 'all');
     ctx.log(sellResult.message);
     await ctx.bot.closeShop();
-    ctx.progress();
 
     const coins = ctx.sdk.findInventoryItem(/^coins$/i);
     ctx.log(`Have ${coins?.count ?? 0}gp`);
@@ -72,7 +69,6 @@ runScript({
     // 2. Walk to gate
     ctx.log('Walking to gate...');
     await rawWalkTo(ctx, 3267, 3228);
-    ctx.progress();
 
     // 3. Talk to border guard
     ctx.log('Talking to guard...');
@@ -84,7 +80,6 @@ runScript({
             throw new Error(`Guard not found`);
         }
     }
-    ctx.progress();
 
     // 4. Pay toll via dialog
     let paid = false;
@@ -117,7 +112,6 @@ runScript({
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 300));
     }
-    ctx.progress();
 
     // 5. Walk through gate into Al Kharid
     ctx.log('Walking through gate...');

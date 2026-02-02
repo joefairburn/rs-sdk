@@ -73,7 +73,6 @@ async function dropFletchedItems(ctx: ScriptContext): Promise<void> {
 
     for (const item of allDroppable) {
         await ctx.sdk.sendDropItem(item.slot);
-        ctx.progress();
         await sleep(150);
     }
 }

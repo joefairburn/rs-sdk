@@ -99,7 +99,6 @@ async function walkToWithDoors(ctx: ScriptContext, destX: number, destZ: number,
             const openResult = await ctx.bot.openDoor(door);
             if (openResult.success) {
                 ctx.log(`Opened ${door.name}`);
-                ctx.progress();
                 continue; // Try walking again
             } else {
                 ctx.warn(`Failed to open ${door.name}: ${openResult.message}`);
@@ -520,7 +519,6 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
             ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
             await new Promise(r => setTimeout(r, 600));
-            ctx.progress();
             continue;
         }
 
@@ -531,7 +529,6 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
                 ctx.log(`HP low - eating ${food.name}`);
                 await ctx.bot.eatFood(food);
                 stats.foodEaten++;
-                ctx.progress();
                 continue;
             }
             // No food - if in Al-Kharid, try to buy more kebabs
@@ -540,8 +537,7 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
                 if (coins >= 5) {
                     ctx.log('Out of food in Al-Kharid - buying more kebabs...');
                     await buyKebabs(ctx, 5);
-                    ctx.progress();
-                    continue;
+                        continue;
                 }
             }
             // No food and can't buy - continue anyway
@@ -562,7 +558,6 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
             if (!arrived) {
                 ctx.warn('Failed to reach zone, trying again...');
             }
-            ctx.progress();
             continue;
         }
 
@@ -574,13 +569,11 @@ async function thievingLoop(ctx: ScriptContext): Promise<void> {
             // This is where the target spawns, so walking there helps
             ctx.log(`No targets nearby - walking to ${bestZone === ZONES.farmers ? 'Farmer spawn' : 'zone'}...`);
             await ctx.bot.walkTo(bestZone.x, bestZone.z);
-            ctx.progress();
             continue;
         }
 
         // Attempt pickpocket
         const result = await attemptPickpocket(ctx, target, stats);
-        ctx.progress();
 
         // Log periodic stats every 10 attempts
         if (stats.pickpocketAttempts % 10 === 0 && stats.pickpocketAttempts > 0) {

@@ -87,14 +87,12 @@ async function pickpocket(ctx: ScriptContext): Promise<boolean> {
         const thievingXpAfter = finalState.skills.find(s => s.name === 'Thieving')?.experience ?? 0;
         if (thievingXpAfter > xpBefore) {
             ctx.log('Pickpocket success!');
-            ctx.progress();
             return true;
         }
 
         // We got stunned - wait for stun to wear off
         ctx.log('Stunned! Waiting...');
         await new Promise(r => setTimeout(r, 5000)); // Stun lasts ~5 seconds
-        ctx.progress();
         return true; // Still count as progress since we attempted
 
     } catch {

@@ -76,14 +76,12 @@ async function getCoinsFromShop(ctx: ScriptContext): Promise<boolean> {
     ctx.log('Selling items for toll money...');
 
     await ctx.bot.walkTo(LUMBRIDGE_SHOP.x, LUMBRIDGE_SHOP.z);
-    ctx.progress();
 
     const openResult = await ctx.bot.openShop(/shop keeper/i);
     if (!openResult.success) {
         ctx.log(`Failed to open shop: ${openResult.message}`);
         return false;
     }
-    ctx.progress();
 
     // Sell shortbow (worth ~20gp)
     const sellResult = await ctx.bot.sellToShop(/shortbow/i, 1);
@@ -121,7 +119,6 @@ async function walkToMine(ctx: ScriptContext): Promise<void> {
         }
     }
 
-    ctx.progress();
 
     // Dismiss any dialogs
     const state = ctx.state();
@@ -185,8 +182,7 @@ async function mineRock(ctx: ScriptContext): Promise<boolean> {
     if (state.dialog.isOpen) {
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 300));
-        ctx.progress();
-    }
+        }
 
     // Find rocks with Mine option - sort by distance
     const rocks = state.nearbyLocs.filter(loc =>
@@ -203,8 +199,7 @@ async function mineRock(ctx: ScriptContext): Promise<boolean> {
     for (const rock of rocks.slice(0, 5)) {
         // Prospect to check ore type
         const oreType = await prospectRock(ctx, rock);
-        ctx.progress();
-
+    
         // Skip non-copper/tin or empty rocks
         if (!oreType || oreType === 'empty') continue;
         if (oreType !== 'copper' && oreType !== 'tin') {
@@ -237,8 +232,7 @@ async function mineRock(ctx: ScriptContext): Promise<boolean> {
 
             const currentOre = countOre(ctx);
             ctx.log(`Mined! (${currentOre.copper} copper, ${currentOre.tin} tin)`);
-            ctx.progress();
-            return true;
+                    return true;
         } catch {
             ctx.log('Mining timeout');
         }
@@ -295,8 +289,7 @@ async function mineOre(ctx: ScriptContext, targetPairs: number): Promise<void> {
             consecutiveFails = 0;
         }
 
-        ctx.progress();
-    }
+        }
 }
 
 // Pay toll and enter Al Kharid
@@ -308,7 +301,6 @@ async function enterAlKharid(ctx: ScriptContext): Promise<boolean> {
 
     ctx.log('Walking to toll gate...');
     await ctx.bot.walkTo(AL_KHARID_GATE.x, AL_KHARID_GATE.z);
-    ctx.progress();
 
     // Find and interact with gate
     const state = ctx.state();
@@ -346,8 +338,7 @@ async function enterAlKharid(ctx: ScriptContext): Promise<boolean> {
 
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
-        ctx.progress();
-    }
+        }
 
     await new Promise(r => setTimeout(r, 500));
 
@@ -379,7 +370,6 @@ async function enterAlKharid(ctx: ScriptContext): Promise<boolean> {
 async function smeltBars(ctx: ScriptContext): Promise<number> {
     ctx.log('Walking to furnace...');
     await ctx.bot.walkTo(AL_KHARID_FURNACE.x, AL_KHARID_FURNACE.z);
-    ctx.progress();
 
     let barsSmelted = 0;
 
@@ -461,8 +451,7 @@ async function smeltBars(ctx: ScriptContext): Promise<number> {
 
             barsSmelted++;
             ctx.log(`Smelted bar #${barsSmelted}`);
-            ctx.progress();
-        } catch {
+                } catch {
             ctx.log('Smelting timeout');
             await new Promise(r => setTimeout(r, 500));
         }
@@ -483,8 +472,7 @@ async function smithItems(ctx: ScriptContext): Promise<number> {
         // Known Al Kharid anvil location (near general store)
         const alKharidAnvil = { x: 3290, z: 3179 };
         await ctx.bot.walkTo(alKharidAnvil.x, alKharidAnvil.z);
-        ctx.progress();
-
+    
         anvil = ctx.state()?.nearbyLocs.find(l => /anvil/i.test(l.name));
     }
 
@@ -492,8 +480,7 @@ async function smithItems(ctx: ScriptContext): Promise<number> {
         ctx.log('No anvil found, trying Varrock...');
         // Walk to Varrock west anvil
         await ctx.bot.walkTo(3188, 3427);
-        ctx.progress();
-
+    
         anvil = ctx.state()?.nearbyLocs.find(l => /anvil/i.test(l.name));
     }
 
@@ -597,8 +584,7 @@ async function smithItems(ctx: ScriptContext): Promise<number> {
 
             itemsSmithed++;
             ctx.log(`Smithed item #${itemsSmithed}`);
-            ctx.progress();
-        } catch {
+                } catch {
             ctx.log('Smithing timeout');
             await new Promise(r => setTimeout(r, 500));
         }
@@ -614,7 +600,6 @@ async function dropItems(ctx: ScriptContext, pattern: RegExp): Promise<void> {
         await ctx.sdk.sendDropItem(item.slot);
         await new Promise(r => setTimeout(r, 100));
     }
-    ctx.progress();
 }
 
 // Equip pickaxe if not already equipped

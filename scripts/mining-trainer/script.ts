@@ -165,7 +165,6 @@ async function dropOre(ctx: ScriptContext): Promise<number> {
         if (/ore/i.test(item.name)) {
             await ctx.sdk.sendDropItem(item.slot);
             dropped++;
-            ctx.progress();
         }
     }
     return dropped;

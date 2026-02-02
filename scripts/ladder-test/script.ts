@@ -36,7 +36,6 @@ runScript({
         ctx.log(`Walking to (${x}, ${z})...`);
         try {
             await ctx.bot.walkTo(x!, z!);
-            ctx.progress();
             await new Promise(r => setTimeout(r, 500));
 
             const pos = ctx.state()?.player;
@@ -63,7 +62,6 @@ runScript({
     // Try to enter the tower
     ctx.log('\nTrying to enter Wizard Tower...');
     await ctx.bot.walkTo(3109, 3168);
-    ctx.progress();
     await new Promise(r => setTimeout(r, 500));
 
     // Check for door
@@ -77,13 +75,11 @@ runScript({
         if (opt) {
             await ctx.sdk.sendInteractLoc(door.x, door.z, door.id, opt.opIndex);
             await new Promise(r => setTimeout(r, 1000));
-            ctx.progress();
         }
     }
 
     // Walk inside
     await ctx.bot.walkTo(3104, 3162);
-    ctx.progress();
     await new Promise(r => setTimeout(r, 500));
 
     // Find ladder to basement
@@ -122,7 +118,6 @@ runScript({
 
             if (currLevel !== priorLevel) {
                 ctx.log('\n*** LADDER WORKS! Floor changed! ***');
-                ctx.progress();
 
                 // Look for Sedridor in basement
                 const npcs = ctx.state()?.nearbyNpcs.slice(0, 5) ?? [];

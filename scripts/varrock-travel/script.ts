@@ -75,7 +75,6 @@ async function walkToWaypoint(
         const newDist = distanceTo(ctx, x, z);
         if (newDist <= tolerance) {
             ctx.log(`Reached ${name}`);
-            ctx.progress();
             return true;
         }
 

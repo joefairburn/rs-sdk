@@ -78,7 +78,6 @@ async function dropBonesIfNeeded(ctx: ScriptContext): Promise<void> {
             for (const bone of bones.slice(0, 5)) {  // Drop up to 5 bones at a time
                 await ctx.sdk.sendDropItem(bone.slot);
                 await new Promise(r => setTimeout(r, 300));
-                ctx.progress();
             }
         }
     }
@@ -242,7 +241,6 @@ async function cycleCombatStyle(ctx: ScriptContext): Promise<void> {
         ctx.log(`Setting ${target.name} style (slot ${currentStyleIndex}/7)`);
         await ctx.sdk.sendSetCombatStyle(target.style);
         lastSetStyle = target.style;
-        ctx.progress();
     }
 }
 
@@ -348,7 +346,6 @@ async function waitForCombatEnd(
             return 'lost_target';
         }
 
-        ctx.progress();
     }
 
     return 'lost_target';
@@ -370,7 +367,6 @@ async function sellHides(ctx: ScriptContext, stats: CombatStats): Promise<boolea
 
     ctx.log(`Walking to Lumbridge general store with ${hideCount} hides...`);
     await ctx.bot.walkTo(LOCATIONS.LUMBRIDGE_GENERAL_STORE.x, LOCATIONS.LUMBRIDGE_GENERAL_STORE.z);
-    ctx.progress();
 
     const shopResult = await ctx.bot.openShop(/shop.?keeper/i);
     if (!shopResult.success) {
@@ -392,12 +388,10 @@ async function sellHides(ctx: ScriptContext, stats: CombatStats): Promise<boolea
             ctx.warn(`Failed to sell hide: ${sellResult.message}`);
             break;
         }
-        ctx.progress();
     }
 
     ctx.log(`Sold ${soldCount} cow hides!`);
     await ctx.bot.closeShop();
-    ctx.progress();
 
     // Check coins
     const coins = ctx.sdk.findInventoryItem(/^coins$/i);
@@ -430,7 +424,6 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
     // Walk to Al Kharid gate
     ctx.log('Walking to Al Kharid gate...');
     await ctx.bot.walkTo(LOCATIONS.ALKHARID_GATE.x, LOCATIONS.ALKHARID_GATE.z);
-    ctx.progress();
 
     // Handle toll gate
     ctx.log('Opening toll gate...');
@@ -459,7 +452,6 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
     }
-    ctx.progress();
 
     // Walk through gate
     await new Promise(r => setTimeout(r, 1000));
@@ -476,7 +468,6 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
         }
         await ctx.bot.walkTo(3277, 3227);
         await new Promise(r => setTimeout(r, 800));
-        ctx.progress();
     }
 
     // Verify in Al Kharid
@@ -489,7 +480,6 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
     // Walk to Zeke's shop
     ctx.log('Walking to Zeke\'s Scimitar Shop...');
     await ctx.bot.walkTo(LOCATIONS.ALKHARID_SCIMITAR_SHOP.x, LOCATIONS.ALKHARID_SCIMITAR_SHOP.z);
-    ctx.progress();
 
     // Buy iron scimitar
     const scimitarShop = await ctx.bot.openShop(/zeke/i);
@@ -507,14 +497,12 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
         ctx.warn(`Failed to buy scimitar: ${buyScim.message}`);
     }
     await ctx.bot.closeShop();
-    ctx.progress();
 
     // Equip the scimitar
     const scimitar = ctx.sdk.findInventoryItem(/iron scimitar/i);
     if (scimitar) {
         ctx.log('Equipping iron scimitar...');
         await ctx.bot.equipItem(scimitar);
-        ctx.progress();
     }
 
     // Return to cow field
@@ -523,7 +511,6 @@ async function buyIronScimitar(ctx: ScriptContext, stats: CombatStats): Promise<
     await ctx.bot.walkTo(3267, 3227);  // Outside gate
     await new Promise(r => setTimeout(r, 500));
     await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-    ctx.progress();
 
     stats.phase = 'training';
     ctx.log('=== Ready to train with Iron Scimitar! ===');
@@ -572,20 +559,17 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
     if (sword) {
         ctx.log(`Equipping ${sword.name}...`);
         await ctx.bot.equipItem(sword);
-        ctx.progress();
     }
 
     const shield = ctx.sdk.findInventoryItem(/wooden shield/i);
     if (shield) {
         ctx.log(`Equipping ${shield.name}...`);
         await ctx.bot.equipItem(shield);
-        ctx.progress();
     }
 
     // Walk to cow field
     ctx.log('Walking to cow field...');
     await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-    ctx.progress();
 
     // Main training loop
     while (true) {
@@ -598,7 +582,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         // Dismiss any blocking dialogs
         if (currentState.dialog.isOpen) {
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
             continue;
         }
 
@@ -689,7 +672,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
                 // Mark this item as failed so we don't retry immediately
                 markPickupFailed(item);
             }
-            ctx.progress();
         }
 
         // Find a cow to attack
@@ -697,7 +679,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         if (!target) {
             ctx.log('No cows nearby - walking to cow field...');
             await ctx.bot.walkTo(LOCATIONS.COW_FIELD.x, LOCATIONS.COW_FIELD.z);
-            ctx.progress();
             continue;
         }
 
@@ -705,7 +686,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         const playerCombat = currentState.player?.combat;
         if (playerCombat?.inCombat && playerCombat.targetIndex === target.index) {
             const result = await waitForCombatEnd(ctx, target, stats);
-            ctx.progress();
             continue;
         }
 
@@ -721,7 +701,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
             if (attackResult.reason === 'out_of_reach') {
                 await ctx.bot.openDoor(/gate/i);
             }
-            ctx.progress();
             continue;
         }
 
@@ -730,7 +709,6 @@ async function combatTrainingLoop(ctx: ScriptContext): Promise<void> {
         if (combatResult === 'kill') {
             ctx.log(`Kill #${stats.kills}! (Hides: ${hideCount}/${HIDES_NEEDED})`);
         }
-        ctx.progress();
     }
 }
 

@@ -83,7 +83,6 @@ async function waitForCombatEnd(
         // Dismiss any level-up dialogs
         if (state.dialog.isOpen) {
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
             continue;
         }
 
@@ -102,7 +101,6 @@ async function waitForCombatEnd(
             return 'kill';
         }
 
-        ctx.progress();
     }
 
     return 'lost_target';
@@ -116,7 +114,6 @@ async function dismissDialog(ctx: ScriptContext): Promise<boolean> {
     if (state?.dialog.isOpen) {
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 300));
-        ctx.progress();
         return true;
     }
     return false;
@@ -143,7 +140,6 @@ async function buryAllBones(ctx: ScriptContext, stats: PrayerStats): Promise<voi
         if (state.dialog.isOpen) {
             await ctx.sdk.sendClickDialog(0);
             await new Promise(r => setTimeout(r, 300));
-            ctx.progress();
             continue;  // Re-check state after dismissing
         }
 
@@ -157,7 +153,6 @@ async function buryAllBones(ctx: ScriptContext, stats: PrayerStats): Promise<voi
         if (buryOpt) {
             await ctx.sdk.sendUseItem(currentBone.slot, buryOpt.opIndex);
             stats.bonesBuried++;
-            ctx.progress();
 
             // Wait for bury animation and XP to register
             await new Promise(r => setTimeout(r, 700));
@@ -200,22 +195,18 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
     if (sword) {
         ctx.log('Equipping bronze sword...');
         await ctx.bot.equipItem(sword);
-        ctx.progress();
     }
 
     const shield = ctx.sdk.findInventoryItem(/wooden shield/i);
     if (shield) {
         ctx.log('Equipping wooden shield...');
         await ctx.bot.equipItem(shield);
-        ctx.progress();
     }
 
     // Walk to chicken coop entrance and enter through gate
     ctx.log(`Walking to chicken coop entrance at (${CHICKEN_COOP_ENTRANCE.x}, ${CHICKEN_COOP_ENTRANCE.z})...`);
     await ctx.bot.walkTo(CHICKEN_COOP_ENTRANCE.x, CHICKEN_COOP_ENTRANCE.z);
-    ctx.progress();
     await ctx.bot.walkTo(CHICKEN_COOP_ENTRANCE.x, CHICKEN_COOP_ENTRANCE.z);
-    ctx.progress();
     await ctx.bot.walkTo(CHICKEN_COOP_ENTRANCE.x, CHICKEN_COOP_ENTRANCE.z);
 
     // Open the gate to enter the chicken coop
@@ -224,12 +215,10 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
     if (!gateResult.success && gateResult.reason !== 'already_open') {
         ctx.warn(`Gate issue: ${gateResult.message}`);
     }
-    ctx.progress();
 
     // Walk inside the coop
     ctx.log(`Walking inside coop to (${CHICKEN_COOP_INSIDE.x}, ${CHICKEN_COOP_INSIDE.z})...`);
     await ctx.bot.walkTo(CHICKEN_COOP_INSIDE.x, CHICKEN_COOP_INSIDE.z);
-    ctx.progress();
 
     // Main loop
     while (true) {
@@ -253,8 +242,7 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
                 if (!s?.dialog.isOpen) break;
                 await ctx.sdk.sendClickDialog(0);
                 await new Promise(r => setTimeout(r, 300));
-                ctx.progress();
-            }
+                }
             continue;
         }
 
@@ -284,7 +272,6 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
             if (result.success) {
                 stats.bonesCollected++;
             }
-            ctx.progress();
             continue;
         }
 
@@ -293,7 +280,6 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
         if (!chicken) {
             ctx.log('No chickens nearby - walking back inside coop...');
             await ctx.bot.walkTo(CHICKEN_COOP_INSIDE.x, CHICKEN_COOP_INSIDE.z);
-            ctx.progress();
             continue;
         }
 
@@ -305,13 +291,11 @@ async function prayerTrainingLoop(ctx: ScriptContext): Promise<void> {
             if (attackResult.reason === 'out_of_reach') {
                 await ctx.bot.openDoor(/gate/i);
             }
-            ctx.progress();
             continue;
         }
 
         // Wait for chicken to die
         await waitForCombatEnd(ctx, chicken, stats);
-        ctx.progress();
     }
 }
 

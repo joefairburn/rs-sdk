@@ -12,7 +12,6 @@ When a player gains enough XP to level up, a congratulations dialog appears that
 if (currentState.dialog.isOpen) {
     ctx.log('Dismissing dialog...');
     await ctx.sdk.sendClickDialog(0);
-    ctx.progress();
     continue;
 }
 ```
@@ -107,7 +106,6 @@ For many skills, continuously sending the action works better than waiting:
 // Simple and effective
 while (true) {
     await ctx.sdk.sendInteractNpc(spot.index, netOpt.opIndex);
-    ctx.progress();
     await new Promise(r => setTimeout(r, 300));  // Small delay
 }
 ```

@@ -33,10 +33,7 @@ interface Stats {
 
 // ============ Helper Functions ============
 
-function markProgress(ctx: ScriptContext, stats: Stats): void {
-    stats.lastProgressTime = Date.now();
-    ctx.progress();
-}
+// Note: ctx.progress() removed - bot actions and movement auto-reset stall timer
 
 function getFishingXp(ctx: ScriptContext): number {
     return ctx.state()?.skills.find(s => s.name === 'Fishing')?.experience ?? 0;
@@ -175,7 +172,7 @@ async function dismissDialogs(ctx: ScriptContext, stats: Stats, maxCount: number
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
         dismissed++;
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
     return dismissed;
 }
@@ -186,7 +183,7 @@ async function dismissDialogs(ctx: ScriptContext, stats: Stats, maxCount: number
 async function walkToPosition(ctx: ScriptContext, stats: Stats, target: { x: number; z: number }, name: string): Promise<boolean> {
     const startDist = distanceTo(ctx, target);
     ctx.log(`Walking to ${name} (${target.x}, ${target.z}), dist: ${startDist}...`);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // For long distances, use bot.walkTo which handles pathfinding
     if (startDist > 30) {
@@ -220,7 +217,7 @@ async function walkToPosition(ctx: ScriptContext, stats: Stats, target: { x: num
     // Wait to arrive (within 5 tiles)
     for (let i = 0; i < 40; i++) {
         await new Promise(r => setTimeout(r, 400));
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         // Dismiss any dialogs
         await dismissDialogs(ctx, stats, 1);
@@ -255,7 +252,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
     // Fish until no available slots for raw fish
     while (getAvailableFishSlots(ctx) > 0) {
         attempts++;
-        if (attempts % 10 === 0) markProgress(ctx, stats);
+        if (attempts % 10 === 0) // progress auto-tracked
 
         // Dismiss dialogs
         if (await dismissDialogs(ctx, stats) > 0) continue;
@@ -267,7 +264,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
             if (currentFish % 5 === 0 || currentFish - lastFishCount > 1) {
                 ctx.log(`Fish caught: ${stats.fishCaught} (slots: ${getAvailableFishSlots(ctx)} free)`);
             }
-            markProgress(ctx, stats);
+            // progress auto-tracked
             noSpotCount = 0;  // Reset counter when we catch fish
         }
         lastFishCount = currentFish;
@@ -303,7 +300,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
                         await new Promise(r => setTimeout(r, 1500));
                     }
                 }
-                markProgress(ctx, stats);
+                // progress auto-tracked
                 noSpotCount = 0;
             }
 
@@ -319,7 +316,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
         }
 
         await ctx.sdk.sendInteractNpc(spot.index, netOpt.opIndex);
-        markProgress(ctx, stats);
+        // progress auto-tracked
         await new Promise(r => setTimeout(r, 200));
     }
 
@@ -359,13 +356,13 @@ async function cookAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
 
         // Use fish on range
         await ctx.sdk.sendUseItemOnLoc(rawFish.slot, range.x, range.z, range.id);
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         // Wait for cooking to happen (XP gain or raw fish count decrease)
         // Also handle any interface/dialog that appears
         for (let i = 0; i < 15; i++) {
             await new Promise(r => setTimeout(r, 300));
-            markProgress(ctx, stats);
+            // progress auto-tracked
 
             const state = ctx.state();
 
@@ -378,7 +375,7 @@ async function cookAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
                 let noChange = 0;
                 while (noChange < 10 && countRawFish(ctx) > 0) {
                     await new Promise(r => setTimeout(r, 400));
-                    markProgress(ctx, stats);
+                    // progress auto-tracked
                     await dismissDialogs(ctx, stats, 1);
                     const prev = countRawFish(ctx);
                     await new Promise(r => setTimeout(r, 200));
@@ -497,7 +494,7 @@ async function waitForBankInterface(ctx: ScriptContext, stats: Stats): Promise<b
     // Wait for interface OR dialog to appear
     for (let i = 0; i < 40; i++) {  // 8 seconds total
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         const currentState = ctx.state();
 
@@ -549,7 +546,7 @@ async function depositCookedFish(ctx: ScriptContext, stats: Stats, cookedBefore:
         ctx.log(`  ${item.name} x${item.count} from slot ${item.slot}`);
         await ctx.sdk.sendBankDeposit(item.slot, item.count);
         await new Promise(r => setTimeout(r, 150));
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     await new Promise(r => setTimeout(r, 300));
@@ -577,7 +574,7 @@ async function dropCookedFish(ctx: ScriptContext, stats: Stats): Promise<void> {
     for (const item of itemsToDrop) {
         await ctx.sdk.sendDropItem(item.slot);
         dropped += item.count;
-        markProgress(ctx, stats);
+        // progress auto-tracked
         await new Promise(r => setTimeout(r, 100));
     }
 
@@ -637,7 +634,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
     ctx.log(`Position: (${ctx.state()?.player?.worldX}, ${ctx.state()?.player?.worldZ})`);
 
     await ctx.bot.dismissBlockingUI();
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Ensure we start at the fishing spot
     await ensureAtFishingSpot(ctx, stats);
@@ -660,7 +657,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
         ctx.log('Phase 4: Returning to fishing spot...');
         await walkToPosition(ctx, stats, LOCATIONS.FISHING_SPOT, 'fishing spot');
 
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 }
 

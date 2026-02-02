@@ -54,7 +54,6 @@ async function dropAllLogs(ctx: ScriptContext): Promise<void> {
 
     for (const item of logsItems) {
         await ctx.sdk.sendDropItem(item.slot);
-        ctx.progress();
         await new Promise(r => setTimeout(r, 150));
     }
 }

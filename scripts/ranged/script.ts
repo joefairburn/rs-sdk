@@ -132,7 +132,6 @@ async function waitForCombatEnd(
         if (state.dialog.isOpen) {
             ctx.log('Dismissing dialog during combat...');
             await ctx.sdk.sendClickDialog(0);
-            ctx.progress();
             continue;
         }
 
@@ -180,7 +179,6 @@ async function waitForCombatEnd(
             return 'lost_target';
         }
 
-        ctx.progress();
     }
 
     return 'lost_target';
@@ -236,7 +234,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
     if (shortbow) {
         ctx.log('Equipping shortbow...');
         await ctx.bot.equipItem(shortbow);
-        ctx.progress();
     }
 
     // Equip bronze arrows if not already equipped
@@ -244,13 +241,11 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
     if (arrows) {
         ctx.log('Equipping bronze arrows...');
         await ctx.bot.equipItem(arrows);
-        ctx.progress();
     }
 
     // Set ranged attack style
     ctx.log('Setting ranged attack style...');
     await ctx.sdk.sendSetCombatStyle(RANGED_STYLE);
-    ctx.progress();
 
     // Dismiss any blocking UI
     await ctx.bot.dismissBlockingUI();
@@ -273,7 +268,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
     // // Walk inside the coop
     // ctx.log('Walking inside coop...');
     // await ctx.bot.walkTo(CHICKEN_COOP.x, CHICKEN_COOP.z);
-    // ctx.progress();
 
     // Verify we're inside - if not, try again
     // const pos = ctx.state();
@@ -312,7 +306,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
             ctx.log('Dismissing dialog...');
             await ctx.sdk.sendClickDialog(0);
             await new Promise(r => setTimeout(r, 300));
-            ctx.progress();
             continue;
         }
 
@@ -358,7 +351,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
                 failedPickups.set(key, retries + 1);
                 ctx.log(`Arrow pickup failed (retry ${retries + 1}/${MAX_PICKUP_RETRIES}): ${result.reason}`);
             }
-            ctx.progress();
             continue;
         }
 
@@ -370,7 +362,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
             await ctx.bot.openDoor(/gate/i);
             await new Promise(r => setTimeout(r, 400));
             await ctx.bot.walkTo(CHICKEN_COOP.x, CHICKEN_COOP.z);
-            ctx.progress();
             continue;
         }
 
@@ -383,7 +374,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
             await new Promise(r => setTimeout(r, 400));
             // Walk to coop
             await ctx.bot.walkTo(CHICKEN_COOP.x, CHICKEN_COOP.z);
-            ctx.progress();
             continue;
         }
 
@@ -391,7 +381,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
         const playerCombat = currentState.player?.combat;
         if (playerCombat?.inCombat && playerCombat.targetIndex === target.index) {
             await waitForCombatEnd(ctx, target, stats);
-            ctx.progress();
             continue;
         }
 
@@ -419,8 +408,7 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
             //     await new Promise(r => setTimeout(r, 400));
             //     await ctx.bot.walkTo(CHICKEN_COOP.x, CHICKEN_COOP.z);
             // }
-            // ctx.progress();
-            continue;
+                    continue;
         }
 
         // Wait for combat to complete
@@ -435,7 +423,6 @@ async function rangedTrainingLoop(ctx: ScriptContext): Promise<void> {
         if (combatResult === 'kill') {
             ctx.log(`Kill #${stats.kills}! (Ranged: Lv${getRangedLevel(ctx)}, Arrows: ${arrowsAfter})`);
         }
-        ctx.progress();
     }
 }
 

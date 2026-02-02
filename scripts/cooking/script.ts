@@ -37,10 +37,7 @@ interface Stats {
 
 // ============ Helper Functions ============
 
-function markProgress(ctx: ScriptContext, stats: Stats): void {
-    stats.lastProgressTime = Date.now();
-    ctx.progress();
-}
+// Note: ctx.progress() removed - bot actions and movement auto-reset stall timer
 
 function getCookingXp(ctx: ScriptContext): number {
     return ctx.state()?.skills.find(s => s.name === 'Cooking')?.experience ?? 0;
@@ -144,7 +141,7 @@ async function eatIfLowHp(ctx: ScriptContext, stats: Stats): Promise<boolean> {
             // Run north towards bank (safer area)
             await ctx.sdk.sendWalk(LOCATIONS.ALKHARID_RANGE.x, LOCATIONS.ALKHARID_RANGE.z, true);
             await new Promise(r => setTimeout(r, 2000));
-            markProgress(ctx, stats);
+            // progress auto-tracked
         }
         return false;
     }
@@ -152,7 +149,7 @@ async function eatIfLowHp(ctx: ScriptContext, stats: Stats): Promise<boolean> {
     ctx.log(`HP low (${hp}), eating ${food.name}`);
     await ctx.sdk.sendUseItem(food.slot, 1);  // Option 1 = "Eat"
     await new Promise(r => setTimeout(r, 500));
-    markProgress(ctx, stats);
+    // progress auto-tracked
     return true;
 }
 
@@ -165,7 +162,7 @@ async function dismissDialogs(ctx: ScriptContext, stats: Stats, maxCount: number
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
         dismissed++;
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
     return dismissed;
 }
@@ -176,7 +173,7 @@ async function dismissDialogs(ctx: ScriptContext, stats: Stats, maxCount: number
 async function walkToPosition(ctx: ScriptContext, stats: Stats, target: { x: number; z: number }, name: string): Promise<boolean> {
     const startDist = distanceTo(ctx, target);
     ctx.log(`Walking to ${name} (${target.x}, ${target.z}), dist: ${startDist}...`);
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Use pathfinding for long distances - retry up to 3 times
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -193,7 +190,7 @@ async function walkToPosition(ctx: ScriptContext, stats: Stats, target: { x: num
             } catch (e) {
                 ctx.warn(`Pathfinding error: ${e}`);
             }
-            markProgress(ctx, stats);
+            // progress auto-tracked
         }
     }
 
@@ -211,7 +208,7 @@ async function walkToPosition(ctx: ScriptContext, stats: Stats, target: { x: num
     // Wait to arrive
     for (let i = 0; i < 100; i++) {
         await new Promise(r => setTimeout(r, 400));
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         await dismissDialogs(ctx, stats, 1);
 
@@ -264,7 +261,7 @@ async function sellShortbowForCoins(ctx: ScriptContext, stats: Stats): Promise<b
         ctx.warn(`Failed to open shop: ${result.message}`);
         return false;
     }
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Sell shortbow
     ctx.log('Selling shortbow...');
@@ -272,7 +269,7 @@ async function sellShortbowForCoins(ctx: ScriptContext, stats: Stats): Promise<b
     if (!sellResult.success) {
         ctx.warn(`Failed to sell shortbow: ${sellResult.message}`);
     }
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Close shop
     await ctx.bot.closeShop();
@@ -316,7 +313,7 @@ async function passThruTollGate(ctx: ScriptContext, stats: Stats): Promise<boole
     ctx.log('Opening toll gate...');
     await ctx.sdk.sendInteractLoc(gate.x, gate.z, gate.id, openOpt.opIndex);
     await new Promise(r => setTimeout(r, 1000));
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Handle dialog - click through until "Yes" option appears
     for (let i = 0; i < 20; i++) {
@@ -337,12 +334,12 @@ async function passThruTollGate(ctx: ScriptContext, stats: Stats): Promise<boole
             ctx.log('Paying toll...');
             await ctx.sdk.sendClickDialog(yesOpt.index);
             await new Promise(r => setTimeout(r, 500));
-            markProgress(ctx, stats);
+            // progress auto-tracked
             continue;  // Keep checking dialog/position
         }
         await ctx.sdk.sendClickDialog(0);
         await new Promise(r => setTimeout(r, 200));
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     // Wait and walk through repeatedly
@@ -364,7 +361,7 @@ async function passThruTollGate(ctx: ScriptContext, stats: Stats): Promise<boole
         // Try to walk through
         await ctx.sdk.sendWalk(3277, 3227, true);  // Inside Al-Kharid
         await new Promise(r => setTimeout(r, 1500));
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     ctx.warn('Failed to pass through toll gate');
@@ -395,7 +392,7 @@ async function dropNonEssentials(ctx: ScriptContext, stats: Stats): Promise<void
     ctx.log(`Dropping ${itemsToDrop.length} non-essential items...`);
     for (const item of itemsToDrop) {
         await ctx.sdk.sendDropItem(item.slot);
-        markProgress(ctx, stats);
+        // progress auto-tracked
         await new Promise(r => setTimeout(r, 100));
     }
 
@@ -425,7 +422,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
             if (currentFish % 5 === 0) {
                 ctx.log(`Fish caught: ${stats.fishCaught} (${getAvailableSlots(ctx)} slots free)`);
             }
-            markProgress(ctx, stats);
+            // progress auto-tracked
             noSpotCount = 0;
         }
         lastFishCount = currentFish;
@@ -480,7 +477,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
                 );
                 await new Promise(r => setTimeout(r, 1500));
                 noSpotCount = 0;
-                markProgress(ctx, stats);
+                // progress auto-tracked
             }
 
             await new Promise(r => setTimeout(r, 100));
@@ -495,7 +492,7 @@ async function fishUntilFull(ctx: ScriptContext, stats: Stats): Promise<void> {
         }
 
         await ctx.sdk.sendInteractNpc(spot.index, netOpt.opIndex);
-        markProgress(ctx, stats);
+        // progress auto-tracked
         await new Promise(r => setTimeout(r, 200));
     }
 
@@ -538,12 +535,12 @@ async function cookAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
 
         // Use fish on range
         await ctx.sdk.sendUseItemOnLoc(rawFish.slot, range.x, range.z, range.id);
-        markProgress(ctx, stats);
+        // progress auto-tracked
 
         // Wait for cooking interface or direct cooking
         for (let i = 0; i < 15; i++) {
             await new Promise(r => setTimeout(r, 300));
-            markProgress(ctx, stats);
+            // progress auto-tracked
 
             const state = ctx.state();
 
@@ -556,7 +553,7 @@ async function cookAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
                 let noChange = 0;
                 while (noChange < 15 && countRawFish(ctx) > 0) {
                     await new Promise(r => setTimeout(r, 400));
-                    markProgress(ctx, stats);
+                    // progress auto-tracked
                     await dismissDialogs(ctx, stats, 1);
                     const prev = countRawFish(ctx);
                     await new Promise(r => setTimeout(r, 200));
@@ -608,7 +605,7 @@ async function dropAllFish(ctx: ScriptContext, stats: Stats): Promise<void> {
     ctx.log(`Dropping ${itemsToDrop.length} items...`);
     for (const item of itemsToDrop) {
         await ctx.sdk.sendDropItem(item.slot);
-        markProgress(ctx, stats);
+        // progress auto-tracked
         await new Promise(r => setTimeout(r, 100));
     }
 }
@@ -647,7 +644,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
     ctx.log(`Inventory: ${ctx.state()?.inventory.length ?? 0} items`);
 
     await ctx.bot.dismissBlockingUI();
-    markProgress(ctx, stats);
+    // progress auto-tracked
 
     // Phase 0a: Sell shortbow for coins
     const gotCoins = await sellShortbowForCoins(ctx, stats);
@@ -687,7 +684,7 @@ async function mainLoop(ctx: ScriptContext, stats: Stats): Promise<void> {
         ctx.log('Returning to fishing spot...');
         await walkToPosition(ctx, stats, LOCATIONS.ALKHARID_FISHING, 'Al-Kharid fishing');
 
-        markProgress(ctx, stats);
+        // progress auto-tracked
     }
 
     ctx.log(`\nGoal achieved! Cooking level ${getCookingLevel(ctx)}`);
