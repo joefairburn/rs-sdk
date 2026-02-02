@@ -84,6 +84,7 @@ export class BotSDK {
 
     // ============ Connection ============
 
+    /** Connect to the gateway WebSocket. */
     async connect(): Promise<void> {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             return;
@@ -182,6 +183,16 @@ export class BotSDK {
                                 console.warn('[BotSDK] Continuing anyway - state may load later');
                                 resolve(); // Still resolve - allow usage even if state isn't fully ready
                             });
+                    } else if (msg.type === 'sdk_error') {
+                        // Handle authentication errors during connection
+                        clearTimeout(timeout);
+                        this.ws?.removeEventListener('message', checkConnected);
+                        const errorMessage = msg.error || 'Authentication failed';
+                        console.error(`[BotSDK] Connection error: ${errorMessage}`);
+                        // Disable auto-reconnect for auth failures - they won't succeed on retry
+                        this.intentionalDisconnect = true;
+                        reject(new Error(errorMessage));
+                        this.ws?.close();
                     }
                 } catch {}
             };
@@ -230,6 +241,7 @@ export class BotSDK {
         }, delay);
     }
 
+    /** Disconnect from the gateway. */
     async disconnect(): Promise<void> {
         this.intentionalDisconnect = true;
 
@@ -247,14 +259,17 @@ export class BotSDK {
         this.setConnectionState('disconnected');
     }
 
+    /** Check if WebSocket is connected. */
     isConnected(): boolean {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
 
+    /** Get current connection state (connecting, connected, reconnecting, disconnected). */
     getConnectionState(): ConnectionState {
         return this.connectionState;
     }
 
+    /** Get current reconnection attempt number. */
     getReconnectAttempt(): number {
         return this.reconnectAttempt;
     }
@@ -264,6 +279,7 @@ export class BotSDK {
         return () => this.connectionListeners.delete(listener);
     }
 
+    /** Get connection mode (control or observe). */
     getConnectionMode(): SDKConnectionMode {
         return this.config.connectionMode;
     }
@@ -436,6 +452,7 @@ export class BotSDK {
         return `${httpUrl}/bot?bot=${encodeURIComponent(this.config.botUsername)}&password=${encodeURIComponent(this.config.password)}`;
     }
 
+    /** Wait for WebSocket connection to be established. */
     async waitForConnection(timeout: number = 60000): Promise<void> {
         if (this.isConnected()) {
             return;
@@ -463,6 +480,7 @@ export class BotSDK {
 
     // ============ State Access (Synchronous) ============
 
+    /** Get current game state snapshot. */
     getState(): BotWorldState | null {
         return this.state;
     }
@@ -478,6 +496,7 @@ export class BotSDK {
         return Date.now() - this.stateReceivedAt;
     }
 
+    /** Get a skill by name (case-insensitive). */
     getSkill(name: string): SkillState | null {
         if (!this.state) return null;
         return this.state.skills.find(s =>
@@ -485,20 +504,24 @@ export class BotSDK {
         ) || null;
     }
 
+    /** Get XP for a skill by name. */
     getSkillXp(name: string): number | null {
         const skill = this.getSkill(name);
         return skill?.experience ?? null;
     }
 
+    /** Get all skills. */
     getSkills(): SkillState[] {
         return this.state?.skills || [];
     }
 
+    /** Get inventory item by slot number. */
     getInventoryItem(slot: number): InventoryItem | null {
         if (!this.state) return null;
         return this.state.inventory.find(i => i.slot === slot) || null;
     }
 
+    /** Find inventory item by name pattern. */
     findInventoryItem(pattern: string | RegExp): InventoryItem | null {
         if (!this.state) return null;
         const regex = typeof pattern === 'string'
@@ -507,15 +530,18 @@ export class BotSDK {
         return this.state.inventory.find(i => regex.test(i.name)) || null;
     }
 
+    /** Get all inventory items. */
     getInventory(): InventoryItem[] {
         return this.state?.inventory || [];
     }
 
+    /** Get equipment item by slot number. */
     getEquipmentItem(slot: number): InventoryItem | null {
         if (!this.state) return null;
         return this.state.equipment.find(i => i.slot === slot) || null;
     }
 
+    /** Find equipment item by name pattern. */
     findEquipmentItem(pattern: string | RegExp): InventoryItem | null {
         if (!this.state) return null;
         const regex = typeof pattern === 'string'
@@ -524,15 +550,18 @@ export class BotSDK {
         return this.state.equipment.find(i => regex.test(i.name)) || null;
     }
 
+    /** Get all equipped items. */
     getEquipment(): InventoryItem[] {
         return this.state?.equipment || [];
     }
 
+    /** Get NPC by index. */
     getNearbyNpc(index: number): NearbyNpc | null {
         if (!this.state) return null;
         return this.state.nearbyNpcs.find(n => n.index === index) || null;
     }
 
+    /** Find NPC by name pattern. */
     findNearbyNpc(pattern: string | RegExp): NearbyNpc | null {
         if (!this.state) return null;
         const regex = typeof pattern === 'string'
@@ -541,10 +570,12 @@ export class BotSDK {
         return this.state.nearbyNpcs.find(n => regex.test(n.name)) || null;
     }
 
+    /** Get all nearby NPCs. */
     getNearbyNpcs(): NearbyNpc[] {
         return this.state?.nearbyNpcs || [];
     }
 
+    /** Get location (object) by coordinates and ID. */
     getNearbyLoc(x: number, z: number, id: number): NearbyLoc | null {
         if (!this.state) return null;
         return this.state.nearbyLocs.find(l =>
@@ -552,6 +583,7 @@ export class BotSDK {
         ) || null;
     }
 
+    /** Find location by name pattern. */
     findNearbyLoc(pattern: string | RegExp): NearbyLoc | null {
         if (!this.state) return null;
         const regex = typeof pattern === 'string'
@@ -560,10 +592,12 @@ export class BotSDK {
         return this.state.nearbyLocs.find(l => regex.test(l.name)) || null;
     }
 
+    /** Get all nearby locations (trees, rocks, etc). */
     getNearbyLocs(): NearbyLoc[] {
         return this.state?.nearbyLocs || [];
     }
 
+    /** Find ground item by name pattern. */
     findGroundItem(pattern: string | RegExp): GroundItem | null {
         if (!this.state) return null;
         const regex = typeof pattern === 'string'
@@ -572,10 +606,12 @@ export class BotSDK {
         return this.state.groundItems.find(i => regex.test(i.name)) || null;
     }
 
+    /** Get all ground items. */
     getGroundItems(): GroundItem[] {
         return this.state?.groundItems || [];
     }
 
+    /** Get current dialog state. */
     getDialog(): DialogState | null {
         return this.state?.dialog || null;
     }
@@ -677,46 +713,57 @@ export class BotSDK {
         });
     }
 
+    /** Send walk command to coordinates. */
     async sendWalk(x: number, z: number, running: boolean = true): Promise<ActionResult> {
         return this.sendAction({ type: 'walkTo', x, z, running, reason: 'SDK' });
     }
 
+    /** Interact with a location (tree, rock, door, etc). */
     async sendInteractLoc(x: number, z: number, locId: number, option: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'interactLoc', x, z, locId, optionIndex: option, reason: 'SDK' });
     }
 
+    /** Interact with an NPC by index and option. */
     async sendInteractNpc(npcIndex: number, option: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'interactNpc', npcIndex, optionIndex: option, reason: 'SDK' });
     }
 
+    /** Talk to an NPC by index. */
     async sendTalkToNpc(npcIndex: number): Promise<ActionResult> {
         return this.sendAction({ type: 'talkToNpc', npcIndex, reason: 'SDK' });
     }
 
+    /** Pick up a ground item. */
     async sendPickup(x: number, z: number, itemId: number): Promise<ActionResult> {
         return this.sendAction({ type: 'pickupItem', x, z, itemId, reason: 'SDK' });
     }
 
+    /** Use an inventory item (eat, equip, etc). */
     async sendUseItem(slot: number, option: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'useInventoryItem', slot, optionIndex: option, reason: 'SDK' });
     }
 
+    /** Use an equipped item (remove, operate, etc). */
     async sendUseEquipmentItem(slot: number, option: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'useEquipmentItem', slot, optionIndex: option, reason: 'SDK' });
     }
 
+    /** Drop an inventory item. */
     async sendDropItem(slot: number): Promise<ActionResult> {
         return this.sendAction({ type: 'dropItem', slot, reason: 'SDK' });
     }
 
+    /** Use one inventory item on another. */
     async sendUseItemOnItem(sourceSlot: number, targetSlot: number): Promise<ActionResult> {
         return this.sendAction({ type: 'useItemOnItem', sourceSlot, targetSlot, reason: 'SDK' });
     }
 
+    /** Use an inventory item on a location. */
     async sendUseItemOnLoc(itemSlot: number, x: number, z: number, locId: number): Promise<ActionResult> {
         return this.sendAction({ type: 'useItemOnLoc', itemSlot, x, z, locId, reason: 'SDK' });
     }
 
+    /** Click a dialog option by index. */
     async sendClickDialog(option: number = 0): Promise<ActionResult> {
         return this.sendAction({ type: 'clickDialogOption', optionIndex: option, reason: 'SDK' });
     }
@@ -751,58 +798,72 @@ export class BotSDK {
         return this.sendClickComponent(option.componentId);
     }
 
+    /** Accept character design in tutorial. */
     async sendAcceptCharacterDesign(): Promise<ActionResult> {
         return this.sendAction({ type: 'acceptCharacterDesign', reason: 'SDK' });
     }
 
+    /** Randomize character appearance in tutorial. */
     async sendRandomizeCharacterDesign(): Promise<ActionResult> {
         return this.sendAction({ type: 'randomizeCharacterDesign', reason: 'SDK' });
     }
 
+    /** Buy from shop by slot and amount. */
     async sendShopBuy(slot: number, amount: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'shopBuy', slot, amount, reason: 'SDK' });
     }
 
+    /** Sell to shop by slot and amount. */
     async sendShopSell(slot: number, amount: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'shopSell', slot, amount, reason: 'SDK' });
     }
 
+    /** Close shop interface. */
     async sendCloseShop(): Promise<ActionResult> {
         return this.sendAction({ type: 'closeShop', reason: 'SDK' });
     }
 
+    /** Close any modal interface. */
     async sendCloseModal(): Promise<ActionResult> {
         return this.sendAction({ type: 'closeModal', reason: 'SDK' });
     }
 
+    /** Set combat style (0-3). */
     async sendSetCombatStyle(style: number): Promise<ActionResult> {
         return this.sendAction({ type: 'setCombatStyle', style, reason: 'SDK' });
     }
 
+    /** Cast spell on NPC using spell component ID. */
     async sendSpellOnNpc(npcIndex: number, spellComponent: number): Promise<ActionResult> {
         return this.sendAction({ type: 'spellOnNpc', npcIndex, spellComponent, reason: 'SDK' });
     }
 
+    /** Cast spell on inventory item. */
     async sendSpellOnItem(slot: number, spellComponent: number): Promise<ActionResult> {
         return this.sendAction({ type: 'spellOnItem', slot, spellComponent, reason: 'SDK' });
     }
 
+    /** Switch to a UI tab by index. */
     async sendSetTab(tabIndex: number): Promise<ActionResult> {
         return this.sendAction({ type: 'setTab', tabIndex, reason: 'SDK' });
     }
 
+    /** Send a chat message. */
     async sendSay(message: string): Promise<ActionResult> {
         return this.sendAction({ type: 'say', message, reason: 'SDK' });
     }
 
+    /** Wait for specified number of game ticks. */
     async sendWait(ticks: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'wait', ticks, reason: 'SDK' });
     }
 
+    /** Deposit item to bank by slot. */
     async sendBankDeposit(slot: number, amount: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'bankDeposit', slot, amount, reason: 'SDK' });
     }
 
+    /** Withdraw item from bank by slot. */
     async sendBankWithdraw(slot: number, amount: number = 1): Promise<ActionResult> {
         return this.sendAction({ type: 'bankWithdraw', slot, amount, reason: 'SDK' });
     }
@@ -844,6 +905,7 @@ export class BotSDK {
 
     // ============ Local Pathfinding ============
 
+    /** Find path to destination using local collision data. */
     findPath(
         destX: number,
         destZ: number,
@@ -880,7 +942,7 @@ export class BotSDK {
         return { success: true, waypoints, reachedDestination };
     }
 
-    // Alias for backwards compatibility
+    /** Find path to destination (async alias for findPath). */
     async sendFindPath(
         destX: number,
         destZ: number,
@@ -958,6 +1020,7 @@ export class BotSDK {
         });
     }
 
+    /** Wait for next state update from server. */
     async waitForStateChange(timeout: number = 30000): Promise<BotWorldState> {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {

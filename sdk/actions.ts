@@ -170,6 +170,7 @@ export class BotActions {
         return { success: false, message: 'No tutorial NPC found' };
     }
 
+    /** Dismiss any blocking UI like level-up dialogs. */
     async dismissBlockingUI(): Promise<void> {
         const maxAttempts = 10;
         for (let i = 0; i < maxAttempts; i++) {
@@ -188,6 +189,7 @@ export class BotActions {
 
     // ============ Porcelain: Smart Actions ============
 
+    /** Open a door or gate, walking to it if needed. */
     async openDoor(target?: NearbyLoc | string | RegExp): Promise<OpenDoorResult> {
         const door = this.helpers.resolveLocation(target, /door|gate/i);
         if (!door) {
@@ -282,6 +284,7 @@ export class BotActions {
         }
     }
 
+    /** Chop a tree and wait for logs to appear in inventory. */
     async chopTree(target?: NearbyLoc | string | RegExp): Promise<ChopTreeResult> {
         await this.dismissBlockingUI();
 
@@ -313,6 +316,7 @@ export class BotActions {
         }
     }
 
+    /** Burn logs using a tinderbox, wait for firemaking XP. */
     async burnLogs(logsTarget?: InventoryItem | string | RegExp): Promise<BurnLogsResult> {
         await this.dismissBlockingUI();
 
@@ -374,6 +378,7 @@ export class BotActions {
         }
     }
 
+    /** Pick up an item from the ground. */
     async pickupItem(target: GroundItem | string | RegExp): Promise<PickupResult> {
         return this.helpers.withDoorRetry(
             () => this._pickupItemOnce(target),
@@ -433,6 +438,7 @@ export class BotActions {
         }
     }
 
+    /** Talk to an NPC and wait for dialog to open. */
     async talkTo(target: NearbyNpc | string | RegExp): Promise<TalkResult> {
         return this.helpers.withDoorRetry(
             () => this._talkToOnce(target),
@@ -488,6 +494,7 @@ export class BotActions {
         }
     }
 
+    /** Walk to coordinates using pathfinding, auto-opening doors. */
     async walkTo(x: number, z: number, tolerance: number = 3): Promise<ActionResult> {
         const state = this.sdk.getState();
         if (!state?.player) return { success: false, message: 'No player state' };
@@ -658,6 +665,7 @@ export class BotActions {
 
     // ============ Porcelain: Shop Actions ============
 
+    /** Close the shop interface. */
     async closeShop(timeout: number = 5000): Promise<ActionResult> {
         const state = this.sdk.getState();
         if (!state?.shop.isOpen && !state?.interface?.isOpen) {
@@ -690,6 +698,7 @@ export class BotActions {
         }
     }
 
+    /** Open a shop by trading with an NPC. */
     async openShop(target: NearbyNpc | string | RegExp = /shop\s*keeper/i): Promise<ActionResult> {
         const npc = this.helpers.resolveNpc(target);
         if (!npc) {
@@ -730,6 +739,7 @@ export class BotActions {
         }
     }
 
+    /** Buy an item from an open shop. */
     async buyFromShop(target: ShopItem | string | RegExp, amount: number = 1): Promise<ShopResult> {
         const shop = this.sdk.getState()?.shop;
         if (!shop?.isOpen) {
@@ -764,6 +774,7 @@ export class BotActions {
         }
     }
 
+    /** Sell an item to an open shop. */
     async sellToShop(target: InventoryItem | ShopItem | string | RegExp, amount: SellAmount = 1): Promise<ShopSellResult> {
         const shop = this.sdk.getState()?.shop;
         if (!shop?.isOpen) {
@@ -918,6 +929,7 @@ export class BotActions {
 
     // ============ Porcelain: Bank Actions ============
 
+    /** Open a bank booth or talk to a banker. */
     async openBank(timeout: number = 10000): Promise<OpenBankResult> {
         const state = this.sdk.getState();
         if (state?.interface?.isOpen) {
@@ -1003,6 +1015,7 @@ export class BotActions {
         return { success: false, message: 'Timeout waiting for bank interface to open', reason: 'timeout' };
     }
 
+    /** Close the bank interface. */
     async closeBank(timeout: number = 5000): Promise<ActionResult> {
         const state = this.sdk.getState();
         if (!state?.interface?.isOpen) {
@@ -1027,6 +1040,7 @@ export class BotActions {
         }
     }
 
+    /** Deposit an item into the bank. Use -1 for all. */
     async depositItem(target: InventoryItem | string | RegExp, amount: number = -1): Promise<BankDepositResult> {
         const state = this.sdk.getState();
         if (!state?.interface?.isOpen) {
@@ -1058,6 +1072,7 @@ export class BotActions {
         }
     }
 
+    /** Withdraw an item from the bank by slot number. */
     async withdrawItem(bankSlot: number, amount: number = 1): Promise<BankWithdrawResult> {
         const state = this.sdk.getState();
         if (!state?.interface?.isOpen) {
@@ -1091,6 +1106,7 @@ export class BotActions {
 
     // ============ Porcelain: Equipment & Combat ============
 
+    /** Equip an item from inventory. */
     async equipItem(target: InventoryItem | string | RegExp): Promise<EquipResult> {
         const item = this.helpers.resolveInventoryItem(target, /./);
         if (!item) {
@@ -1118,6 +1134,7 @@ export class BotActions {
         }
     }
 
+    /** Unequip an item to inventory. */
     async unequipItem(target: InventoryItem | string | RegExp): Promise<UnequipResult> {
         let item: InventoryItem | null = null;
         if (typeof target === 'object' && 'slot' in target) {
@@ -1150,14 +1167,17 @@ export class BotActions {
         }
     }
 
+    /** Get all currently equipped items. */
     getEquipment(): InventoryItem[] {
         return this.sdk.getEquipment();
     }
 
+    /** Find an equipped item by name pattern. */
     findEquippedItem(pattern: string | RegExp): InventoryItem | null {
         return this.sdk.findEquipmentItem(pattern);
     }
 
+    /** Eat food to restore hitpoints. */
     async eatFood(target: InventoryItem | string | RegExp): Promise<EatResult> {
         const food = this.helpers.resolveInventoryItem(target, /./);
         if (!food) {
@@ -1191,6 +1211,7 @@ export class BotActions {
         }
     }
 
+    /** Attack an NPC, walking to it if needed. */
     async attackNpc(target: NearbyNpc | string | RegExp, timeout: number = 5000): Promise<AttackResult> {
         const npc = this.helpers.resolveNpc(target);
         if (!npc) {
@@ -1269,6 +1290,7 @@ export class BotActions {
         }
     }
 
+    /** Cast a combat spell on an NPC. */
     async castSpellOnNpc(target: NearbyNpc | string | RegExp, spellComponent: number, timeout: number = 3000): Promise<CastSpellResult> {
         const npc = this.helpers.resolveNpc(target);
         if (!npc) {
@@ -1337,6 +1359,7 @@ export class BotActions {
 
     // ============ Porcelain: Condition Helpers ============
 
+    /** Wait until a skill reaches a target level. */
     async waitForSkillLevel(skillName: string, targetLevel: number, timeout: number = 60000): Promise<SkillState> {
         const state = await this.sdk.waitForCondition(s => {
             const skill = s.skills.find(sk => sk.name.toLowerCase() === skillName.toLowerCase());
@@ -1346,6 +1369,7 @@ export class BotActions {
         return state.skills.find(s => s.name.toLowerCase() === skillName.toLowerCase())!;
     }
 
+    /** Wait until an item appears in inventory. */
     async waitForInventoryItem(pattern: string | RegExp, timeout: number = 30000): Promise<InventoryItem> {
         const regex = typeof pattern === 'string' ? new RegExp(pattern, 'i') : pattern;
 
@@ -1357,10 +1381,12 @@ export class BotActions {
         return state.inventory.find(i => regex.test(i.name))!;
     }
 
+    /** Wait for dialog to close. */
     async waitForDialogClose(timeout: number = 30000): Promise<void> {
         await this.sdk.waitForCondition(s => !s.dialog.isOpen, timeout);
     }
 
+    /** Wait for player to stop moving. */
     async waitForIdle(timeout: number = 10000): Promise<void> {
         const initialState = this.sdk.getState();
         if (!initialState?.player) {
@@ -1400,6 +1426,7 @@ export class BotActions {
 
     // ============ Crafting & Fletching ============
 
+    /** Fletch logs into bows or arrow shafts using a knife. */
     async fletchLogs(product?: string): Promise<FletchResult> {
         await this.dismissBlockingUI();
 
@@ -1617,6 +1644,7 @@ export class BotActions {
         return { success: false, message: 'Fletching timed out' };
     }
 
+    /** Craft leather into armour using needle and thread. */
     async craftLeather(product?: string): Promise<CraftLeatherResult> {
         await this.dismissBlockingUI();
 

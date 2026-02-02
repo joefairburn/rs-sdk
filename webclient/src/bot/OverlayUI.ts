@@ -25,17 +25,56 @@ export class OverlayUI {
 
     private client: Client;
     private callbacks: OverlayUICallbacks;
+    private panelsContainer: HTMLDivElement | null = null;
+
+    private injectScrollbarStyles(): void {
+        // Check if styles already injected
+        if (document.getElementById('bot-sdk-scrollbar-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'bot-sdk-scrollbar-styles';
+        style.textContent = `
+            .dark-scrollbar {
+                scrollbar-width: thin;
+                scrollbar-color: #04A800 rgba(0, 0, 0, 0.3);
+            }
+            .dark-scrollbar::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            .dark-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 4px;
+            }
+            .dark-scrollbar::-webkit-scrollbar-thumb {
+                background: #04A800;
+                border-radius: 4px;
+            }
+            .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #05C900;
+            }
+            .dark-scrollbar::-webkit-scrollbar-corner {
+                background: rgba(0, 0, 0, 0.3);
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     constructor(client: Client, callbacks: OverlayUICallbacks) {
         this.client = client;
         this.callbacks = callbacks;
 
-        // Create main overlay container
+        // Inject dark mode scrollbar styles
+        this.injectScrollbarStyles();
+
+        // Create main overlay container with side-by-side layout
         this.container = document.createElement('div');
         this.container.id = 'bot-sdk-overlay';
         this.container.style.cssText = `
             width: 100%;
-            max-width: 320px;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
             background: rgba(0, 0, 0, 0.85);
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 11px;
@@ -60,47 +99,97 @@ export class OverlayUI {
             </div>
         `;
 
+        // Create panels container for side-by-side layout
+        const panelsContainer = document.createElement('div');
+        panelsContainer.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            min-height: 0;
+        `;
+
+        // Create BOT SDK panel (left side)
+        const sdkPanel = document.createElement('div');
+        sdkPanel.style.cssText = `
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            border-right: 1px solid rgba(4, 168, 0, 0.3);
+        `;
+
+        const sdkHeader = document.createElement('div');
+        sdkHeader.style.cssText = `
+            padding: 4px 10px;
+            background: rgba(4, 168, 0, 0.15);
+            font-weight: bold;
+            font-size: 10px;
+        `;
+        sdkHeader.textContent = 'WORLD STATE';
+
         // Create content area (world state)
         this.content = document.createElement('pre');
         this.content.id = 'bot-sdk-content';
+        this.content.className = 'dark-scrollbar';
         this.content.style.cssText = `
             margin: 0;
             padding: 10px;
             overflow-y: auto;
-            max-height: 300px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            overflow-x: auto;
+            max-height: 350px;
+            white-space: pre;
+            tab-size: 4;
+            flex: 1;
         `;
 
-        // Create action log area
+        sdkPanel.appendChild(sdkHeader);
+        sdkPanel.appendChild(this.content);
+
+        // Create SDK ACTIONS panel (right side)
+        const actionsPanel = document.createElement('div');
+        actionsPanel.style.cssText = `
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        `;
+
         const actionHeader = document.createElement('div');
         actionHeader.style.cssText = `
             padding: 4px 10px;
-            background: rgba(4, 168, 0, 0.15);
-            border-top: 1px solid rgba(4, 168, 0, 0.3);
+            background: rgba(255, 215, 0, 0.15);
             font-weight: bold;
             font-size: 10px;
+            color: #FFD700;
         `;
         actionHeader.textContent = 'SDK ACTIONS';
 
         this.actionLog = document.createElement('pre');
         this.actionLog.id = 'bot-sdk-actions';
+        this.actionLog.className = 'dark-scrollbar';
         this.actionLog.style.cssText = `
             margin: 0;
             padding: 10px;
             overflow-y: auto;
-            max-height: 150px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            overflow-x: auto;
+            max-height: 350px;
+            white-space: pre;
             color: #FFD700;
             font-size: 10px;
+            flex: 1;
         `;
         this.actionLog.textContent = '(waiting for SDK actions...)';
 
+        actionsPanel.appendChild(actionHeader);
+        actionsPanel.appendChild(this.actionLog);
+
+        // Assemble panels
+        panelsContainer.appendChild(sdkPanel);
+        panelsContainer.appendChild(actionsPanel);
+
         this.container.appendChild(header);
-        this.container.appendChild(this.content);
-        this.container.appendChild(actionHeader);
-        this.container.appendChild(this.actionLog);
+        this.container.appendChild(panelsContainer);
+        this.panelsContainer = panelsContainer;
 
         // Mount to sdk-panel-container if it exists, otherwise fall back to body
         const sdkContainer = document.getElementById('sdk-panel-container');
@@ -311,12 +400,11 @@ export class OverlayUI {
     // Main overlay methods
     toggleMinimize(): void {
         this.minimized = !this.minimized;
-        const display = this.minimized ? 'none' : 'block';
-        this.content.style.display = display;
-        this.actionLog.style.display = display;
-        // Also hide/show the action header (it's the 3rd child)
-        const actionHeader = this.container.children[2] as HTMLElement;
-        if (actionHeader) actionHeader.style.display = display;
+        const display = this.minimized ? 'none' : 'flex';
+        // Hide/show the panels container (which holds both side-by-side panels)
+        if (this.panelsContainer) {
+            this.panelsContainer.style.display = display;
+        }
         this.container.style.maxHeight = this.minimized ? 'auto' : '600px';
     }
 

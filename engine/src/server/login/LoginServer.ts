@@ -574,10 +574,56 @@ export default class LoginServer {
                         // SDK/Gateway authentication - validates username/password for remote bot control
                         const { replyTo, username, password } = msg;
 
-                        const account = await db.selectFrom('account')
+                        let account = await db.selectFrom('account')
                             .where('username', '=', username)
                             .select(['id', 'password', 'banned_until'])
                             .executeTakeFirst();
+
+                        // Auto-register if account doesn't exist (same as player_login)
+                        let registrationFailed = false;
+                        if (!Environment.WEBSITE_REGISTRATION && !account) {
+                            try {
+                                const insertResult = await db
+                                    .insertInto('account')
+                                    .values({
+                                        username,
+                                        password: bcrypt.hashSync(password, 10),
+                                        registration_ip: 'sdk',
+                                        registration_date: toDbDate(new Date())
+                                    })
+                                    .executeTakeFirst();
+
+                                if (typeof insertResult.insertId !== 'undefined') {
+                                    account = await db.selectFrom('account')
+                                        .where('username', '=', username)
+                                        .select(['id', 'password', 'banned_until'])
+                                        .executeTakeFirst();
+                                } else {
+                                    registrationFailed = true;
+                                }
+                            } catch (err: any) {
+                                // Handle UNIQUE constraint violation (username already taken by race condition)
+                                if (err?.code === 'SQLITE_CONSTRAINT' || err?.message?.includes('UNIQUE')) {
+                                    // Username was taken between check and insert - re-fetch and try password
+                                    account = await db.selectFrom('account')
+                                        .where('username', '=', username)
+                                        .select(['id', 'password', 'banned_until'])
+                                        .executeTakeFirst();
+                                } else {
+                                    console.error('[SDK Auth] Registration error:', err);
+                                    registrationFailed = true;
+                                }
+                            }
+                        }
+
+                        if (registrationFailed && !account) {
+                            s.send(JSON.stringify({
+                                replyTo,
+                                success: false,
+                                error: 'Failed to create account. Username may already be taken.'
+                            }));
+                            return;
+                        }
 
                         const sdkPasswordMatch = account ? await bcrypt.compare(password, account.password) : false;
 

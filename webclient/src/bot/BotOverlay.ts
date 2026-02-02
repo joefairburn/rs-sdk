@@ -258,6 +258,8 @@ export class BotOverlay implements GatewayMessageHandler {
         if (!this.ui.isVisible() || this.ui.isMinimized()) return;
 
         const state = this.collector.collectState();
+        // Override with actual game tick (not client render cycle)
+        state.tick = this.serverTick;
         this.ui.updateContent(formatBotState(state));
     }
 

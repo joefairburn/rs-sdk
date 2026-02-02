@@ -2,12 +2,12 @@
 
 import type { BotState, BotWorldState } from './types.js';
 
-// Format state as text for display
+// Format state as text for display (fixed-width columns for alignment)
 export function formatBotState(state: BotState): string {
     const lines: string[] = [];
 
     lines.push('=== BOT SDK STATE ===');
-    lines.push(`Tick: ${state.tick} | In Game: ${state.inGame}`);
+    lines.push(`Tick: ${state.tick}  In Game: ${state.inGame}`);
     lines.push('');
 
     // Player info
@@ -15,8 +15,8 @@ export function formatBotState(state: BotState): string {
         const p = state.player;
         lines.push('--- PLAYER ---');
         lines.push(`${p.name} (Combat ${p.combatLevel})`);
-        lines.push(`Position: (${p.worldX}, ${p.worldZ}) Level ${p.level}`);
-        lines.push(`Run Energy: ${p.runEnergy}% | Weight: ${p.runWeight}kg`);
+        lines.push(`Pos: (${p.worldX}, ${p.worldZ})  Level: ${p.level}`);
+        lines.push(`Run: ${p.runEnergy}%  Weight: ${p.runWeight}kg`);
         lines.push('');
     }
 
@@ -26,8 +26,8 @@ export function formatBotState(state: BotState): string {
     for (const skillName of keySkills) {
         const skill = state.skills.find(s => s.name === skillName);
         if (skill) {
-            const xpStr = skill.experience.toLocaleString();
-            lines.push(`${skill.name}: ${skill.level}/${skill.baseLevel} (${xpStr} xp)`);
+            const xpStr = skill.experience.toLocaleString().padStart(10);
+            lines.push(`${skillName.padEnd(10)} ${String(skill.level).padStart(2)}/${String(skill.baseLevel).padEnd(2)} ${xpStr} xp`);
         }
     }
     lines.push('');
@@ -43,7 +43,7 @@ export function formatBotState(state: BotState): string {
             itemCounts.set(key, (itemCounts.get(key) || 0) + item.count);
         }
         for (const [name, qty] of itemCounts) {
-            lines.push(`${name} x${qty}`);
+            lines.push(`${name.padEnd(20)} x${qty}`);
         }
     }
     lines.push('');
@@ -55,14 +55,16 @@ export function formatBotState(state: BotState): string {
     } else {
         for (let i = 0; i < Math.min(5, state.nearbyNpcs.length); i++) {
             const npc = state.nearbyNpcs[i];
-            const lvlStr = npc.combatLevel > 0 ? ` (Lvl ${npc.combatLevel})` : '';
-            const hpStr = npc.maxHp > 0 ? ` HP: ${npc.hp}/${npc.maxHp}` : '';
+            const name = npc.name.padEnd(16);
+            const lvl = npc.combatLevel > 0 ? `Lv${String(npc.combatLevel).padStart(2)}` : '    ';
+            const hp = npc.maxHp > 0 ? `${String(npc.hp).padStart(2)}/${String(npc.maxHp).padEnd(2)}` : '     ';
+            const dist = `${npc.distance}t`.padStart(3);
             const opts = npc.optionsWithIndex.map(o => o.text);
-            const opStr = opts.length > 0 ? ` [${opts.join(', ')}]` : '';
-            lines.push(`${npc.name}${lvlStr}${hpStr} - ${npc.distance} tiles${opStr}`);
+            const opStr = opts.length > 0 ? `[${opts.join(',')}]` : '';
+            lines.push(`${name} ${lvl} ${hp} ${dist} ${opStr}`);
         }
         if (state.nearbyNpcs.length > 5) {
-            lines.push(`... and ${state.nearbyNpcs.length - 5} more`);
+            lines.push(`... +${state.nearbyNpcs.length - 5} more`);
         }
     }
     lines.push('');
@@ -74,10 +76,10 @@ export function formatBotState(state: BotState): string {
     } else {
         for (let i = 0; i < Math.min(5, state.nearbyPlayers.length); i++) {
             const pl = state.nearbyPlayers[i];
-            lines.push(`${pl.name} (Combat ${pl.combatLevel}) - ${pl.distance} tiles`);
+            lines.push(`${pl.name.padEnd(12)} Cb${String(pl.combatLevel).padStart(3)} ${pl.distance}t`);
         }
         if (state.nearbyPlayers.length > 5) {
-            lines.push(`... and ${state.nearbyPlayers.length - 5} more`);
+            lines.push(`... +${state.nearbyPlayers.length - 5} more`);
         }
     }
     lines.push('');
@@ -89,11 +91,14 @@ export function formatBotState(state: BotState): string {
     } else {
         for (let i = 0; i < Math.min(8, state.nearbyLocs.length); i++) {
             const loc = state.nearbyLocs[i];
-            const opStr = loc.options.length > 0 ? ` [${loc.options.join(', ')}]` : '';
-            lines.push(`${loc.name} at (${loc.x}, ${loc.z}) - ${loc.distance} tiles${opStr}`);
+            const name = loc.name.padEnd(16);
+            const coords = `(${loc.x},${loc.z})`.padEnd(12);
+            const dist = `${loc.distance}t`.padStart(3);
+            const opStr = loc.options.length > 0 ? `[${loc.options.join(',')}]` : '';
+            lines.push(`${name} ${coords} ${dist} ${opStr}`);
         }
         if (state.nearbyLocs.length > 8) {
-            lines.push(`... and ${state.nearbyLocs.length - 8} more`);
+            lines.push(`... +${state.nearbyLocs.length - 8} more`);
         }
     }
     lines.push('');
@@ -105,10 +110,10 @@ export function formatBotState(state: BotState): string {
     } else {
         for (let i = 0; i < Math.min(5, state.groundItems.length); i++) {
             const item = state.groundItems[i];
-            lines.push(`${item.name} x${item.count} - ${item.distance} tiles`);
+            lines.push(`${item.name.padEnd(20)} x${String(item.count).padEnd(4)} ${item.distance}t`);
         }
         if (state.groundItems.length > 5) {
-            lines.push(`... and ${state.groundItems.length - 5} more`);
+            lines.push(`... +${state.groundItems.length - 5} more`);
         }
     }
     lines.push('');
@@ -155,10 +160,11 @@ export function formatBotState(state: BotState): string {
             lines.push('  None');
         } else {
             for (const item of state.shop.shopItems.slice(0, 10)) {
-                lines.push(`  [${item.slot}] ${item.name} x${item.count}`);
+                const slot = `[${item.slot}]`.padEnd(4);
+                lines.push(`  ${slot} ${item.name.padEnd(18)} x${item.count}`);
             }
             if (state.shop.shopItems.length > 10) {
-                lines.push(`  ... and ${state.shop.shopItems.length - 10} more`);
+                lines.push(`  ... +${state.shop.shopItems.length - 10} more`);
             }
         }
         lines.push('');
@@ -167,10 +173,11 @@ export function formatBotState(state: BotState): string {
             lines.push('  None');
         } else {
             for (const item of state.shop.playerItems.slice(0, 10)) {
-                lines.push(`  [${item.slot}] ${item.name} x${item.count}`);
+                const slot = `[${item.slot}]`.padEnd(4);
+                lines.push(`  ${slot} ${item.name.padEnd(18)} x${item.count}`);
             }
             if (state.shop.playerItems.length > 10) {
-                lines.push(`  ... and ${state.shop.playerItems.length - 10} more`);
+                lines.push(`  ... +${state.shop.playerItems.length - 10} more`);
             }
         }
     }
