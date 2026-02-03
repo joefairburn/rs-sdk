@@ -72,6 +72,8 @@ See `mcp/README.md` for detailed API reference.
 ## Script Runner API
 
 Scripts should leverage `runScript` to manage their connections, initialization, and timeouts.
+Make new scripts for different skills, for instance fishing.ts, woodcutting.ts, combat.ts, etc.
+You may also wish to import or re-use code between them.
 
 **Run scripts:**
 ```bash
@@ -166,12 +168,12 @@ This shows: position, inventory, skills, nearby NPCs/objects, and more.
 
 ### 2. Write Your Script
 
-Edit `bots/{username}/script.ts` with your goal. Keep scripts focused on one task. you may write multiple scripts for different tasks and switch between them.
+Edit `bots/{username}/script_name.ts` with your goal. Keep scripts focused on one task. you may write multiple scripts for different tasks and switch between them.
 
 ### 3. Run the Script
 
 ```bash
-bun bots/{username}/script.ts
+bun bots/{username}/script_name.ts
 ```
 
 ### 4. Observe and Iterate

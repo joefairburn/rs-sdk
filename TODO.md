@@ -28,9 +28,6 @@ Test with sonnet.
 
 
 
-
-
-
 save file Download/upload flow! (no guarantees for save file durabilitiy  
 
 
@@ -40,9 +37,6 @@ save file Download/upload flow! (no guarantees for save file durabilitiy
 
 Dev Ergonomics:
 
-
-
-lower boilerplate for shorter scripts (handle the basics around connectiong and initialization in a library)
 push better feedback to agent after scripts run so its less oblivious to issues
 improve time management so it starts with short running tasks to build confidence before writing a giant ambitious 10 minute loop that goes off the rails
 make it easier for it to re-use and edit code instead of writing fresh each time

@@ -30,7 +30,8 @@ import type {
     SmithResult,
     OpenBankResult,
     BankDepositResult,
-    BankWithdrawResult
+    BankWithdrawResult,
+    UseItemOnLocResult
 } from './types';
 
 export class BotActions {
@@ -281,6 +282,91 @@ export class BotActions {
 
         } catch {
             return { success: false, message: `Timeout waiting for ${door.name} to open`, reason: 'timeout', door };
+        }
+    }
+
+    /**
+     * Use an inventory item on a nearby location (e.g., fish on range, ore on furnace).
+     * Walks to the location first (handling doors), then uses the item.
+     */
+    async useItemOnLoc(
+        item: InventoryItem | string | RegExp,
+        loc: NearbyLoc | string | RegExp,
+        options: { timeout?: number } = {}
+    ): Promise<UseItemOnLocResult> {
+        const { timeout = 10000 } = options;
+
+        await this.dismissBlockingUI();
+
+        // Resolve item
+        const resolvedItem = this.helpers.resolveInventoryItem(item, /./);
+        if (!resolvedItem) {
+            return { success: false, message: `Item not found in inventory: ${item}`, reason: 'item_not_found' };
+        }
+
+        // Resolve location
+        const resolvedLoc = this.helpers.resolveLocation(loc, /./);
+        if (!resolvedLoc) {
+            return { success: false, message: `Location not found nearby: ${loc}`, reason: 'loc_not_found' };
+        }
+
+        // Walk to the location first (handles doors)
+        if (resolvedLoc.distance > 2) {
+            const walkResult = await this.walkTo(resolvedLoc.x, resolvedLoc.z, 2);
+            if (!walkResult.success) {
+                return { success: false, message: `Cannot reach ${resolvedLoc.name}: ${walkResult.message}`, reason: 'cant_reach' };
+            }
+        }
+
+        // Re-find the location after walking (it may have moved in view)
+        const locPattern = typeof loc === 'object' ? new RegExp(resolvedLoc.name, 'i') : loc;
+        const locNow = this.helpers.resolveLocation(locPattern, /./);
+        if (!locNow) {
+            return { success: false, message: `${resolvedLoc.name} no longer visible`, reason: 'loc_not_found' };
+        }
+
+        const startTick = this.sdk.getState()?.tick || 0;
+
+        // Use the item on the location
+        const result = await this.sdk.sendUseItemOnLoc(resolvedItem.slot, locNow.x, locNow.z, locNow.id);
+        if (!result.success) {
+            return { success: false, message: result.message };
+        }
+
+        // Wait for interaction to complete or fail
+        try {
+            await this.sdk.waitForCondition(state => {
+                // Check for "can't reach" messages
+                for (const msg of state.gameMessages) {
+                    if (msg.tick > startTick) {
+                        const text = msg.text.toLowerCase();
+                        if (text.includes("can't reach") || text.includes("cannot reach")) {
+                            return true;
+                        }
+                    }
+                }
+
+                // Check if dialog/interface opened (crafting menu, etc.)
+                if (state.dialog.isOpen || state.interface?.isOpen) {
+                    return true;
+                }
+
+                // Check if player started animating (cooking, smelting, etc.)
+                if (state.player && state.player.animId !== -1) {
+                    return true;
+                }
+
+                return false;
+            }, timeout);
+
+            // Check for failure
+            if (this.helpers.checkCantReachMessage(startTick)) {
+                return { success: false, message: `Cannot reach ${locNow.name}`, reason: 'cant_reach' };
+            }
+
+            return { success: true, message: `Used ${resolvedItem.name} on ${locNow.name}` };
+        } catch {
+            return { success: false, message: `Timeout using ${resolvedItem.name} on ${locNow.name}`, reason: 'timeout' };
         }
     }
 

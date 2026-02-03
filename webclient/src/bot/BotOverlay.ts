@@ -31,6 +31,10 @@ export class BotOverlay implements GatewayMessageHandler {
     // Server tick counter - increments once per PLAYER_INFO packet (~420ms)
     private serverTick: number = 0;
 
+    // Activity tracking for favicon
+    private lastActionTime: number = 0;
+    private activityCheckInterval: ReturnType<typeof setInterval> | null = null;
+
     constructor(client: Client) {
         this.client = client;
         this.collector = new BotStateCollector(client);
@@ -50,8 +54,21 @@ export class BotOverlay implements GatewayMessageHandler {
         // This fires when PLAYER_INFO packet is received (~420ms intervals)
         (this.client as any).setOnGameTickCallback(this.onGameTick.bind(this));
 
+        // Start activity check interval for favicon state
+        this.activityCheckInterval = setInterval(() => this.checkActivity(), 500);
+
         // Set global reference
         globalBotOverlay = this;
+    }
+
+    // Check if we've had recent activity for favicon state
+    private checkActivity(): void {
+        const now = Date.now();
+        const isActive = (now - this.lastActionTime) < 8000;
+
+        if (typeof (window as any).setFaviconActive === 'function') {
+            (window as any).setFaviconActive(isActive);
+        }
     }
 
     // Called when server tick is received (PLAYER_INFO packet processed)
@@ -66,6 +83,7 @@ export class BotOverlay implements GatewayMessageHandler {
         console.log(`[BotOverlay] Received action: ${action.type} (${actionId})`);
         this.pendingAction = action;
         this.currentActionId = actionId;
+        this.lastActionTime = Date.now();
         this.ui.logAction(action.type, formatAction(action));
     }
 
@@ -298,6 +316,12 @@ export class BotOverlay implements GatewayMessageHandler {
         (this.client as any).setOnGameTickCallback(null);
         if (this.ui.isPacketLoggingEnabled()) {
             this.client.setPacketLogCallback(null);
+        }
+
+        // Clean up activity check interval
+        if (this.activityCheckInterval) {
+            clearInterval(this.activityCheckInterval);
+            this.activityCheckInterval = null;
         }
 
         this.ui.destroy();

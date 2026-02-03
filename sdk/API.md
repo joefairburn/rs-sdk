@@ -89,6 +89,12 @@ These methods wait for the **effect to complete**, not just server acknowledgmen
 | `waitForInventoryItem(pattern, timeout)` | Wait until an item appears in inventory. |
 | `waitForIdle(timeout)` | Wait for player to stop moving. |
 
+### Other
+
+| Method | Description |
+|--------|-------------|
+| `useItemOnLoc(item, loc, options)` | Use an inventory item on a nearby location (e. |
+
 ---
 
 ## BotSDK (Low-Level)
@@ -491,5 +497,15 @@ interface BankWithdrawResult {
   message: string;
   item?: InventoryItem;
   reason?: 'bank_not_open' | 'timeout';
+}
+```
+
+### UseItemOnLocResult
+
+```typescript
+interface UseItemOnLocResult {
+  success: boolean;
+  message: string;
+  reason?: 'item_not_found' | 'loc_not_found' | 'cant_reach' | 'timeout';
 }
 ```

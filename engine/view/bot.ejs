@@ -6,6 +6,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.7">
+    <link id="favicon" rel="icon" type="image/png" href="/favicon-disconnected.ico">
 
     <style>
         html {
@@ -281,6 +282,36 @@
             document.getElementById('size').value = size;
             localStorage.setItem('canvasSize', size);
         }
+
+        // Favicon switching based on bot connection and activity state
+        let faviconIsActive = false;
+        let faviconIsConnected = false;
+
+        function updateFavicon() {
+            const favicon = document.getElementById('favicon');
+            if (favicon) {
+                if (faviconIsActive) {
+                    favicon.href = '/favicon-active.ico';
+                } else if (faviconIsConnected) {
+                    favicon.href = '/favicon.ico';
+                } else {
+                    favicon.href = '/favicon-disconnected.ico';
+                }
+            }
+        }
+
+        function setFaviconConnected(connected) {
+            faviconIsConnected = connected;
+            updateFavicon();
+        }
+
+        function setFaviconActive(active) {
+            faviconIsActive = active;
+            updateFavicon();
+        }
+
+        window.setFaviconConnected = setFaviconConnected;
+        window.setFaviconActive = setFaviconActive;
     </script>
 </head>
 
@@ -303,6 +334,7 @@
             </select> |
             <a class="green" href="#" id="fullscreen" onclick="toggleFullscreen();">Go Fullscreen</a> |
             <a class="green" href="#" id="screenshot" onclick="saveScreenshot();">Take screenshot</a> |
+            <a class="green" href="https://2004.lostcity.rs/worldmap">Map</a> |
             <a class="green" href="/hiscores">Hiscores</a> |
             <a class="green" href="https://discord.gg/3DcuU5cMJN" target="_blank">Discord</a> |
             <a class="green" href="https://github.com/LostCityRS" target="_blank">GitHub</a> |
@@ -662,6 +694,9 @@
                 const showControls = !isLoggedIn || isInTutorial;
                 botControls.style.display = showControls ? 'inline-block' : 'none';
             }
+
+            // Update favicon based on login state
+            setFaviconConnected(isLoggedIn);
         }
 
         // Check visibility every second

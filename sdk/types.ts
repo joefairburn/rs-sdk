@@ -461,3 +461,9 @@ export interface BankWithdrawResult {
     item?: InventoryItem;
     reason?: 'bank_not_open' | 'timeout';
 }
+
+export interface UseItemOnLocResult {
+    success: boolean;
+    message: string;
+    reason?: 'item_not_found' | 'loc_not_found' | 'cant_reach' | 'timeout';
+}
