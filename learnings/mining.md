@@ -35,11 +35,36 @@ const isMining = state.player?.animId === 625;
 const isIdle = state.player?.animId === -1;
 ```
 
+## Rock IDs → Ore Types (SE Varrock Mine)
+
+Rocks are ALL named "Rocks" — you **must** use the `id` field to tell them apart:
+
+| Rock ID | Ore |
+|---------|-----|
+| 2091 | **Copper** |
+| 2092 | **Tin** |
+| 2093 | **Iron** |
+| 2095 | **Iron** |
+| 2090 | Depleted / empty |
+| 2094 | Depleted / empty |
+| 450 | Tin (different variant, also seen at this mine) |
+
+**How to mine specific ore:**
+```typescript
+// Mine copper specifically
+const copperRock = state.nearbyLocs
+    .filter(loc => loc.id === 2091)
+    .filter(loc => loc.optionsWithIndex.some(o => /^mine$/i.test(o.text)))
+    .sort((a, b) => a.distance - b.distance)[0];
+```
+
+Use `Prospect` option on a rock to discover its ore type if unsure.
+
 ## Reliable Locations
 
 | Location | Coordinates | Notes |
 |----------|-------------|-------|
-| SE Varrock mine | (3285, 3365) | Copper/tin, works reliably |
+| SE Varrock mine | (3285, 3365) | Copper (2091), tin (2092), iron (2093/2095) |
 | Lumbridge Swamp mine | - | Interactions fail silently, avoid |
 
 ## Counting Ore
