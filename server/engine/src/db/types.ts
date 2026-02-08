@@ -2,7 +2,7 @@ import type { ColumnType } from "kysely";
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
-export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+export type Timestamp = ColumnType<Date | string, Date | string, Date | string>;
 
 export type account = {
     id: Generated<number>;
@@ -214,6 +214,13 @@ export type wealth_event = {
     recipient_items: string | null;
     recipient_value: number | null;
 };
+export type hiscore_outfit = {
+    account_id: number;
+    profile: Generated<string>;
+    value: number;
+    items: string;
+    date: Generated<Timestamp>;
+};
 export type DB = {
     account: account;
     account_login: account_login;
@@ -222,6 +229,7 @@ export type DB = {
     friendlist: friendlist;
     hiscore: hiscore;
     hiscore_large: hiscore_large;
+    hiscore_outfit: hiscore_outfit;
     ignorelist: ignorelist;
     input_report: input_report;
     input_report_event_raw: input_report_event_raw;

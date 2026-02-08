@@ -53,7 +53,30 @@ export function handleDisclaimerPage(url: URL): Response | null {
     return new Response(html, { headers: { 'Content-Type': 'text/html' } });
 }
 
+// Map URL prefixes to webclient build output directories.
+// The webclient builds into ../webclient/out/ relative to the engine CWD,
+// so we serve those files directly instead of requiring a copy step.
+const WEBCLIENT_OUT = path.resolve('../webclient/out');
+const WEBCLIENT_ROUTES: Record<string, string> = {
+    '/client/': path.join(WEBCLIENT_OUT, 'standard'),
+    '/bot/': path.join(WEBCLIENT_OUT, 'bot'),
+};
+
+function resolveWebclientPath(pathname: string): string | null {
+    for (const [prefix, dir] of Object.entries(WEBCLIENT_ROUTES)) {
+        if (pathname.startsWith(prefix)) {
+            const file = pathname.slice(prefix.length);
+            const resolved = path.resolve(dir, file);
+            // Prevent path traversal
+            if (!resolved.startsWith(dir)) return null;
+            return resolved;
+        }
+    }
+    return null;
+}
+
 export function handlePublicFiles(url: URL): Response | null {
+    // Check engine/public/ first (favicon, images, etc.)
     const publicPath = `public${url.pathname}`;
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
         return new Response(Bun.file(publicPath), {
@@ -62,5 +85,16 @@ export function handlePublicFiles(url: URL): Response | null {
             }
         });
     }
+
+    // Fall back to webclient build output
+    const webclientPath = resolveWebclientPath(url.pathname);
+    if (webclientPath && fs.existsSync(webclientPath) && fs.statSync(webclientPath).isFile()) {
+        return new Response(Bun.file(webclientPath), {
+            headers: {
+                'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
+            }
+        });
+    }
+
     return null;
 }

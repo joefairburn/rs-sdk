@@ -102,7 +102,7 @@ runTest({
         console.log('Cooking interface opened - clicking to cook...');
         await sdk.sendClickInterfaceOption(0);
     } else if (state?.player?.animId !== -1) {
-        console.log(`Player is animating (animId=${state.player.animId}) - cooking in progress`);
+        console.log(`Player is animating (animId=${state!.player!.animId}) - cooking in progress`);
     }
 
     // Wait for cooking XP

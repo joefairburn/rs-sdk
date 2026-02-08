@@ -15,6 +15,7 @@
     "db:schema": "prisma migrate dev --schema prisma/multiworld/schema.prisma",
     "dev": "bun run --watch src/app.ts",
     "friend": "bun run src/friend.ts",
+    "hiscores": "bun run src/hiscores.ts",
     "lint": "eslint --no-warn-ignored src tools",
     "lint:staged": "eslint --no-warn-ignored",
     "logger": "bun run src/logger.ts",

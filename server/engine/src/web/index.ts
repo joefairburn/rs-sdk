@@ -2,7 +2,7 @@ import { register } from 'prom-client';
 import Environment from '#/util/Environment.js';
 import World from '#/engine/World.js';
 import { handleClientPage, handleCacheEndpoints } from './pages/client.js';
-import { handleHiscoresPage, handleHiscoresPlayerPage } from './pages/hiscores.js';
+import { handleHiscoresPage, handleHiscoresPlayerPage, handleHiscoresOutfitPage } from './pages/hiscores.js';
 import { handleScriptRunsListPage, handleScriptRunsForScriptPage, handleScriptRunViewerPage, handleScriptRunFilesPage } from './pages/scriptRuns.js';
 import { handleScreenshotsListPage, handleScreenshotFilePage } from './pages/screenshots.js';
 import { handleScreenshotUpload, handleExportCollisionApi } from './pages/api.js';
@@ -86,7 +86,7 @@ export async function startWeb() {
             }
 
             // Bot status endpoint (proxy to gateway)
-            const botStatusMatch = url.pathname.match(/^\/status\/([^\/]+)\/?$/);
+            const botStatusMatch = url.pathname.match(/^\/status\/([^/]+)\/?$/);
             if (botStatusMatch) {
                 const username = botStatusMatch[1];
                 try {
@@ -139,6 +139,9 @@ export async function startWeb() {
 
             const hiscoresPlayerResponse = await handleHiscoresPlayerPage(url);
             if (hiscoresPlayerResponse) return hiscoresPlayerResponse;
+
+            const hiscoresOutfitResponse = await handleHiscoresOutfitPage(url);
+            if (hiscoresOutfitResponse) return hiscoresOutfitResponse;
 
             // Screenshots
             const screenshotsListResponse = handleScreenshotsListPage(url);

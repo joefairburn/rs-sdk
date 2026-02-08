@@ -2,10 +2,10 @@
 // Re-exports common types from sdk/types for convenience
 
 // Re-export all SDK types for backwards compatibility
-export * from '../sdk/types';
+export * from '../../sdk/types';
 
 // Import types needed for message definitions
-import type { BotWorldState, BotAction, ActionResult } from '../sdk/types';
+import type { BotWorldState, BotAction, ActionResult } from '../../sdk/types';
 
 // ============ Gateway Message Types ============
 

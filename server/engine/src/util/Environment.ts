@@ -66,6 +66,7 @@ export default {
     NODE_WS_ONDEMAND: tryParseBoolean(process.env.NODE_WS_ONDEMAND, false),
 
     /// hiscores
+    HISCORES_WEB_PORT: tryParseInt(process.env.HISCORES_WEB_PORT, 8889),
     HISCORES_HIDDEN_NAMES: (process.env.HISCORES_HIDDEN_NAMES || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
 
     /// username filter

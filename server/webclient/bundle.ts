@@ -110,6 +110,22 @@ for (const buildConfig of buildsToRun) {
     fs.writeFileSync(`${buildConfig.outDir}/mapview.js`, replaceDepsUrl(mapviewScript.source));
 }
 
+// Build standalone item viewer
+console.log('Building item viewer...');
+if (!fs.existsSync('out/viewer')) {
+    fs.mkdirSync('out/viewer', { recursive: true });
+}
+const viewerScript = await bunBuild(
+    'src/viewer/ItemViewer.ts',
+    ['#3rdparty/*'],
+    prod,
+    prod ? ['console'] : []
+);
+fs.writeFileSync('out/viewer/viewer.js', replaceDepsUrl(viewerScript.source));
+fs.copyFileSync('src/3rdparty/bzip2-wasm/bzip2.wasm', 'out/viewer/bzip2.wasm');
+fs.copyFileSync('src/3rdparty/tinymidipcm/tinymidipcm.wasm', 'out/viewer/tinymidipcm.wasm');
+fs.writeFileSync('out/viewer/deps.js', deps.source);
+
 // Copy bot client to root out for backwards compatibility
 if (buildMode === 'both' || buildMode === 'bot') {
     fs.copyFileSync('out/bot/client.js', 'out/client.js');
