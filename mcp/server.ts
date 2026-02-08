@@ -194,8 +194,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
           const fn = new AsyncFunction('bot', 'sdk', code);
 
-          // Execute code
-          const result = await fn(connection.bot, connection.sdk);
+          // Execute code with 10 minute timeout
+          const EXECUTION_TIMEOUT = 10 * 60 * 1000;
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error(`Code execution timed out after 10 minutes`)), EXECUTION_TIMEOUT);
+          });
+          const result = await Promise.race([fn(connection.bot, connection.sdk), timeoutPromise]);
 
           // Build formatted output
           const parts: string[] = [];
