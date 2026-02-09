@@ -575,10 +575,12 @@ export class BotActions {
 
         const invCountBefore = this.sdk.getInventory().length;
 
-        // Walk to the item's exact tile first
-        const walkResult = await this.walkTo(item.x, item.z, 0);
-        if (!walkResult.success) {
-            return { success: false, message: walkResult.message, reason: 'cant_reach' };
+        // Walk close to the item first (server handles final positioning via sendPickup)
+        if (item.distance > 2) {
+            const walkResult = await this.walkTo(item.x, item.z, 2);
+            if (!walkResult.success) {
+                return { success: false, message: walkResult.message, reason: 'cant_reach' };
+            }
         }
 
         // Wait one tick before picking up
