@@ -68,7 +68,6 @@ await runScript(async (ctx) => {
   const { bot, sdk, log } = ctx;
 
   while (sdk.getState()?.skills.find(s => s.name === 'Woodcutting')?.baseLevel < 10) {
-    await bot.dismissBlockingUI();
     const tree = sdk.findNearbyLoc(/^tree$/i);
     if (tree) await bot.chopTree(tree);
   }

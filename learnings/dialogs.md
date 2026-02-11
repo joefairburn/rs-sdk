@@ -15,7 +15,7 @@ if (state.dialog.isOpen) {
 
 ## Dismiss at Arc Start
 
-Always clear blocking UI before starting:
+All BotActions methods automatically dismiss blocking UI before executing. Manual dismissal is only needed when using low-level sdk methods directly:
 
 ```typescript
 await ctx.bot.dismissBlockingUI();

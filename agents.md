@@ -52,7 +52,6 @@ execute_code({
     // Chop trees for 1 minute
     const endTime = Date.now() + 60_000;
     while (Date.now() < endTime) {
-      await bot.dismissBlockingUI();
       const tree = sdk.findNearbyLoc(/^tree$/i);
       if (tree) await bot.chopTree(tree);
     }
@@ -95,8 +94,6 @@ const result = await runScript(async (ctx) => {
   let logsChopped = 0;
 
   while (Date.now() < endTime) {
-    await bot.dismissBlockingUI();
-
     const tree = sdk.findNearbyLoc(/^tree$/i);
     if (tree) {
       const r = await bot.chopTree(tree);
@@ -240,7 +237,7 @@ For the complete method reference, see **[sdk/API.md](sdk/API.md)** (auto-genera
 | `fletchLogs(product?)` | Fletch logs with knife |
 | `craftLeather(product?)` | Craft leather with needle |
 | `smithAtAnvil(product)` | Smith bars at anvil |
-| `dismissBlockingUI()` | Dismiss level-up dialogs (call in every loop) |
+| `dismissBlockingUI()` | Dismiss level-up dialogs (called automatically by all actions) |
 | `navigateDialog(choices)` | Auto-click through dialog options |
 | `skipTutorial()` | Skip the tutorial island |
 
@@ -268,8 +265,10 @@ For the complete method reference, see **[sdk/API.md](sdk/API.md)** (auto-genera
 
 ### Dismiss Level-Up Dialogs
 
+All BotActions methods automatically dismiss blocking UI (level-up dialogs, etc.) before executing. You don't need to call this manually in loops.
+
 ```typescript
-// In your main loop - always call this because level ups are blocking.
+// Only needed if using low-level sdk methods directly:
 await bot.dismissBlockingUI();
 
 // Or manually check

@@ -16,7 +16,7 @@ await new Promise(r => setTimeout(r, 2500));
 ```
 
 - Use **copper** on furnace — it auto-consumes 1 tin from inventory
-- Triggers level-up dialogs — call `bot.dismissBlockingUI()` between smelts
+- Triggers level-up dialogs — handled automatically by BotActions methods
 - ~2.5s per bar is reliable timing
 - Each bronze bar gives **155 xp** (at level 1-14 range, leveled from 1→14 with 10 bars = 1550 xp total, so ~155 xp per smelt)
 

@@ -16,7 +16,7 @@ if (currentState.dialog.isOpen) {
 }
 ```
 
-Also dismiss any blocking UI at the start of your script:
+All BotActions methods automatically dismiss blocking UI (level-up dialogs, etc.). Manual dismissal is only needed when using low-level sdk methods directly:
 ```typescript
 await ctx.bot.dismissBlockingUI();
 ```
