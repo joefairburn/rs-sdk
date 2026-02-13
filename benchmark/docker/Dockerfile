@@ -54,6 +54,12 @@ RUN cd server/engine && \
 RUN mkdir -p bots/agent
 COPY bot.env bots/agent/bot.env
 
+# Pre-install Claude Code CLI (Harbor's agent setup tries to curl this and
+# fails inside Daytona sandboxes due to connection resets).
+# Symlink to /usr/local/bin so it's on PATH for any user (Daytona may not run as root).
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && ln -s /root/.local/share/claude/versions/* /usr/local/bin/claude
+
 # Copy entrypoint and helper scripts
 COPY entrypoint.sh /entrypoint.sh
 COPY launch-bot.ts /app/server/gateway/launch-bot.ts

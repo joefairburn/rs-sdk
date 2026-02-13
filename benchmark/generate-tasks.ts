@@ -14,7 +14,7 @@ import { join } from 'path';
 const BENCHMARK_DIR = join(import.meta.dir);
 const SHARED_DIR = join(BENCHMARK_DIR, 'shared');
 
-const DOCKER_IMAGE = 'ghcr.io/maxbittker/rs-agent-benchmark:latest';
+const DOCKER_IMAGE = 'ghcr.io/maxbittker/rs-agent-benchmark:v2';
 const DEFAULT_AGENT_TIMEOUT = 600; // 10 minutes
 const VERIFIER_TIMEOUT = 120;
 
@@ -290,7 +290,6 @@ timeout_sec = ${VERIFIER_TIMEOUT}.0
 timeout_sec = ${DEFAULT_AGENT_TIMEOUT}.0
 
 [environment]
-docker_image = "${DOCKER_IMAGE}"
 cpus = 2
 memory_mb = 4096
 storage_mb = 10240
@@ -305,9 +304,6 @@ args = ["-c", "cd /app && bun run mcp/server.ts"]
 }
 
 function generateVariantTaskToml(v: VariantTask): string {
-  const envLine = v.dockerImage
-    ? `docker_image = "${v.dockerImage}"`
-    : `build_timeout_sec = 1800.0`;
   const tagsStr = v.tags.map(t => `"${t}"`).join(', ');
 
   return `version = "1.0"
@@ -325,7 +321,6 @@ timeout_sec = ${VERIFIER_TIMEOUT}.0
 timeout_sec = ${v.agentTimeout}.0
 
 [environment]
-${envLine}
 cpus = 2
 memory_mb = 4096
 storage_mb = 10240
