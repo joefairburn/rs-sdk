@@ -1,11 +1,12 @@
 #!/bin/bash
-# Run total-level benchmark across Claude models + Codex on Daytona.
+# Run total-level benchmark across Claude models + Codex + Gemini on Daytona.
 #
 # Usage:
-#   benchmark/run-total-level.sh                    # all 4 models, 8m test
+#   benchmark/run-total-level.sh                    # all 5 models, 8m test
 #   benchmark/run-total-level.sh --duration 1h      # 1-hour production run
 #   benchmark/run-total-level.sh -m opus            # single model
 #   benchmark/run-total-level.sh -m codex           # codex only
+#   benchmark/run-total-level.sh -m gemini          # gemini only
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -43,6 +44,12 @@ elif [ -n "$OPENROUTER_API_KEY" ]; then
     CODEX_AVAILABLE=true
 fi
 
+# For Gemini: check GEMINI_API_KEY
+GEMINI_AVAILABLE=false
+if [ -n "$GEMINI_API_KEY" ]; then
+    GEMINI_AVAILABLE=true
+fi
+
 # ── Model definitions ─────────────────────────────────────────────
 declare -A CLAUDE_MODELS=(
     [opus]="anthropic/claude-opus-4-6"
@@ -50,7 +57,8 @@ declare -A CLAUDE_MODELS=(
     [haiku]="anthropic/claude-haiku-4-5"
 )
 
-CODEX_MODEL="openai/gpt-5.3-codex"  # Default codex model
+CODEX_MODEL="openai/gpt-5.2-codex"  # Default codex model (5.3 requires ChatGPT auth)
+GEMINI_MODEL="google/gemini-3-pro-preview"  # Default gemini model
 
 # ── Defaults ──────────────────────────────────────────────────────
 DURATION="8m"
@@ -78,14 +86,19 @@ while [[ $# -gt 0 ]]; do
             CODEX_MODEL="$2"
             shift 2
             ;;
+        --gemini-model)
+            GEMINI_MODEL="$2"
+            shift 2
+            ;;
         -h|--help)
             echo "Usage: benchmark/run-total-level.sh [options]"
             echo ""
             echo "Options:"
             echo "  --duration, -d   8m (default) or 1h"
-            echo "  --model, -m      opus, sonnet, haiku, codex (default: all)"
+            echo "  --model, -m      opus, sonnet, haiku, codex, gemini (default: all)"
             echo "  --concurrency    Number of concurrent trials (default: 1)"
-            echo "  --codex-model    Model for codex agent (default: openai/o3)"
+            echo "  --codex-model    Model for codex agent (default: openai/gpt-5.3-codex)"
+            echo "  --gemini-model   Model for gemini agent (default: google/gemini-3-pro-preview)"
             exit 0
             ;;
         *)
@@ -111,7 +124,7 @@ esac
 
 # Default to all models if none specified
 if [ -z "$SELECTED_MODELS" ]; then
-    SELECTED_MODELS="opus sonnet haiku codex"
+    SELECTED_MODELS="opus sonnet haiku codex gemini"
 fi
 
 # ── Regenerate tasks ──────────────────────────────────────────────
@@ -144,10 +157,29 @@ for name in $SELECTED_MODELS; do
             -n "$CONCURRENCY" \
             --job-name "${JOB_PREFIX}-codex" \
             $EXTRA_ARGS
+    elif [ "$name" = "gemini" ]; then
+        if [ "$GEMINI_AVAILABLE" != "true" ]; then
+            echo "  SKIP: gemini (GEMINI_API_KEY not set)"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            continue
+        fi
+
+        echo "  Running: gemini ($GEMINI_MODEL)"
+        echo "  Task:    $TASK"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        harbor run \
+            -p "$SCRIPT_DIR/$TASK" \
+            -a gemini-cli \
+            -m "$GEMINI_MODEL" \
+            --env daytona \
+            -n "$CONCURRENCY" \
+            --job-name "${JOB_PREFIX}-gemini" \
+            $EXTRA_ARGS
     else
         model="${CLAUDE_MODELS[$name]}"
         if [ -z "$model" ]; then
-            echo "  Unknown model: $name (available: opus, sonnet, haiku, codex)"
+            echo "  Unknown model: $name (available: opus, sonnet, haiku, codex, gemini)"
             exit 1
         fi
 

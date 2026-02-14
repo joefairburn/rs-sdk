@@ -16,6 +16,15 @@ declare -A MODELS=(
   [opus]="anthropic/claude-opus-4-6"
   [sonnet]="anthropic/claude-sonnet-4-5"
   [haiku]="anthropic/claude-haiku-4-5"
+  [gemini]="google/gemini-3-pro-preview"
+)
+
+# ── Agent mapping (model name -> harbor agent) ───────────────────
+declare -A AGENTS=(
+  [opus]="claude-code"
+  [sonnet]="claude-code"
+  [haiku]="claude-code"
+  [gemini]="gemini-cli"
 )
 
 # ── Defaults ──────────────────────────────────────────────────────
@@ -35,7 +44,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       echo "Usage: benchmark/run.sh [-t task] [-m model] [-n trials] [-c concurrency]"
       echo ""
-      echo "Models: opus, sonnet, haiku (default: all three)"
+      echo "Models: opus, sonnet, haiku, gemini (default: all four)"
       echo "Task:   any task dir name (default: woodcutting-xp-10m)"
       exit 0
       ;;
@@ -46,7 +55,7 @@ done
 
 # Default to all models if none specified
 if [ -z "$SELECTED_MODELS" ]; then
-  SELECTED_MODELS="sonnet opus haiku"
+  SELECTED_MODELS="sonnet opus haiku gemini"
 fi
 
 # ── Regenerate tasks ──────────────────────────────────────────────
@@ -57,8 +66,9 @@ echo ""
 # ── Run each model ────────────────────────────────────────────────
 for name in $SELECTED_MODELS; do
   model="${MODELS[$name]}"
+  agent="${AGENTS[$name]}"
   if [ -z "$model" ]; then
-    echo "Unknown model: $name (available: opus, sonnet, haiku)"
+    echo "Unknown model: $name (available: opus, sonnet, haiku, gemini)"
     exit 1
   fi
 
@@ -70,7 +80,7 @@ for name in $SELECTED_MODELS; do
 
   harbor run \
     -p "$SCRIPT_DIR/$TASK" \
-    -a claude-code \
+    -a "$agent" \
     -m "$model" \
     --env daytona \
     -n "$CONCURRENCY" \
