@@ -3,3 +3,7 @@
 *-xp-10m/
 *-xp-5m/
 woodcutting-10/
+total-level-*/
+
+# Extracted benchmark results
+results/

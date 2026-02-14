@@ -60,7 +60,33 @@ interface VariantTask {
   dockerImage?: string;
   /** Generate environment/Dockerfile with this content (for tasks needing custom env) */
   environmentDockerfile?: string;
+  /** Additional shared files to copy into tests/ (e.g. skill_tracker.ts) */
+  extraSharedFiles?: string[];
 }
+
+const TOTAL_LEVEL_INSTRUCTION = (durationMinutes: number) => `Holistically improve this RuneScape account to achieve the highest possible total level within ${durationMinutes} minutes.
+
+Your goal is to maximize the TOTAL LEVEL of the account — the sum of all individual skill levels. You should strategically choose which skills to train based on what's most efficient to level up. Consider:
+- Which skills are fastest to level at low levels
+- Resource availability near your current location
+- Combining skills that complement each other (e.g. woodcutting + firemaking, fishing + cooking, mining + smithing)
+- Moving between different training spots as needed
+
+Think strategically about time allocation. Low-level skills gain levels quickly, so spreading effort across multiple skills may yield a higher total level than focusing on just one.
+
+IMPORTANT: You have ${durationMinutes} minutes. Plan your time wisely and keep training continuously. Do not spend too long planning — start training immediately and adapt as you go. Write scripts that run for long durations and loop through training activities. Run your training script in the FOREGROUND (not as a background process) so it runs for the full duration.
+
+The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.`;
+
+const TOTAL_LEVEL_DOCKERFILE = () => `FROM ${DOCKER_IMAGE}
+ENV SAMPLE_INTERVAL_MS=15000
+
+# Copy skill tracker script (placed in build context by extraSharedFiles)
+COPY skill_tracker.ts /app/benchmark/shared/skill_tracker.ts
+
+# Ensure bot.env has SERVER=localhost so scripts connect to the local gateway
+RUN echo 'SERVER=localhost' >> /app/bots/agent/bot.env
+`;
 
 const VARIANTS: VariantTask[] = [
   {
@@ -98,6 +124,35 @@ bun run /tests/check_level.ts
 ENV NODE_TICKRATE=420
 `,
   },
+  // ── Total Level tasks ──────────────────────────────────────────
+  {
+    slug: 'total-level-8m',
+    taskDescription: TOTAL_LEVEL_INSTRUCTION(8),
+    agentTimeout: 480 + 60, // 8 min + 1 min buffer for agent to wrap up
+    verifier: 'check_total_level.ts',
+    testSh: `#!/bin/bash
+set -e
+mkdir -p /logs/verifier
+cd /app && bun run /tests/check_total_level.ts
+`,
+    tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
+    extraSharedFiles: ['skill_tracker.ts'],
+    environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
+  },
+  {
+    slug: 'total-level-1h',
+    taskDescription: TOTAL_LEVEL_INSTRUCTION(60),
+    agentTimeout: 3600 + 120, // 60 min + 2 min buffer
+    verifier: 'check_total_level.ts',
+    testSh: `#!/bin/bash
+set -e
+mkdir -p /logs/verifier
+cd /app && bun run /tests/check_total_level.ts
+`,
+    tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
+    extraSharedFiles: ['skill_tracker.ts'],
+    environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
+  },
 ];
 
 // ── Template generators ──────────────────────────────────────────
@@ -134,6 +189,13 @@ args = ["-c", "/start-services.sh && cd /app && bun run mcp/server.ts"]
 function generateVariantTaskToml(v: VariantTask): string {
   const tagsStr = v.tags.map(t => `"${t}"`).join(', ');
 
+  // For total-level tasks, launch the skill tracker as a background process
+  // with stdout/stderr redirected to a log file (to avoid corrupting MCP stdio)
+  const hasTracker = v.extraSharedFiles?.includes('skill_tracker.ts');
+  const mcpCommand = hasTracker
+    ? '/start-services.sh && cd /app && bun run benchmark/shared/skill_tracker.ts > /logs/verifier/skill_tracker.log 2>&1 & bun run mcp/server.ts'
+    : '/start-services.sh && cd /app && bun run mcp/server.ts';
+
   return `version = "1.0"
 
 [metadata]
@@ -158,7 +220,7 @@ allow_internet = true
 name = "rs-agent"
 transport = "stdio"
 command = "bash"
-args = ["-c", "/start-services.sh && cd /app && bun run mcp/server.ts"]
+args = ["-c", "${mcpCommand}"]
 `;
 }
 
@@ -226,6 +288,13 @@ for (const variant of VARIANTS) {
     join(envDir, 'Dockerfile'),
     variant.environmentDockerfile ?? `FROM ${DOCKER_IMAGE}\n`,
   );
+
+  // Copy extra shared files (e.g. skill_tracker.ts) into environment/ for Dockerfile COPY
+  if (variant.extraSharedFiles) {
+    for (const file of variant.extraSharedFiles) {
+      copyFileSync(join(SHARED_DIR, file), join(envDir, file));
+    }
+  }
 }
 
 console.log(`\nDone! Generated ${SKILLS.length + VARIANTS.length} task directories.`);
