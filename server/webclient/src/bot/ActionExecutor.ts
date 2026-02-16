@@ -40,40 +40,55 @@ export class ActionExecutor {
                 case 'wait':
                     return { success: true, message: `Waiting ${action.ticks || 1} ticks` };
 
-                case 'walkTo':
-                    return this.wrapBool(
+                case 'walkTo': {
+                    const result = this.wrapBool(
                         this.client.walkTo(action.x, action.z, action.running ?? true),
                         `Walking to (${action.x}, ${action.z})`,
                         'Failed to walk'
                     );
+                    // walkTo already sets its own cross visual via projectTileToScreen
+                    return result;
+                }
 
-                case 'talkToNpc':
-                    return this.wrapBool(
+                case 'talkToNpc': {
+                    const result = this.wrapBool(
                         this.client.talkToNpc(action.npcIndex),
                         `Talking to NPC #${action.npcIndex}`,
                         'Failed to talk to NPC'
                     );
+                    if (result.success) this.showNpcClickVisual(action.npcIndex);
+                    return result;
+                }
 
-                case 'interactNpc':
-                    return this.wrapBool(
+                case 'interactNpc': {
+                    const result = this.wrapBool(
                         this.client.interactNpc(action.npcIndex, action.optionIndex),
                         `Interacting with NPC #${action.npcIndex}`,
                         'Failed to interact with NPC'
                     );
+                    if (result.success) this.showNpcClickVisual(action.npcIndex);
+                    return result;
+                }
 
-                case 'interactPlayer':
-                    return this.wrapBool(
+                case 'interactPlayer': {
+                    const result = this.wrapBool(
                         this.client.interactPlayer(action.playerIndex, action.optionIndex),
                         `Interacting with player #${action.playerIndex}`,
                         'Failed to interact with player'
                     );
+                    if (result.success) this.showPlayerClickVisual(action.playerIndex);
+                    return result;
+                }
 
-                case 'interactLoc':
-                    return this.wrapBool(
+                case 'interactLoc': {
+                    const result = this.wrapBool(
                         this.client.interactLoc(action.x, action.z, action.locId, action.optionIndex),
                         `Interacting with loc ${action.locId}`,
                         'Failed to interact with location'
                     );
+                    if (result.success) this.showTileClickVisual(action.x, action.z);
+                    return result;
+                }
 
                 case 'useInventoryItem':
                     return this.wrapBool(
@@ -89,12 +104,15 @@ export class ActionExecutor {
                         'Failed to drop item'
                     );
 
-                case 'pickupItem':
-                    return this.wrapBool(
+                case 'pickupItem': {
+                    const result = this.wrapBool(
                         this.client.pickupGroundItem(action.x, action.z, action.itemId),
                         `Picking up item ${action.itemId}`,
                         'Failed to pickup item'
                     );
+                    if (result.success) this.showTileClickVisual(action.x, action.z);
+                    return result;
+                }
 
                 case 'clickDialogOption':
                     return this.wrapBool(
@@ -126,19 +144,25 @@ export class ActionExecutor {
                         'Failed to use item on item'
                     );
 
-                case 'useItemOnLoc':
-                    return this.wrapBool(
+                case 'useItemOnLoc': {
+                    const result = this.wrapBool(
                         this.client.useItemOnLoc(action.itemSlot, action.x, action.z, action.locId),
                         `Using item on location`,
                         'Failed to use item on location'
                     );
+                    if (result.success) this.showTileClickVisual(action.x, action.z);
+                    return result;
+                }
 
-                case 'useItemOnNpc':
-                    return this.wrapBool(
+                case 'useItemOnNpc': {
+                    const result = this.wrapBool(
                         this.client.useItemOnNpc(action.itemSlot, action.npcIndex),
                         `Using item on NPC #${action.npcIndex}`,
                         'Failed to use item on NPC'
                     );
+                    if (result.success) this.showNpcClickVisual(action.npcIndex);
+                    return result;
+                }
 
                 case 'useEquipmentItem':
                     // Use INV_BUTTON for equipment (not OPHELD) - triggers inv_button1 script for unequip
@@ -183,12 +207,15 @@ export class ActionExecutor {
                         'Failed to set combat style'
                     );
 
-                case 'spellOnNpc':
-                    return this.wrapBool(
+                case 'spellOnNpc': {
+                    const result = this.wrapBool(
                         this.client.spellOnNpc(action.npcIndex, action.spellComponent),
                         `Casting spell on NPC #${action.npcIndex}`,
                         'Failed to cast spell on NPC'
                     );
+                    if (result.success) this.showNpcClickVisual(action.npcIndex);
+                    return result;
+                }
 
                 case 'spellOnItem':
                     return this.wrapBool(
@@ -234,12 +261,15 @@ export class ActionExecutor {
                         'Failed to randomize character design'
                     );
 
-                case 'interactGroundItem':
-                    return this.wrapBool(
+                case 'interactGroundItem': {
+                    const result = this.wrapBool(
                         this.client.interactGroundItem(action.x, action.z, action.itemId, action.optionIndex),
                         `Interacting with ground item ${action.itemId}`,
                         'Failed to interact with ground item'
                     );
+                    if (result.success) this.showTileClickVisual(action.x, action.z);
+                    return result;
+                }
 
                 case 'say':
                     return this.wrapBool(
@@ -297,6 +327,30 @@ export class ActionExecutor {
     // Helper to wrap boolean client methods
     private wrapBool(result: boolean, successMsg: string, failMsg: string): ActionResult {
         return result ? { success: true, message: successMsg } : { success: false, message: failMsg };
+    }
+
+    // Show red click cross at an NPC's screen position
+    private showNpcClickVisual(npcIndex: number): void {
+        const pos = this.client.projectNpcToScreen(npcIndex);
+        if (pos) {
+            this.client.setBotClickVisual(pos.x, pos.y, 2);
+        }
+    }
+
+    // Show red click cross at a player's screen position
+    private showPlayerClickVisual(playerIndex: number): void {
+        const pos = this.client.projectPlayerToScreen(playerIndex);
+        if (pos) {
+            this.client.setBotClickVisual(pos.x, pos.y, 2);
+        }
+    }
+
+    // Show red click cross at a world tile's screen position
+    private showTileClickVisual(worldX: number, worldZ: number): void {
+        const pos = this.client.projectTileToScreen(worldX, worldZ);
+        if (pos) {
+            this.client.setBotClickVisual(pos.x, pos.y, 2);
+        }
     }
 }
 

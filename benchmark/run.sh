@@ -2,7 +2,7 @@
 # Run the benchmark suite across models on Daytona.
 #
 # Usage:
-#   benchmark/run.sh                    # all 3 models, woodcutting-xp-10m
+#   benchmark/run.sh                    # all models, woodcutting-xp-10m
 #   benchmark/run.sh -t woodcutting-xp-5m
 #   benchmark/run.sh -m sonnet          # single model
 #   benchmark/run.sh -n 2               # 2 trials per model
@@ -11,23 +11,27 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# ── Model definitions ─────────────────────────────────────────────
-declare -A MODELS=(
-  [opus]="anthropic/claude-opus-4-6"
-  [sonnet]="anthropic/claude-sonnet-4-5"
-  [haiku]="anthropic/claude-haiku-4-5"
-  [gemini]="google/gemini-3-pro-preview"
-  [glm]="glm-5"
-)
+# ── Model definitions (agent|model-id|label) ────────────────────
+# Same pipe-delimited format as run-comparison.sh for bash 3 compat
+ALL_MODELS="
+claude-code|anthropic/claude-opus-4-6|opus
+claude-code|anthropic/claude-sonnet-4-5|sonnet
+claude-code|anthropic/claude-haiku-4-5|haiku
+codex|openai/gpt-5.2-codex|codex
+gemini-cli|google/gemini-3-pro-preview|gemini
+claude-code|glm-5|glm
+"
 
-# ── Agent mapping (model name -> harbor agent) ───────────────────
-declare -A AGENTS=(
-  [opus]="claude-code"
-  [sonnet]="claude-code"
-  [haiku]="claude-code"
-  [gemini]="gemini-cli"
-  [glm]="claude-code"
-)
+# ── Lookup helper (bash 3 compatible) ────────────────────────────
+lookup_model() {
+  local name="$1"
+  echo "$ALL_MODELS" | while IFS='|' read -r agent model label; do
+    if [ "$label" = "$name" ]; then
+      echo "$agent|$model|$label"
+      return 0
+    fi
+  done
+}
 
 # ── Defaults ──────────────────────────────────────────────────────
 TASK="woodcutting-xp-10m"
@@ -46,7 +50,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       echo "Usage: benchmark/run.sh [-t task] [-m model] [-n trials] [-c concurrency]"
       echo ""
-      echo "Models: opus, sonnet, haiku, gemini, glm (default: all five)"
+      echo "Models: opus, sonnet, haiku, codex, gemini, glm (default: all six)"
       echo "Task:   any task dir name (default: woodcutting-xp-10m)"
       exit 0
       ;;
@@ -57,7 +61,7 @@ done
 
 # Default to all models if none specified
 if [ -z "$SELECTED_MODELS" ]; then
-  SELECTED_MODELS="sonnet opus haiku gemini glm"
+  SELECTED_MODELS="sonnet opus haiku codex gemini glm"
 fi
 
 # Load GLM_API_KEY from .env for GLM model runs
@@ -73,12 +77,13 @@ echo ""
 
 # ── Run each model ────────────────────────────────────────────────
 for name in $SELECTED_MODELS; do
-  model="${MODELS[$name]}"
-  agent="${AGENTS[$name]}"
-  if [ -z "$model" ]; then
-    echo "Unknown model: $name (available: opus, sonnet, haiku, gemini, glm)"
+  entry=$(lookup_model "$name")
+  if [ -z "$entry" ]; then
+    echo "Unknown model: $name (available: opus, sonnet, haiku, codex, gemini, glm)"
     exit 1
   fi
+
+  IFS='|' read -r agent model label <<< "$entry"
 
   # GLM needs custom env: use GLM_API_KEY and route through Z.AI proxy.
   # Override ANTHROPIC_API_KEY to prevent sending real Anthropic key.

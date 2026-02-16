@@ -1937,8 +1937,15 @@ export class Client extends GameShell {
         this.actionKey[5] = prevActionKey;
 
         if (success) {
-            this.crossX = 256; // center of screen
-            this.crossY = 166;
+            // Project destination tile to screen coordinates for accurate click visual
+            const screenPos = this.projectTileToScreen(worldX, worldZ);
+            if (screenPos) {
+                this.crossX = screenPos.x;
+                this.crossY = screenPos.y;
+            } else {
+                this.crossX = 256;
+                this.crossY = 166;
+            }
             this.crossMode = 1;
             this.crossCycle = 0;
         }
@@ -1980,6 +1987,75 @@ export class Client extends GameShell {
             tileX,
             tileZ
         };
+    }
+
+    /**
+     * Project a world tile coordinate to screen pixel coordinates.
+     * Returns {x, y} or null if off-screen / behind camera.
+     */
+    projectTileToScreen(worldX: number, worldZ: number): { x: number; y: number } | null {
+        if (!this.ingame) return null;
+
+        // Convert world tile to scene sub-tile coords (center of tile)
+        const sceneX = ((worldX - this.sceneBaseTileX) << 7) + 64;
+        const sceneZ = ((worldZ - this.sceneBaseTileZ) << 7) + 64;
+
+        if (sceneX < 128 || sceneZ < 128 || sceneX > 13056 || sceneZ > 13056) return null;
+
+        const y = this.getHeightmapY(this.currentLevel, sceneX, sceneZ);
+        this.project(sceneX, y, sceneZ);
+
+        if (this.projectX > -1) {
+            return { x: this.projectX, y: this.projectY };
+        }
+        return null;
+    }
+
+    /**
+     * Project an NPC's current position to screen pixel coordinates.
+     * Returns {x, y} or null if NPC not found / off-screen.
+     */
+    projectNpcToScreen(npcIndex: number): { x: number; y: number } | null {
+        if (!this.ingame) return null;
+
+        const npc = this.npcs[npcIndex];
+        if (!npc || !npc.isVisible()) return null;
+
+        this.projectFromEntity(npc, (npc.height / 2) | 0);
+
+        if (this.projectX > -1) {
+            return { x: this.projectX, y: this.projectY };
+        }
+        return null;
+    }
+
+    /**
+     * Project a player's current position to screen pixel coordinates.
+     * Returns {x, y} or null if player not found / off-screen.
+     */
+    projectPlayerToScreen(playerIndex: number): { x: number; y: number } | null {
+        if (!this.ingame) return null;
+
+        const player = this.players[playerIndex];
+        if (!player || !player.isVisible()) return null;
+
+        this.projectFromEntity(player, (player.height / 2) | 0);
+
+        if (this.projectX > -1) {
+            return { x: this.projectX, y: this.projectY };
+        }
+        return null;
+    }
+
+    /**
+     * Set the click cross visual at a specific screen position.
+     * mode: 1 = yellow (walk), 2 = red (interact)
+     */
+    setBotClickVisual(screenX: number, screenY: number, mode: number): void {
+        this.crossX = screenX;
+        this.crossY = screenY;
+        this.crossMode = mode;
+        this.crossCycle = 0;
     }
 
     /**
