@@ -202,5 +202,5 @@ done
 
 echo "All runs complete!"
 echo ""
-echo "To extract results: bun benchmark/extract-results.ts jobs/${JOB_PREFIX}-*"
+echo "To extract results: bun benchmark/extract-results.ts --filter ${JOB_PREFIX}"
 echo "To view graphs: open benchmark/graph.html"

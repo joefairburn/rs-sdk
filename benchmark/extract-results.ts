@@ -36,6 +36,12 @@ interface TrackingData {
   samples: Sample[];
 }
 
+interface TokenUsage {
+  inputTokens: number;
+  cacheTokens: number;
+  outputTokens: number;
+}
+
 function detectModel(dirName: string): string {
   const lower = dirName.toLowerCase();
   for (const m of KNOWN_MODELS) {
@@ -83,14 +89,38 @@ function detectTimeHorizon(dirName: string, jobDir: string): string {
   return 'unknown';
 }
 
-/** Walk a job directory and find tracking data from reward.json or skill_tracking.json */
-function findTracking(jobDir: string): TrackingData | null {
+/** Get all trial directories (handles both flat and timestamp-nested layouts) */
+function getTrialDirs(jobDir: string): string[] {
+  const trials: string[] = [];
   const entries = readdirSync(jobDir, { withFileTypes: true });
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const trialDir = join(jobDir, entry.name);
+    const subDir = join(jobDir, entry.name);
 
+    // Check if this directory IS a trial (has verifier/ or result.json with agent_result)
+    if (existsSync(join(subDir, 'verifier')) || existsSync(join(subDir, 'agent'))) {
+      trials.push(subDir);
+    } else {
+      // Might be a timestamp directory — check one level deeper
+      try {
+        const subEntries = readdirSync(subDir, { withFileTypes: true });
+        for (const sub of subEntries) {
+          if (!sub.isDirectory()) continue;
+          const nested = join(subDir, sub.name);
+          if (existsSync(join(nested, 'verifier')) || existsSync(join(nested, 'agent'))) {
+            trials.push(nested);
+          }
+        }
+      } catch {}
+    }
+  }
+  return trials;
+}
+
+/** Walk a job directory and find tracking data from reward.json or skill_tracking.json */
+function findTracking(jobDir: string): TrackingData | null {
+  for (const trialDir of getTrialDirs(jobDir)) {
     // Primary: reward.json with embedded tracking
     const rewardPath = join(trialDir, 'verifier', 'reward.json');
     if (existsSync(rewardPath)) {
@@ -110,6 +140,26 @@ function findTracking(jobDir: string): TrackingData | null {
     }
   }
 
+  return null;
+}
+
+/** Extract token usage from trial result.json */
+function findTokenUsage(jobDir: string): TokenUsage | null {
+  for (const trialDir of getTrialDirs(jobDir)) {
+    const resultPath = join(trialDir, 'result.json');
+    if (!existsSync(resultPath)) continue;
+    try {
+      const result = JSON.parse(readFileSync(resultPath, 'utf-8'));
+      const ar = result.agent_result;
+      if (ar && (ar.n_input_tokens || ar.n_output_tokens)) {
+        return {
+          inputTokens: ar.n_input_tokens || 0,
+          cacheTokens: ar.n_cache_tokens || 0,
+          outputTokens: ar.n_output_tokens || 0,
+        };
+      }
+    } catch {}
+  }
   return null;
 }
 
@@ -154,6 +204,7 @@ const combined: Record<string, Record<string, {
   finalTotalLevel: number;
   durationSeconds: number;
   samples: Sample[];
+  tokenUsage?: TokenUsage;
 }>> = {};
 
 let extracted = 0;
@@ -178,6 +229,7 @@ for (const dir of jobDirs) {
   const last = samples[samples.length - 1];
   const finalLevel = last.totalLevel;
   const durationSeconds = last.elapsedMs / 1000;
+  const tokenUsage = findTokenUsage(dir);
 
   if (!combined[model]) combined[model] = {};
 
@@ -189,10 +241,12 @@ for (const dir of jobDirs) {
       finalTotalLevel: finalLevel,
       durationSeconds,
       samples,
+      ...(tokenUsage ? { tokenUsage } : {}),
     };
   }
 
-  console.log(`  ${model}/${horizon}: ${jobName} — ${samples.length} samples, final level ${finalLevel}`);
+  const tokenStr = tokenUsage ? `, tokens: ${(tokenUsage.inputTokens / 1000).toFixed(0)}k in / ${(tokenUsage.outputTokens / 1000).toFixed(0)}k out` : '';
+  console.log(`  ${model}/${horizon}: ${jobName} — ${samples.length} samples, final level ${finalLevel}${tokenStr}`);
   extracted++;
 }
 
@@ -214,6 +268,7 @@ for (const [model, horizons] of Object.entries(combined)) {
     finalTotalLevel: data.finalTotalLevel,
     durationSeconds: data.durationSeconds,
     sampleCount: data.samples.length,
+    ...(data.tokenUsage ? { tokenUsage: data.tokenUsage } : {}),
   }));
 
   // Use longest run's samples for backward compat

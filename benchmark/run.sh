@@ -64,18 +64,25 @@ if [ -z "$SELECTED_MODELS" ]; then
   SELECTED_MODELS="sonnet opus haiku codex gemini glm"
 fi
 
-# Load GLM_API_KEY from .env for GLM model runs
-GLM_KEY=""
+# Export API keys from .env so Harbor's agent classes can snapshot them.
+# Without this, keys are only loaded by Python dotenv at import time,
+# and import ordering can cause the snapshot to miss them.
 if [ -f "$SCRIPT_DIR/../.env" ]; then
-  GLM_KEY=$(grep '^GLM_API_KEY=' "$SCRIPT_DIR/../.env" | cut -d= -f2-)
+  set -a  # auto-export all variables
+  source "$SCRIPT_DIR/../.env"
+  set +a
 fi
+GLM_KEY="${GLM_API_KEY:-}"
 
 # ── Regenerate tasks ──────────────────────────────────────────────
 echo "Regenerating benchmark tasks..."
 bun "$SCRIPT_DIR/generate-tasks.ts"
 echo ""
 
-# ── Run each model ────────────────────────────────────────────────
+# ── Launch all models in parallel ─────────────────────────────────
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+PIDS=""
+
 for name in $SELECTED_MODELS; do
   entry=$(lookup_model "$name")
   if [ -z "$entry" ]; then
@@ -96,22 +103,57 @@ for name in $SELECTED_MODELS; do
     ENV_PREFIX="ANTHROPIC_API_KEY=$GLM_KEY ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic API_TIMEOUT_MS=3000000"
   fi
 
+  JOB_NAME="${TASK}-${label}-${TIMESTAMP}"
+  LOG_FILE="/tmp/harbor-${JOB_NAME}.log"
+
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "  Running: $name ($model)"
-  echo "  Task:    $TASK"
-  echo "  Trials:  $N_TRIALS"
+  echo "  Launching: $name ($model)"
+  echo "  Task:      $TASK"
+  echo "  Trials:    $N_TRIALS"
+  echo "  Log:       $LOG_FILE"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
   eval "$ENV_PREFIX harbor run \
     -p '$SCRIPT_DIR/$TASK' \
     -a '$agent' \
     -m '$model' \
+    --job-name '$JOB_NAME' \
     --env daytona \
     -n '$CONCURRENCY' \
     -k '$N_TRIALS' \
-    $EXTRA_ARGS"
+    $EXTRA_ARGS" > "$LOG_FILE" 2>&1 &
 
+  PIDS="$PIDS $!"
   echo ""
 done
 
-echo "All runs complete."
+echo "All models launched. Waiting for completion..."
+echo "  PIDs: $PIDS"
+echo ""
+
+FAILED=0
+for pid in $PIDS; do
+  if ! wait "$pid"; then
+    FAILED=$((FAILED + 1))
+  fi
+done
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+if [ "$FAILED" -eq 0 ]; then
+  echo "All runs complete."
+else
+  echo "All runs finished. $FAILED model(s) had errors."
+fi
+
+# Print summary from log files
+for name in $SELECTED_MODELS; do
+  entry=$(lookup_model "$name")
+  IFS='|' read -r agent model label <<< "$entry"
+  LOG_FILE="/tmp/harbor-${TASK}-${label}-${TIMESTAMP}.log"
+  if [ -f "$LOG_FILE" ]; then
+    echo ""
+    echo "── $name ──"
+    tail -20 "$LOG_FILE"
+  fi
+done

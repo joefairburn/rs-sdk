@@ -119,7 +119,7 @@ const ensureServicesB64 = Buffer.from(ENSURE_SERVICES_SCRIPT).toString('base64')
 const ENSURE_SERVICES_DOCKERFILE_LINE = `\n# Idempotent service starter for agents that don't use MCP (e.g. gemini-cli)\nRUN echo '${ensureServicesB64}' | base64 -d > /ensure-services.sh && chmod +x /ensure-services.sh\n`;
 
 const TOTAL_LEVEL_DOCKERFILE = () => `FROM ${DOCKER_IMAGE}
-ENV SAMPLE_INTERVAL_MS=120000
+ENV SAMPLE_INTERVAL_MS=60000
 
 # Inject skill tracker (base64-encoded because Daytona doesn't support COPY from build context)
 RUN mkdir -p /app/benchmark/shared && echo '${skillTrackerB64}' | base64 -d > /app/benchmark/shared/skill_tracker.ts
