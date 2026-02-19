@@ -49,6 +49,12 @@ done
 sleep 20
 echo "[entrypoint] Bot should be ready"
 
+# ── Skill tracker (runs for full container lifetime) ─────────
+echo "[entrypoint] Starting skill tracker..."
+cd /app && TRACKING_FILE=/app/skill_tracking.json \
+  nohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &
+echo "[entrypoint] Skill tracker started (pid=$!)"
+
 # ── Screen recording ─────────────────────────────────────────────
 RECORD_VIDEO="${RECORD_VIDEO:-1}"
 FFMPEG_PID=""

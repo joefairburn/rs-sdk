@@ -6,9 +6,11 @@ All task directories are **generated** — never edit them directly.
 
 | Path | Purpose |
 |------|---------|
-| `generate-tasks.ts` | Generates all 18 task directories |
-| `shared/check_xp.ts` | XP verifier (copied into each task's tests/) |
-| `shared/check_level.ts` | Level verifier (used by woodcutting-10) |
+| `generate-tasks.ts` | Generates all task directories (16 standard XP + 22 variants) |
+| `shared/check_xp.ts` | XP verifier for 10m single-skill tasks |
+| `shared/check_skill_xp.ts` | XP verifier for 30m single-skill tasks (includes tracking) |
+| `shared/check_total_level.ts` | Total level verifier (includes tracking) |
+| `shared/skill_tracker.ts` | Standalone skill tracker (single source of truth — copied into Docker image at build time) |
 | `docker/` | Shared Docker image source (pre-built, pushed to GHCR) |
 
 ## Regenerate tasks
@@ -19,20 +21,21 @@ bun benchmark/generate-tasks.ts
 
 Run this before `harbor run`. Generated directories are gitignored.
 
-## Running on Daytona (cloud)
+## Running benchmarks
 
 ```bash
-export DAYTONA_API_KEY=<your-key>
-bun benchmark/generate-tasks.ts
-harbor run -p benchmark/<task-dir> -a <agent> -m <model> --env daytona
+# Standard 10m XP benchmarks (all models in parallel)
+benchmark/run.sh
+
+# 30m per-skill XP benchmarks (all 16 skills)
+benchmark/run-skills-30m.sh
+
+# Total-level benchmarks (configurable duration)
+benchmark/run-total-level.sh --duration 8m
+benchmark/run-total-level.sh --duration 1h
 ```
 
-Run the full dataset with parallelism:
-```bash
-harbor run -p benchmark/ -a claude-code -m anthropic/claude-sonnet-4-5 --env daytona -n 16
-```
-
-Each task has an `environment/Dockerfile` that `FROM`s the pre-built GHCR image, so Daytona pulls the image with no build step beyond the layer cache.
+Each task has an `environment/Dockerfile` that `FROM`s the pre-built GHCR image, so Modal pulls the image with no build step beyond the layer cache.
 
 ## Adding a new task
 
@@ -42,7 +45,7 @@ Each task has an `environment/Dockerfile` that `FROM`s the pre-built GHCR image,
 
 ## Docker image
 
-All standard tasks use the pre-built image `ghcr.io/maxbittker/rs-agent-benchmark:latest` (8x game speed via `NODE_TICKRATE=50`). Variant tasks that need different env settings use a thin `FROM` layer on top of this image.
+All tasks use the pre-built image `ghcr.io/maxbittker/rs-agent-benchmark:v12` (8x game speed via `NODE_TICKRATE=50`). Variant tasks that need different env settings use a thin `FROM` layer on top of this image.
 
 Build and push:
 ```bash

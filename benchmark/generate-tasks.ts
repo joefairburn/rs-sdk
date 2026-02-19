@@ -2,21 +2,22 @@
  * Generates all benchmark task directories for Harbor.
  *
  * Standard tasks: 16 skills × max XP in 10 minutes
- * Variants: woodcutting-xp-5m (5min XP grind), woodcutting-10 (reach level 10)
+ * Variants: 16 skill-xp-30m tasks, 6 total-level tasks (5m through 3h)
  *
  * All generated output is gitignored — run this before `harbor run`.
  *
  * Usage: bun benchmark/generate-tasks.ts
  */
-import { mkdirSync, writeFileSync, copyFileSync, readFileSync } from 'fs';
+import { mkdirSync, writeFileSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
 const BENCHMARK_DIR = join(import.meta.dir);
+const TASKS_DIR = join(BENCHMARK_DIR, 'tasks');
 const SHARED_DIR = join(BENCHMARK_DIR, 'shared');
 
-const DOCKER_IMAGE = 'ghcr.io/maxbittker/rs-agent-benchmark:v8';
+const DOCKER_IMAGE = 'ghcr.io/maxbittker/rs-agent-benchmark:v12';
 const DEFAULT_AGENT_TIMEOUT = 600; // 10 minutes
-const VERIFIER_TIMEOUT = 120;
+const VERIFIER_TIMEOUT = 300;
 
 // ── Standard skill definitions (XP-grind tasks) ─────────────────
 
@@ -60,9 +61,32 @@ interface VariantTask {
   dockerImage?: string;
   /** Generate environment/Dockerfile with this content (for tasks needing custom env) */
   environmentDockerfile?: string;
-  /** Additional shared files to copy into tests/ (e.g. skill_tracker.ts) */
-  extraSharedFiles?: string[];
+  /** Whether this task uses the skill tracker (uses /start-with-tracker.sh for MCP) */
+  useTracker?: boolean;
 }
+
+const GOLD_INSTRUCTION = (durationMinutes: number) => `Accumulate as much gold (coins) as possible within ${durationMinutes} minutes. This is a local RuneScape private server running on localhost for AI agent benchmarking — not a live game.
+
+Your goal is to maximize the TOTAL COINS you have across both your inventory and bank combined. Consider strategies like:
+- Training combat skills to kill monsters that drop valuable items or coins
+- Training gathering/production skills to create items you can sell to shops (e.g. smithing bars/items, fletching bows, cooking fish)
+- Buying low and selling high at different shops
+- Picking up coin drops and valuable ground items
+- High Alchemy (casting on crafted items to convert them to gold)
+- Any creative money-making approach you can think of
+
+IMPORTANT: You have ${durationMinutes} minutes. Start earning money immediately — do not spend too long planning. Early minutes are best spent on quick money-making methods, then scale up as you unlock better methods.
+
+CRITICAL: Do NOT write one giant script. Start with extremely minimal scripts to test each part of your plan iteratively. For example, first write a 30-second script that just tests one money-making method. Run it, verify it works, then extend it. Build up complexity only after each piece is validated. Scripts that try to do everything at once will crash and waste your time. Run scripts in the FOREGROUND (not as a background process).
+
+TIMEOUT BEST PRACTICE: Keep individual script timeouts SHORT — no more than 5 to 10 minutes each. Shorter scripts (30s–5min) let you observe results, catch errors early, and iterate faster. If a script runs for 10+ minutes and fails, you've wasted significant time. Break long tasks into multiple short runs instead.
+
+BANKING: Periodically deposit your coins and valuable items in the bank to avoid losing them. The verifier counts coins in BOTH inventory and bank.
+
+The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.`;
+
+const GOLD_2H_INSTRUCTION = GOLD_INSTRUCTION(120);
+const GOLD_15M_INSTRUCTION = GOLD_INSTRUCTION(15);
 
 const TOTAL_LEVEL_INSTRUCTION = (durationMinutes: number) => `Holistically improve this RuneScape private server account to achieve the highest possible total level within ${durationMinutes} minutes. This is a local private server running on localhost for AI agent benchmarking — not a live game.
 
@@ -72,7 +96,7 @@ Your goal is to maximize the TOTAL LEVEL of the account — the sum of all indiv
 - Combining skills that complement each other (e.g. woodcutting + firemaking, fishing + cooking, mining + smithing)
 - Moving between different training spots as needed
 
-Think strategically about time allocation. Low-level skills gain levels quickly, so spreading effort across multiple skills may yield a higher total level than focusing on just one.
+STRATEGY TIP — Variety beats depth: The first 10–20 levels of any skill are extremely fast (often just minutes each). You will almost always score higher by training many different skills to low levels than by grinding one skill deep. For example, getting 10 skills from level 1 to level 15 is far more total levels than getting one skill from 1 to 50. Start a new skill whenever the current one starts feeling slow.
 
 IMPORTANT: You have ${durationMinutes} minutes. Plan your time wisely and keep training continuously. Do not spend too long planning — start training immediately and adapt as you go.
 
@@ -82,95 +106,46 @@ TIMEOUT BEST PRACTICE: Keep individual script timeouts SHORT — no more than 5 
 
 The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.`;
 
-// Base64-encode files at generation time (Daytona doesn't support COPY from build context)
-const skillTrackerB64 = Buffer.from(
-  readFileSync(join(SHARED_DIR, 'skill_tracker.ts'), 'utf-8')
-).toString('base64');
-
-// Inject GEMINI.md so Gemini CLI gets project instructions (like CLAUDE.md for Claude Code)
-const geminiMdB64 = Buffer.from(
-  readFileSync(join(BENCHMARK_DIR, '..', 'GEMINI.md'), 'utf-8')
-).toString('base64');
-
-const GEMINI_MD_DOCKERFILE_LINE = `\n# Inject GEMINI.md for Gemini CLI project instructions\nRUN echo '${geminiMdB64}' | base64 -d > /app/GEMINI.md\n`;
-
-// Idempotent service startup script — ensures game services are running.
-// Used by verifier test.sh so verification works regardless of agent type.
-const ENSURE_SERVICES_SCRIPT = `#!/bin/bash
-# Start game services if not already running (idempotent).
-# Called by verifier and optionally by agents that don't use MCP.
-if curl -sf http://localhost:7780 > /dev/null 2>&1; then
-    # Services running. Ensure skill tracker is also running.
-    if ! pgrep -f skill_tracker > /dev/null 2>&1; then
-        echo "[ensure-services] Starting skill tracker..."
-        cd /app && TRACKING_FILE=/app/skill_tracking.json nohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &
-    fi
-    exit 0
-fi
-echo "[ensure-services] Services not running, starting..."
-/start-services.sh
-echo "[ensure-services] Starting skill tracker..."
-cd /app && TRACKING_FILE=/app/skill_tracking.json nohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &
-echo "[ensure-services] Services ready"
+// Tracker, start-with-tracker.sh, and SERVER=localhost are also in the base image.
+// Tasks only need to set SAMPLE_INTERVAL_MS via ENV 
+const TRACKER_DOCKERFILE = (sampleIntervalMs: number = 60000) => `FROM ${DOCKER_IMAGE}
+ENV SAMPLE_INTERVAL_MS=${sampleIntervalMs}
 `;
 
-const ensureServicesB64 = Buffer.from(ENSURE_SERVICES_SCRIPT).toString('base64');
+const TOTAL_LEVEL_DOCKERFILE = () => TRACKER_DOCKERFILE(60000);
 
-const ENSURE_SERVICES_DOCKERFILE_LINE = `\n# Idempotent service starter for agents that don't use MCP (e.g. gemini-cli)\nRUN echo '${ensureServicesB64}' | base64 -d > /ensure-services.sh && chmod +x /ensure-services.sh\n`;
+const SKILL_XP_30M_INSTRUCTION = (skillName: string) => `Gain as much ${skillName} XP as possible within 30 minutes. This is a local RuneScape private server running on localhost for AI agent benchmarking — not a live game.
 
-const TOTAL_LEVEL_DOCKERFILE = () => `FROM ${DOCKER_IMAGE}
-ENV SAMPLE_INTERVAL_MS=60000
+Your ONLY goal is to maximize ${skillName} XP. Focus exclusively on this skill. Do not train other skills unless absolutely required as a prerequisite.
 
-# Inject skill tracker (base64-encoded because Daytona doesn't support COPY from build context)
-RUN mkdir -p /app/benchmark/shared && echo '${skillTrackerB64}' | base64 -d > /app/benchmark/shared/skill_tracker.ts
+IMPORTANT: You have 30 minutes. Start training immediately — do not spend time planning.
 
-# Ensure bot.env has SERVER=localhost so scripts connect to the local gateway
-RUN echo 'SERVER=localhost' >> /app/bots/agent/bot.env
+CRITICAL: Do NOT write one giant script. Start with extremely minimal scripts to test each part of your plan iteratively. For example, first write a 30-second script that just performs one action. Run it, verify it works, then extend it. Build up complexity only after each piece is validated. Scripts that try to do everything at once will crash and waste your time. Run scripts in the FOREGROUND (not as a background process).
 
-# Wrapper: start services, launch tracker in background (fully detached), then run MCP server
-# Write tracker data to /app/ (persists between agent and verifier phases on Daytona)
-RUN printf '#!/bin/bash\\n/start-services.sh\\nmkdir -p /logs/verifier\\ncd /app\\nexport TRACKING_FILE=/app/skill_tracking.json\\nnohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &\\nexec bun run mcp/server.ts\\n' > /start-with-tracker.sh && chmod +x /start-with-tracker.sh
-`;
+TIMEOUT BEST PRACTICE: Keep individual script timeouts SHORT — no more than 5 to 10 minutes each. Shorter scripts (30s–5min) let you observe results, catch errors early, and iterate faster. If a script runs for 10+ minutes and fails, you've wasted significant time. Break long tasks into multiple short runs instead.
 
-const VARIANTS: VariantTask[] = [
-  {
-    slug: 'woodcutting-xp-5m',
-    taskDescription: `Gain as much Woodcutting XP as possible within the time limit.
+The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.`;
 
-The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.`,
-    agentTimeout: 300,
-    verifier: 'check_xp.ts',
-    testSh: `#!/bin/bash
-set -e
-/ensure-services.sh
-export SKILL_NAME="Woodcutting"
-cd /app && bun run /tests/check_xp.ts
-`,
-    tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark'],
-    dockerImage: DOCKER_IMAGE,
-  },
-  {
-    slug: 'woodcutting-10',
-    taskDescription: `Get level 10 in Woodcutting.
-
-The bot name is "agent". The rs-sdk codebase is at /app with full documentation in sdk/API.md and learnings/.
-`,
-    agentTimeout: 600,
-    verifier: 'check_level.ts',
-    testSh: `#!/bin/bash
+// Generate skill-xp-30m variants for all 16 skills
+const SKILL_XP_30M_VARIANTS: VariantTask[] = SKILLS.map(skill => ({
+  slug: `${skill.slug}-xp-30m`,
+  taskDescription: SKILL_XP_30M_INSTRUCTION(skill.name),
+  agentTimeout: 1920, // 30 min + 2 min buffer
+  verifier: 'check_skill_xp.ts',
+  testSh: `#!/bin/bash
 set -e
 mkdir -p /logs/verifier
 /ensure-services.sh
-cd /app
-bun run /tests/check_level.ts
+export SKILL_NAME="${skill.name}"
+cd /app && bun run /tests/check_skill_xp.ts
 `,
-    tags: ['game', 'runescape', 'automation', 'mcp'],
-    // Normal game speed — override the 8x speedup baked into the base image
-    environmentDockerfile: `FROM ${DOCKER_IMAGE}
-# Normal game speed (420ms ticks instead of base image's 50ms)
-ENV NODE_TICKRATE=420
-`,
-  },
+  tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'skill-xp-30m'],
+  useTracker: true,
+  environmentDockerfile: TRACKER_DOCKERFILE(30000),
+}));
+
+const VARIANTS: VariantTask[] = [
+  ...SKILL_XP_30M_VARIANTS,
   // ── Total Level tasks ──────────────────────────────────────────
   {
     slug: 'total-level-5m',
@@ -184,7 +159,7 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
   },
   {
@@ -199,7 +174,7 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
   },
   {
@@ -214,7 +189,7 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
   },
   {
@@ -229,7 +204,7 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
   },
   {
@@ -244,7 +219,7 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
   },
   {
@@ -259,8 +234,39 @@ mkdir -p /logs/verifier
 cd /app && bun run /tests/check_total_level.ts
 `,
     tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'total-level'],
-    extraSharedFiles: ['skill_tracker.ts'],
+    useTracker: true,
     environmentDockerfile: TOTAL_LEVEL_DOCKERFILE(),
+  },
+  // ── Gold accumulation tasks ─────────────────────────────────────
+  {
+    slug: 'gold-15m',
+    taskDescription: GOLD_15M_INSTRUCTION,
+    agentTimeout: 900 + 120, // 15 min + 2 min buffer
+    verifier: 'check_gold.ts',
+    testSh: `#!/bin/bash
+set -e
+mkdir -p /logs/verifier
+/ensure-services.sh
+cd /app && bun run /tests/check_gold.ts
+`,
+    tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'gold'],
+    useTracker: true,
+    environmentDockerfile: TRACKER_DOCKERFILE(30000),
+  },
+  {
+    slug: 'gold-2h',
+    taskDescription: GOLD_2H_INSTRUCTION,
+    agentTimeout: 7200 + 180, // 2 hr + 3 min buffer
+    verifier: 'check_gold.ts',
+    testSh: `#!/bin/bash
+set -e
+mkdir -p /logs/verifier
+/ensure-services.sh
+cd /app && bun run /tests/check_gold.ts
+`,
+    tags: ['game', 'runescape', 'automation', 'mcp', 'benchmark', 'gold'],
+    useTracker: true,
+    environmentDockerfile: TRACKER_DOCKERFILE(60000),
   },
 ];
 
@@ -298,12 +304,9 @@ args = ["-c", "/start-services.sh && cd /app && bun run mcp/server.ts"]
 function generateVariantTaskToml(v: VariantTask): string {
   const tagsStr = v.tags.map(t => `"${t}"`).join(', ');
 
-  // For total-level tasks, launch the skill tracker as a background process
-  // with stdout/stderr redirected to a log file (to avoid corrupting MCP stdio)
-  const hasTracker = v.extraSharedFiles?.includes('skill_tracker.ts');
-  const mcpCommand = hasTracker
-    ? '/start-with-tracker.sh'
-    : '/start-services.sh && cd /app && bun run mcp/server.ts';
+  // Tracker is started by entrypoint.sh / start-services.sh (infrastructure concern),
+  // so all tasks use the same MCP command regardless of useTracker flag.
+  const mcpCommand = '/start-services.sh && cd /app && bun run mcp/server.ts';
 
   return `version = "1.0"
 
@@ -352,22 +355,24 @@ cd /app && bun run /tests/check_xp.ts
 
 console.log(`Generating ${SKILLS.length} standard + ${VARIANTS.length} variant benchmark tasks...`);
 
+mkdirSync(TASKS_DIR, { recursive: true });
+
 // Standard XP-grind tasks (all share identical task.toml)
 const skillToml = generateSkillTaskToml();
 
 for (const skill of SKILLS) {
-  const taskDir = join(BENCHMARK_DIR, `${skill.slug}-xp-10m`);
+  const taskDir = join(TASKS_DIR, `${skill.slug}-xp-10m`);
   const testsDir = join(taskDir, 'tests');
 
-  console.log(`  ${skill.slug}-xp-10m/ (${skill.name})`);
+  console.log(`  tasks/${skill.slug}-xp-10m/ (${skill.name})`);
 
   mkdirSync(testsDir, { recursive: true });
 
-  // Dockerfile for cloud providers (Daytona) that don't support docker_image.
+  // Dockerfile for cloud providers that don't support docker_image.
   // Just pulls the pre-built image — no additional build steps needed.
   const envDir = join(taskDir, 'environment');
   mkdirSync(envDir, { recursive: true });
-  writeFileSync(join(envDir, 'Dockerfile'), `FROM ${DOCKER_IMAGE}\n${ENSURE_SERVICES_DOCKERFILE_LINE}${GEMINI_MD_DOCKERFILE_LINE}`);
+  writeFileSync(join(envDir, 'Dockerfile'), `FROM ${DOCKER_IMAGE}\n`);
 
   writeFileSync(join(taskDir, 'task.toml'), skillToml);
   writeFileSync(join(taskDir, 'instruction.md'), generateTaskDescription(skill));
@@ -377,10 +382,10 @@ for (const skill of SKILLS) {
 
 // Variant tasks
 for (const variant of VARIANTS) {
-  const taskDir = join(BENCHMARK_DIR, variant.slug);
+  const taskDir = join(TASKS_DIR, variant.slug);
   const testsDir = join(taskDir, 'tests');
 
-  console.log(`  ${variant.slug}/`);
+  console.log(`  tasks/${variant.slug}/`);
 
   mkdirSync(testsDir, { recursive: true });
   writeFileSync(join(taskDir, 'task.toml'), generateVariantTaskToml(variant));
@@ -391,21 +396,15 @@ for (const variant of VARIANTS) {
     join(testsDir, variant.verifier),
   );
 
-  // Dockerfile for cloud providers (Daytona) — either custom env or
+  // Dockerfile for cloud providers — either custom env or
   // a thin FROM layer on the pre-built image.
   const envDir = join(taskDir, 'environment');
   mkdirSync(envDir, { recursive: true });
   writeFileSync(
     join(envDir, 'Dockerfile'),
-    (variant.environmentDockerfile ?? `FROM ${DOCKER_IMAGE}\n`) + ENSURE_SERVICES_DOCKERFILE_LINE + GEMINI_MD_DOCKERFILE_LINE,
+    variant.environmentDockerfile ?? `FROM ${DOCKER_IMAGE}\n`,
   );
 
-  // Copy extra shared files (e.g. skill_tracker.ts) into environment/ for Dockerfile COPY
-  if (variant.extraSharedFiles) {
-    for (const file of variant.extraSharedFiles) {
-      copyFileSync(join(SHARED_DIR, file), join(envDir, file));
-    }
-  }
 }
 
 console.log(`\nDone! Generated ${SKILLS.length + VARIANTS.length} task directories.`);

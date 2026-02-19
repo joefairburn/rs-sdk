@@ -118,6 +118,17 @@ async function main() {
     try { takeSample(); } catch (err) { console.log('[skill-tracker] Error:', err); }
   }, intervalMs);
 
+  // On shutdown, take a final sample and exit
+  const dumpAndExit = () => {
+    try {
+      takeSample();
+      console.log(`[skill-tracker] Final sample taken. ${trackingData.samples.length} total samples written to ${outFile}`);
+    } catch {}
+    process.exit(0);
+  };
+  process.on('SIGTERM', dumpAndExit);
+  process.on('SIGINT', dumpAndExit);
+
   // Keep alive forever
   await new Promise(() => {});
 }

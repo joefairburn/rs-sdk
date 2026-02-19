@@ -5,6 +5,7 @@
  * Writes total level to reward.txt for Harbor compatibility.
  * Writes full skill data + tracking history to reward.json.
  */
+// @ts-ignore
 import { BotSDK } from '/app/sdk/index';
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs';
 
@@ -72,6 +73,16 @@ async function main() {
         }, null, 2));
 
         console.log(`Reward: totalLevel=${totalLevel}`);
+
+        // Print reward JSON to stdout for recovery from test-stdout.txt
+        // when Modal file downloads fail
+        console.log('__REWARD_JSON_START__');
+        console.log(JSON.stringify({
+            totalLevel,
+            skills: skillData,
+            tracking: trackingData,
+        }));
+        console.log('__REWARD_JSON_END__');
     } finally {
         sdk.disconnect();
     }

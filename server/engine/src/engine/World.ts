@@ -1289,8 +1289,8 @@ class World {
     }
 
     private savePlayers(): void {
-        // would cause excessive save dialogs on webworker
-        if (typeof self !== 'undefined') {
+        // skip in web worker contexts (but not bun/node where self === globalThis)
+        if (typeof self !== 'undefined' && typeof process === 'undefined') {
             return;
         }
 

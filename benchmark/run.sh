@@ -4,7 +4,7 @@
 # Usage:
 #   benchmark/run.sh                    # all models, woodcutting-xp-10m
 #   benchmark/run.sh -t woodcutting-xp-5m
-#   benchmark/run.sh -m sonnet          # single model
+#   benchmark/run.sh -m sonnet45        # single model
 #   benchmark/run.sh -n 2               # 2 trials per model
 #   benchmark/run.sh -c 4               # 4 concurrent trials
 set -e
@@ -15,11 +15,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Same pipe-delimited format as run-comparison.sh for bash 3 compat
 ALL_MODELS="
 claude-code|anthropic/claude-opus-4-6|opus
-claude-code|anthropic/claude-sonnet-4-5|sonnet
+claude-code|anthropic/claude-sonnet-4-6|sonnet46
+claude-code|anthropic/claude-sonnet-4-5|sonnet45
 claude-code|anthropic/claude-haiku-4-5|haiku
-codex|openai/gpt-5.2-codex|codex
+codex|openai/gpt-codex-5.3|codex
 gemini-cli|google/gemini-3-pro-preview|gemini
 claude-code|glm-5|glm
+kimi-opencode|openrouter/moonshotai/kimi-k2.5|kimi
 "
 
 # ── Lookup helper (bash 3 compatible) ────────────────────────────
@@ -50,7 +52,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       echo "Usage: benchmark/run.sh [-t task] [-m model] [-n trials] [-c concurrency]"
       echo ""
-      echo "Models: opus, sonnet, haiku, codex, gemini, glm (default: all six)"
+      echo "Models: opus, sonnet46, sonnet45, haiku, codex, gemini, glm, kimi (default: all)"
       echo "Task:   any task dir name (default: woodcutting-xp-10m)"
       exit 0
       ;;
@@ -61,7 +63,7 @@ done
 
 # Default to all models if none specified
 if [ -z "$SELECTED_MODELS" ]; then
-  SELECTED_MODELS="sonnet opus haiku codex gemini glm"
+  SELECTED_MODELS="sonnet46 sonnet45 opus haiku codex gemini glm kimi"
 fi
 
 # Export API keys from .env so Harbor's agent classes can snapshot them.
@@ -86,7 +88,7 @@ PIDS=""
 for name in $SELECTED_MODELS; do
   entry=$(lookup_model "$name")
   if [ -z "$entry" ]; then
-    echo "Unknown model: $name (available: opus, sonnet, haiku, codex, gemini, glm)"
+    echo "Unknown model: $name (available: opus, sonnet46, sonnet45, haiku, codex, gemini, glm, kimi)"
     exit 1
   fi
 
@@ -95,12 +97,20 @@ for name in $SELECTED_MODELS; do
   # GLM needs custom env: use GLM_API_KEY and route through Z.AI proxy.
   # Override ANTHROPIC_API_KEY to prevent sending real Anthropic key.
   ENV_PREFIX=""
+  AGENT_FLAG="-a '$agent'"
   if [ "$name" = "glm" ]; then
     if [ -z "$GLM_KEY" ]; then
       echo "  WARNING: GLM_API_KEY not found in .env, skipping glm"
       continue
     fi
     ENV_PREFIX="ANTHROPIC_API_KEY=$GLM_KEY ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic API_TIMEOUT_MS=3000000"
+  elif [ "$name" = "kimi" ]; then
+    if [ -z "$OPENROUTER_API_KEY" ]; then
+      echo "  WARNING: OPENROUTER_API_KEY not found in .env, skipping kimi"
+      continue
+    fi
+    ENV_PREFIX="PYTHONPATH=$SCRIPT_DIR:\${PYTHONPATH:-}"
+    AGENT_FLAG="--agent-import-path 'kimi_adapter:KimiOpenCode'"
   fi
 
   JOB_NAME="${TASK}-${label}-${TIMESTAMP}"
@@ -114,11 +124,11 @@ for name in $SELECTED_MODELS; do
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
   eval "$ENV_PREFIX harbor run \
-    -p '$SCRIPT_DIR/$TASK' \
-    -a '$agent' \
+    -p '$SCRIPT_DIR/tasks/$TASK' \
+    $AGENT_FLAG \
     -m '$model' \
     --job-name '$JOB_NAME' \
-    --env daytona \
+    --env modal \
     -n '$CONCURRENCY' \
     -k '$N_TRIALS' \
     $EXTRA_ARGS" > "$LOG_FILE" 2>&1 &

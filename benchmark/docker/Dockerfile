@@ -68,8 +68,22 @@ COPY start-services.sh /start-services.sh
 COPY launch-bot.ts /app/server/gateway/launch-bot.ts
 RUN chmod +x /entrypoint.sh /start-services.sh
 
+# SAMPLE_INTERVAL_MS can be overridden per task via ENV in the thin FROM layer.
+COPY skill_tracker.ts /app/benchmark/shared/skill_tracker.ts
+
+# Ensure bot.env has SERVER=localhost so scripts connect to the local gateway
+RUN echo 'SERVER=localhost' >> /app/bots/agent/bot.env
+
+# Wrapper: start services, launch tracker in background (fully detached), then run MCP server.
+# Tracker writes to /app/skill_tracking.json (persists between agent and verifier phases).
+RUN printf '#!/bin/bash\n/start-services.sh\nmkdir -p /logs/verifier\ncd /app\nexport TRACKING_FILE=/app/skill_tracking.json\nnohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &\nexec bun run mcp/server.ts\n' > /start-with-tracker.sh && chmod +x /start-with-tracker.sh
+
 # Override .mcp.json so Claude Code starts game services before the MCP server.
 # Services start in background (&) so the MCP server is immediately responsive.
 RUN echo '{"mcpServers":{"rs-agent":{"command":"bash","args":["-c","/start-services.sh & cd /app && bun run mcp/server.ts"]}}}' > /app/.mcp.json
+
+# Idempotent service starter for agents that don't use MCP (e.g. gemini-cli)
+COPY ensure-services.sh /ensure-services.sh
+RUN chmod +x /ensure-services.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -63,6 +63,16 @@ done
 sleep 20
 echo "[services] Bot should be ready"
 
+# ── Skill tracker (runs for full container lifetime) ──────────
+if ! pgrep -f skill_tracker > /dev/null 2>&1; then
+    echo "[services] Starting skill tracker..."
+    cd /app && TRACKING_FILE=/app/skill_tracking.json \
+      nohup bun run benchmark/shared/skill_tracker.ts > /app/skill_tracker.log 2>&1 &
+    echo "[services] Skill tracker started (pid=$!)"
+else
+    echo "[services] Skill tracker already running"
+fi
+
 # ── Screen recording ─────────────────────────────────────────────
 if [ "$RECORD_VIDEO" = "1" ]; then
     echo "[services] Starting screen recording (2 fps, h264)..."

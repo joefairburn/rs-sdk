@@ -10,6 +10,9 @@ echo "Building Docker image: ${FULL_IMAGE} (platform: ${PLATFORM})"
 
 cd "$(dirname "$0")"
 
+# Copy skill_tracker.ts from shared/ (single source of truth)
+cp ../shared/skill_tracker.ts skill_tracker.ts
+
 if [ "$PUSH" = "1" ] || [ "$PUSH" = "true" ]; then
     # Build and push in one step (buildx with --push avoids loading
     # a foreign-arch image into the local daemon).
